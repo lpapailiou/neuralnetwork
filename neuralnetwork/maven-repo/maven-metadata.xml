@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>neuralnetwork</groupId>
+  <artifactId>maven-repo</artifactId>
+  <versioning>
+    <versions>
+      <version>1.0-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20200916204522</lastUpdated>
+  </versioning>
+</metadata>
