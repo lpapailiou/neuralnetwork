@@ -5,7 +5,6 @@
 /target/
 /.settings/
 /bin/
-/src/
 /classes/
 *.classpath
 *.project
