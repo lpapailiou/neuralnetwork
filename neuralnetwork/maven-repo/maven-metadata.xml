@@ -3,9 +3,11 @@
   <groupId>neuralnetwork</groupId>
   <artifactId>maven-repo</artifactId>
   <versioning>
+    <release>1.1</release>
     <versions>
       <version>1.0-SNAPSHOT</version>
+      <version>1.1</version>
     </versions>
-    <lastUpdated>20200916204522</lastUpdated>
+    <lastUpdated>20200916235844</lastUpdated>
   </versioning>
 </metadata>

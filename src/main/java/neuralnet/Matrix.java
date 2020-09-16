@@ -3,51 +3,37 @@ package neuralnet;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This is a helper class to build the layers of the neural network.
+ */
 public class Matrix {
 
     private double[][] data;
     private int rows;
     private int cols;
 
-    public Matrix(int rows, int cols) {
+    /**
+     * The constructor to create a randomized matrix for given type.
+     * @param rows the row count of the matrix
+     * @param cols the column count of the matrix
+     */
+    Matrix(int rows, int cols) {
         data = new double[rows][cols];
         this.rows = rows;
         this.cols = cols;
     }
 
-    public Matrix(double[][] input) {
+    /**
+     * Constructor used for testing
+     * @param input the input 2d array to be converted to a matrix
+     */
+    Matrix(double[][] input) {
         data = input;
         rows = input.length;
         cols = input[0].length;
     }
 
-    public void randomize() {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                data[i][j] = Math.random() * 2 - 1;
-            }
-        }
-    }
-
-    public void randomize(double factor) {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (Math.random() < 0.5) {
-                    data[i][j] = data[i][j] + (Math.random() * 2 - 1) * factor;
-                }
-            }
-        }
-    }
-
-    public void add(double scaler) {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                data[i][j] += scaler;
-            }
-        }
-    }
-
-    public void add(Matrix m) {
+    void add(Matrix m) {
         if (cols != m.cols || rows != m.rows) {
             throw new IllegalArgumentException("wrong input matrix dimensions for addition!");
         }
@@ -112,7 +98,7 @@ public class Matrix {
         }
     }
 
-    public static Matrix multiply(Matrix a, Matrix b) {
+    static Matrix multiply(Matrix a, Matrix b) {
         if (a.cols != b.rows) {
             throw new IllegalArgumentException("wrong input matrix dimensions for multiplication! " + a.getType() + " " + b.getType());
         }
@@ -129,7 +115,7 @@ public class Matrix {
         return tmp;
     }
 
-    public static Matrix transponse(Matrix m) {
+    static Matrix transponse(Matrix m) {
         Matrix tmp = new Matrix(m.cols, m.rows);
         for (int i = 0; i < m.rows; i++) {
             for (int j = 0; j < m.cols; j++) {
@@ -157,18 +143,16 @@ public class Matrix {
         return tmp;
     }
 
-    public void print() {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                System.out.print(data[i][j] + "  ");
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-
     private String getType() {
         return "(" + rows + ", " + cols + ")";
+    }
+
+    int getRows() {
+        return rows;
+    }
+
+    int getCols() {
+        return cols;
     }
 
     static Matrix fromArray(double[] arr) {
@@ -189,23 +173,41 @@ public class Matrix {
         return tmp;
     }
 
-    @Override
-    public Matrix clone() {
-        Matrix m = new Matrix(rows, cols);
-        for (int i = 0; i < m.rows; i++) {
-            for (int j = 0; j < m.cols; j++) {
-                m.data[i][j] = this.data[i][j];
+    void randomize() {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                data[i][j] = Math.random() * 2 - 1;
             }
         }
+    }
+
+    void randomize(double factor) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (Math.random() < 0.5) {
+                    data[i][j] = data[i][j] + (Math.random() * 2 - 1) * factor;
+                }
+            }
+        }
+    }
+
+    void print() {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                System.out.print(data[i][j] + "  ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
+    @Override
+    protected Matrix clone() {
+        Matrix m = new Matrix(rows, cols);
+        for (int i = 0; i < m.rows; i++) {
+            if (m.cols >= 0) System.arraycopy(this.data[i], 0, m.data[i], 0, m.cols);
+        }
         return m;
-    }
-
-    public int getRows() {
-        return rows;
-    }
-
-    public int getCols() {
-        return cols;
     }
 
 }

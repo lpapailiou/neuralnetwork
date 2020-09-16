@@ -1,36 +1,50 @@
 package neuralnet;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
+/**
+ * This is the central class of this library, allowing to create a freely configurable neural network.
+ * The architecture can be set by parameters. Input and output values are designed to be double arrays.
+ * It supports supervised and unsupervised machine learning.
+ */
 public class NeuralNetwork {
 
     private List<Layer> layers = new ArrayList<>();
-    private double randomizationRate;
+    private double randomizationRate = 0.1;
 
     /**
-     * parameter list for matrix sizes.
-     * first parameter = input nodes count
-     * last parameter = output nodes count
-     * parameters between = size of hidden layer
-     * @param layerParams
+     * A constructor of the neural network.
+     * The varag parameters will define the architecture of the neural network. You need to enter at least two parameters.
+     * Please note there is another constructor which allows to set the randomization rate for clones.
+     * @param layerParams the architecture of the neural network. First argument = node count of input layer; last argument = node count of output layer; arguments between = node count per hidden layer.
      */
     public NeuralNetwork(int... layerParams) {
         if (layerParams.length < 2) {
-            throw new IllegalArgumentException("enter at least two parameters to create neural network!");
+            throw new IllegalArgumentException("enter at least two arguments to create neural network!");
         }
         for (int i = 1; i < layerParams.length; i++) {
             layers.add(new Layer(layerParams[i], layerParams[i-1]));
         }
     }
 
+    /**
+     * A constructor of the neural network.
+     * The varag parameters will define the architecture of the neural network. You need to enter at least two parameters.
+     * Please note there is another constructor which does not require randomization rate (defaults to 0.1).
+     * @param randomizationRate the randomization rate, used for unsupervised machine learning approach where cloning instead of back propagating is used.
+     * @param layerParams the architecture of the neural network. First argument = node count of input layer; last argument = node count of output layer; arguments between = node count per hidden layer.
+     */
     public NeuralNetwork(double randomizationRate, int... layerParams) {
         this(layerParams);
         this.randomizationRate = randomizationRate;
     }
 
+    /**
+     * Constructor used for internal clones.
+     * @param randomizationRate the randomization rate for the unsupervised machine learning approach.
+     * @param layers the layer configuration to be cloned.
+     */
     private NeuralNetwork(double randomizationRate, List<Layer> layers) {
         List<Layer> newLayerSet = new ArrayList<>();
         for (Layer layer : layers) {
@@ -40,7 +54,12 @@ public class NeuralNetwork {
         this.randomizationRate = randomizationRate;
     }
 
-    // forward pass
+    /**
+     * This method will take input nodes as parameter and return the predicted output nodes.
+     * The neural net will not be modified. This method can be used for testing or the unsupervised machine learning approach.
+     * @param input the input nodes as double array
+     * @return the predicted output nodes as Double List
+     */
     public List<Double> predict(double[] input) {
         Matrix tmp = Matrix.fromArray(input);
 
@@ -53,10 +72,17 @@ public class NeuralNetwork {
         return Matrix.toArray(tmp);
     }
 
+    /**
+     * This method will take input nodes as well as the expected output nodes as parameter and return the predicted output nodes.
+     * The neural net will be modified and back propagate the expected values to adjust the weighed layers. This method can be used for training as supervised machine learning algorithm.
+     * @param inputNodes the input nodes as double array
+     * @param expectedOutputNodes the expected output nodes as double array
+     * @return the actual output nodes as Double List
+     */
     public List<Double> learn(double[] inputNodes, double[] expectedOutputNodes) {
         Matrix input = Matrix.fromArray(inputNodes);
 
-        // forward propagate and add results to list
+        // forward propagate and prepare output
         List<Matrix> steps = new ArrayList<>();
         Matrix tmp = input;
         for (Layer layer : layers) {
@@ -66,24 +92,9 @@ public class NeuralNetwork {
             steps.add(tmp);
         }
 
-        Matrix target;
-        if (expectedOutputNodes == null) {
-            List<Double> prediction = Matrix.toArray(tmp);
-            int maxIndex = prediction.indexOf(Collections.max(prediction));
-            double[] array = new double[prediction.size()];
-            for (int i = 0; i < prediction.size(); i++) {
-                if (i == maxIndex) {
-                    array[i] = 1.0;
-                } else {
-                    array[i] = 0.0;
-                }
-            }
-            target = Matrix.fromArray(array);
-        } else {
-            target = Matrix.fromArray(expectedOutputNodes);
-        }
+        Matrix target = Matrix.fromArray(expectedOutputNodes);
 
-        // backward propagate to adjust weights
+        // backward propagate to adjust weights in layers
         Matrix error = null;
         for (int i = steps.size()-1; i >= 0; i--) {
             if (error == null) {
@@ -102,7 +113,12 @@ public class NeuralNetwork {
         return Matrix.toArray(tmp);
     }
 
-    // train with sample data in multiple test rounds
+    /**
+     * This method can be used to batch train the neural net with the supervised machine learning approach.
+     * @param inputSet the input set of possible input node values
+     * @param expectedOutputSet the output set of according expected output values
+     * @param rounds the count of repetitions of the batch training
+     */
     public void train(double[][] inputSet, double[][] expectedOutputSet, int rounds) {
         for (int i = 0; i < rounds; i++) {
             int sampleIndex = (int) (Math.random() * inputSet.length);
@@ -110,6 +126,12 @@ public class NeuralNetwork {
         }
     }
 
+    /**
+     * This method will merge two neural networks to one. Please note that the first neural network given as parameter will be altered in the process.
+     * @param a neural network to be altered and merged
+     * @param b neural network to be merged
+     * @return the neural network a merged with b
+     */
     public static NeuralNetwork merge(NeuralNetwork a, NeuralNetwork b) {
         for (int i = 0; i < a.layers.size(); i++) {
             a.layers.get(i).weight = Matrix.merge(a.layers.get(i).weight, b.layers.get(i).weight);
@@ -118,6 +140,10 @@ public class NeuralNetwork {
         return a;
     }
 
+    /**
+     * This method will provide a randomized clone of the current neural network. The output neural network will not be connected to the cloned neural network.
+     * @return a randomized clone of this instance
+     */
     @Override
     public NeuralNetwork clone() {
         NeuralNetwork net = new NeuralNetwork(randomizationRate, layers);
@@ -132,11 +158,4 @@ public class NeuralNetwork {
         }
     }
 
-    public double getRandomizationRate() {
-        return randomizationRate;
-    }
-
-    public void setRandomizationRate(double randomizationRate) {
-        this.randomizationRate = randomizationRate;
-    }
 }

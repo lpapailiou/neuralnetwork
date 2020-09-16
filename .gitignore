@@ -6,6 +6,5 @@
 /.settings/
 /bin/
 /classes/
-/neuralnetwork/
 *.classpath
 *.project
