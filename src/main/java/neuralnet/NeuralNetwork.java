@@ -1,7 +1,6 @@
 package neuralnet;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * This is the central class of this library, allowing to create a freely configurable neural network.
@@ -138,6 +137,18 @@ public class NeuralNetwork {
             a.layers.get(i).bias = Matrix.merge(a.layers.get(i).bias, b.layers.get(i).bias);
         }
         return a;
+    }
+
+    /**
+     * This method may be used to cleanse the output of previous runs with the neural network.
+     * @param nodeList the Double list of results
+     * @return the index of the max value
+     */
+    public static int getMaxindex(List<Double> nodeList) {
+        if (nodeList == null || nodeList.size() == 0) {
+            throw new IllegalArgumentException("Invalid input list!");
+        }
+        return nodeList.indexOf(Collections.max(nodeList));
     }
 
     /**
