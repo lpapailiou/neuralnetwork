@@ -9,17 +9,17 @@ Just add the jar as external library.
 ### From a Maven dependency  
 Add following snippets to your ``pom.xml`` file:
 
-``<repositories>
-    <repository>
-        <id>neuralnetwork</id>
-        <url>https://github.com/lpapailiou/neuralnetwork/raw/master</url>
-    </repository>
-</repositories>``  
+``<repositories>  
+    <repository>  
+        <id>neuralnetwork</id>  
+        <url>https://github.com/lpapailiou/neuralnetwork/raw/master</url>  
+    </repository>  
+</repositories>``    
   
-``<dependencies>
-    <dependency>
-        <groupId>neuralnetwork</groupId>
-        <artifactId>maven-repo</artifactId>
-        <version>1.1</version>
-    </dependency>
-</dependencies>``
+``<dependencies>  
+    <dependency>  
+        <groupId>neuralnetwork</groupId>  
+        <artifactId>maven-repo</artifactId>  
+        <version>1.1</version>  
+    </dependency>  
+</dependencies>``  
