@@ -10,6 +10,7 @@ import java.util.*;
 public class NeuralNetwork {
 
     private List<Layer> layers = new ArrayList<>();
+    private int inputLayerNodes;
     private double randomizationRate = 0.1;
 
     /**
@@ -22,6 +23,7 @@ public class NeuralNetwork {
         if (layerParams.length < 2) {
             throw new IllegalArgumentException("enter at least two arguments to create neural network!");
         }
+        this.inputLayerNodes = layerParams[0];
         for (int i = 1; i < layerParams.length; i++) {
             layers.add(new Layer(layerParams[i], layerParams[i-1]));
         }
@@ -39,17 +41,13 @@ public class NeuralNetwork {
         this.randomizationRate = randomizationRate;
     }
 
-    /**
-     * Constructor used for internal clones.
-     * @param randomizationRate the randomization rate for the unsupervised machine learning approach.
-     * @param layers the layer configuration to be cloned.
-     */
-    private NeuralNetwork(double randomizationRate, List<Layer> layers) {
+    private NeuralNetwork(int inputLayerNodes, double randomizationRate, List<Layer> layers) {
         List<Layer> newLayerSet = new ArrayList<>();
         for (Layer layer : layers) {
             newLayerSet.add(layer.clone());
         }
         this.layers = newLayerSet;
+        this.inputLayerNodes = inputLayerNodes;
         this.randomizationRate = randomizationRate;
     }
 
@@ -60,6 +58,10 @@ public class NeuralNetwork {
      * @return the predicted output nodes as Double List
      */
     public List<Double> predict(double[] input) {
+        if (input.length != inputLayerNodes) {
+            throw new IllegalArgumentException("input node count does not match neural network configuration!");
+        }
+
         Matrix tmp = Matrix.fromArray(input);
 
         for (Layer layer : layers) {
@@ -79,6 +81,10 @@ public class NeuralNetwork {
      * @return the actual output nodes as Double List
      */
     public List<Double> learn(double[] inputNodes, double[] expectedOutputNodes) {
+        if (inputNodes.length != inputLayerNodes) {
+            throw new IllegalArgumentException("input node count does not match neural network configuration!");
+        }
+
         Matrix input = Matrix.fromArray(inputNodes);
 
         // forward propagate and prepare output
@@ -157,7 +163,7 @@ public class NeuralNetwork {
      */
     @Override
     public NeuralNetwork clone() {
-        NeuralNetwork net = new NeuralNetwork(randomizationRate, layers);
+        NeuralNetwork net = new NeuralNetwork(inputLayerNodes, randomizationRate, layers);
         net.randomize(randomizationRate);
         return net;
     }
