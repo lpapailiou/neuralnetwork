@@ -54,15 +54,15 @@ public class NeuralNetwork {
     /**
      * This method will take input nodes as parameter and return the predicted output nodes.
      * The neural net will not be modified. This method can be used for testing or the unsupervised machine learning approach.
-     * @param input the input nodes as double array
+     * @param inputNodes the input nodes as double array
      * @return the predicted output nodes as Double List
      */
-    public List<Double> predict(double[] input) {
-        if (input.length != inputLayerNodes) {
-            throw new IllegalArgumentException("input node count does not match neural network configuration!");
+    public List<Double> predict(double[] inputNodes) {
+        if (inputNodes.length != inputLayerNodes) {
+            throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + inputLayerNodes + " input nodes.");
         }
 
-        Matrix tmp = Matrix.fromArray(input);
+        Matrix tmp = Matrix.fromArray(inputNodes);
 
         for (Layer layer : layers) {
             tmp = Matrix.multiply(layer.weight, tmp);
@@ -82,7 +82,7 @@ public class NeuralNetwork {
      */
     public List<Double> learn(double[] inputNodes, double[] expectedOutputNodes) {
         if (inputNodes.length != inputLayerNodes) {
-            throw new IllegalArgumentException("input node count does not match neural network configuration!");
+            throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + inputLayerNodes + " input nodes.");
         }
 
         Matrix input = Matrix.fromArray(inputNodes);
