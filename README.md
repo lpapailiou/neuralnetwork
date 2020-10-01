@@ -20,7 +20,7 @@ Add following snippets to your ``pom.xml`` file:
     <dependencies>    
         <dependency>    
             <groupId>neuralnetwork</groupId>    
-            <artifactId>maven-repo</artifactId>    
-            <version>1.1</version>    
+            <artifactId>neural-network-repo</artifactId>    
+            <version>1.2</version>    
         </dependency>    
     </dependencies>    

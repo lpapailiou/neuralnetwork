@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>neuralnetwork</groupId>
-    <artifactId>neural-network-repo</artifactId>
+    <artifactId>maven-repo</artifactId>
     <version>1.2</version>
     <build>
         <plugins>
