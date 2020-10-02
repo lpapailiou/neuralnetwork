@@ -163,7 +163,7 @@ public class Matrix {
         return tmp;
     }
 
-    static List<Double> toArray(Matrix m) {
+    static List<Double> asList(Matrix m) {
         List<Double> tmp = new ArrayList<>();
         for (int i = 0; i < m.rows; i++) {
             for (int j = 0; j < m.cols; j++) {
