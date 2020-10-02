@@ -146,18 +146,6 @@ public class NeuralNetwork {
     }
 
     /**
-     * This method may be used to cleanse the output of previous runs with the neural network.
-     * @param nodeList the Double list of results
-     * @return the index of the max value
-     */
-    public static int getMaxindex(List<Double> nodeList) {
-        if (nodeList == null || nodeList.size() == 0) {
-            throw new IllegalArgumentException("Invalid input list!");
-        }
-        return nodeList.indexOf(Collections.max(nodeList));
-    }
-
-    /**
      * This method will provide a randomized clone of the current neural network. The output neural network will not be connected to the cloned neural network.
      * @return a randomized clone of this instance
      */
@@ -166,6 +154,14 @@ public class NeuralNetwork {
         NeuralNetwork net = new NeuralNetwork(inputLayerNodes, randomizationRate, layers);
         net.randomize(randomizationRate);
         return net;
+    }
+
+    /**
+     * This method will provide an identical copy of the current neural network. The output neural network will not be connected to the copied neural network.
+     * @return an identical copy of this instance
+     */
+    public NeuralNetwork copy() {
+        return new NeuralNetwork(inputLayerNodes, randomizationRate, layers);
     }
 
     private void randomize(double factor) {
