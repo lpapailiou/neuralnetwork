@@ -210,4 +210,29 @@ public class Matrix {
         return m;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                sb.append(data[i][j] + "  ");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.parseInt(rows + "" + cols);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Matrix)) {
+            return false;
+        }
+        return this.toString().equals(o.toString());
+    }
+
 }
