@@ -143,7 +143,7 @@ public class Matrix {
         return tmp;
     }
 
-    private String getType() {
+    String getType() {
         return "(" + rows + ", " + cols + ")";
     }
 
@@ -207,12 +207,17 @@ public class Matrix {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("[");
         for (int i = 0; i < rows; i++) {
+            sb.append("[");
             for (int j = 0; j < cols; j++) {
-                sb.append(data[i][j] + "  ");
+                sb.append(data[i][j] + ", ");
             }
-            sb.append("\n");
+            sb.replace(sb.length()-2, sb.length(), "");
+            sb.append("],\n");
         }
+        sb.replace(sb.length()-2, sb.length(), "");
+        sb.append("]");
         return sb.toString();
     }
 

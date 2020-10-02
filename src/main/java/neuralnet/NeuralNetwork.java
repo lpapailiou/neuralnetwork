@@ -1,5 +1,7 @@
 package neuralnet;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 /**
@@ -58,7 +60,9 @@ public class NeuralNetwork {
      * @return the predicted output nodes as Double List
      */
     public List<Double> predict(double[] inputNodes) {
-        if (inputNodes.length != inputLayerNodes) {
+        if (inputNodes == null) {
+            throw new NullPointerException("inputNodes must not be null!");
+        } else if (inputNodes.length != inputLayerNodes) {
             throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + inputLayerNodes + " input nodes.");
         }
 
@@ -81,7 +85,9 @@ public class NeuralNetwork {
      * @return the actual output nodes as Double List
      */
     public List<Double> learn(double[] inputNodes, double[] expectedOutputNodes) {
-        if (inputNodes.length != inputLayerNodes) {
+        if (inputNodes == null || expectedOutputNodes == null) {
+            throw new NullPointerException("inputNodes and expectedOutputNodes are required!");
+        } else if (inputNodes.length != inputLayerNodes) {
             throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + inputLayerNodes + " input nodes.");
         }
 
@@ -125,6 +131,9 @@ public class NeuralNetwork {
      * @param rounds the count of repetitions of the batch training
      */
     public void train(double[][] inputSet, double[][] expectedOutputSet, int rounds) {
+        if (inputSet == null || expectedOutputSet == null) {
+            throw new NullPointerException("inputSet and expectedOutputSet are required!");
+        }
         for (int i = 0; i < rounds; i++) {
             int sampleIndex = (int) (Math.random() * inputSet.length);
             learn(inputSet[sampleIndex], expectedOutputSet[sampleIndex]);
@@ -138,6 +147,9 @@ public class NeuralNetwork {
      * @return the neural network a merged with b
      */
     public static NeuralNetwork merge(NeuralNetwork a, NeuralNetwork b) {
+        if (a == null || b == null) {
+            throw new NullPointerException("two NeuralNetwork instances required!");
+        }
         for (int i = 0; i < a.layers.size(); i++) {
             a.layers.get(i).weight = Matrix.merge(a.layers.get(i).weight, b.layers.get(i).weight);
             a.layers.get(i).bias = Matrix.merge(a.layers.get(i).bias, b.layers.get(i).bias);
@@ -169,6 +181,30 @@ public class NeuralNetwork {
             layer.weight.randomize(factor);
             layer.bias.randomize(factor);
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("randomization rate: " + randomizationRate + "\n");
+        for (int i = 0; i < layers.size(); i++) {
+            sb.append(" ----- layer " + i + " -----\n");
+            sb.append(layers.get(i).toString() + "\n");
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.parseInt(randomizationRate + "" + layers.size());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof NeuralNetwork)) {
+            return false;
+        }
+        return this.toString().equals(o.toString());
     }
 
 }

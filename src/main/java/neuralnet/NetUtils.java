@@ -23,7 +23,7 @@ public class NetUtils {
      * @param nodeList the Double list of results
      * @return the standardized list, where all values will be rounded to 0 or 1
      */
-    public static List<Double> getStandardizedOutput(List<Double> nodeList) {
+    public static List<Double> getStandardizedOutputList(List<Double> nodeList) {
         if (nodeList == null || nodeList.size() == 0) {
             throw new IllegalArgumentException("Invalid input list!");
         }
@@ -33,4 +33,5 @@ public class NetUtils {
         }
         return sList;
     }
+
 }
