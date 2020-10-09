@@ -24,7 +24,10 @@ public class NeuralNetwork {
     public NeuralNetwork(int... layerParams) {
         if (layerParams.length < 2) {
             throw new IllegalArgumentException("enter at least two arguments to create neural network!");
+        } else if (Arrays.stream(layerParams).anyMatch(number -> number < 1)) {
+            throw new IllegalArgumentException("every layer must have at least one node!");
         }
+
         this.inputLayerNodes = layerParams[0];
         for (int i = 1; i < layerParams.length; i++) {
             layers.add(new Layer(layerParams[i], layerParams[i-1]));
