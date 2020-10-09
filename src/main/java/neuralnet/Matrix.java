@@ -1,12 +1,13 @@
 package neuralnet;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * This is a helper class to build the layers of the neural network.
  */
-public class Matrix {
+public class Matrix implements Serializable {
 
     private double[][] data;
     private int rows;

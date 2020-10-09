@@ -1,7 +1,6 @@
 package neuralnet;
 
-import org.jetbrains.annotations.NotNull;
-
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -9,7 +8,7 @@ import java.util.*;
  * The architecture can be set by parameters. Input and output values are designed to be double arrays.
  * It supports supervised and unsupervised machine learning.
  */
-public class NeuralNetwork {
+public class NeuralNetwork implements Serializable {
 
     private List<Layer> layers = new ArrayList<>();
     private int inputLayerNodes;

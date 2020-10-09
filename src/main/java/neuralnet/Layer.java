@@ -1,9 +1,11 @@
 package neuralnet;
 
+import java.io.Serializable;
+
 /**
  * This is a helper class to assure a dynamic and configurable architecture for the neural network.
  */
-class Layer {
+class Layer implements Serializable {
 
     Matrix weight;
     Matrix bias;
