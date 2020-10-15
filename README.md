@@ -21,6 +21,6 @@ Add following snippets to your ``pom.xml`` file:
         <dependency>    
             <groupId>neuralnetwork</groupId>    
             <artifactId>neural-network-repo</artifactId>    
-            <version>1.7</version>    
+            <version>1.8</version>    
         </dependency>    
     </dependencies>    

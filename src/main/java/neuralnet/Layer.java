@@ -7,7 +7,7 @@ import java.io.Serializable;
  */
 class Layer implements Serializable {
 
-    private static long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     Matrix weight;
     Matrix bias;
 
