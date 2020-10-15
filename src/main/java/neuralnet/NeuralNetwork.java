@@ -10,6 +10,7 @@ import java.util.*;
  */
 public class NeuralNetwork implements Serializable {
 
+    private static long serialVersionUID = 1L;
     private List<Layer> layers = new ArrayList<>();
     private int inputLayerNodes;
     private double randomizationRate = 0.1;

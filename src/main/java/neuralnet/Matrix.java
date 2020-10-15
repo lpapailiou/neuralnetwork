@@ -9,6 +9,7 @@ import java.util.List;
  */
 public class Matrix implements Serializable {
 
+    private static long serialVersionUID = 1L;
     private double[][] data;
     private int rows;
     private int cols;
