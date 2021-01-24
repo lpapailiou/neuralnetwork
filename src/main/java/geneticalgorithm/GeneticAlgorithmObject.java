@@ -21,13 +21,13 @@ public abstract class GeneticAlgorithmObject<T> implements Comparable<GeneticAlg
         return neuralNetwork;
     }
 
-    abstract long getFitness();
+    public abstract long getFitness();
 
     public abstract boolean executeStep();
 
-    abstract boolean isImmature();
+    public abstract boolean isImmature();
 
-    abstract GeneticAlgorithmObject getGeneticAlgorithmObject(NeuralNetwork neuralNetwork);
+    public abstract GeneticAlgorithmObject getGeneticAlgorithmObject(NeuralNetwork neuralNetwork);
 
     @Override
     public int compareTo(@NotNull GeneticAlgorithmObject<T> other) {

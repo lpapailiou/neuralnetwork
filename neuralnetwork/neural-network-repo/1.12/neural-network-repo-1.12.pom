@@ -6,7 +6,7 @@
 
     <groupId>neuralnetwork</groupId>
     <artifactId>neural-network-repo</artifactId>
-    <version>1.13</version>
+    <version>1.12</version>
     <build>
         <plugins>
             <plugin>
