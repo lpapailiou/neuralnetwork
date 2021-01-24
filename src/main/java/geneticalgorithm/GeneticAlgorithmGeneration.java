@@ -2,6 +2,13 @@ package geneticalgorithm;
 
 import neuralnet.NeuralNetwork;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -19,11 +26,23 @@ public class GeneticAlgorithmGeneration {
     private int populationSize;
     private NeuralNetwork bestNeuralNetwork;
     private List<GeneticAlgorithmObject> populationList = new ArrayList<>();
+    private Properties properties = new Properties();
+    private int selectionReproductionSize = 2;
 
     GeneticAlgorithmGeneration(int id, GeneticAlgorithmObject templateObject, int populationSize) {
         this.id = id;
         this.templateObject = templateObject;
         this.populationSize = populationSize;
+
+        URL path = getClass().getClassLoader().getResource("geneticalgorithm.properties");
+        File file = null;
+        try {
+            file = Paths.get(path.toURI()).toFile();
+            properties.load(new FileInputStream(file));
+            selectionReproductionSize = Integer.parseInt(properties.getProperty("selectionReproductionSize"));
+        } catch (URISyntaxException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     NeuralNetwork runGeneration(NeuralNetwork seedNeuralNetwork) {
@@ -70,8 +89,6 @@ public class GeneticAlgorithmGeneration {
         } else if (populationList.size() >= 1000) {
             selectionPoolSize = (int) (populationSize * 0.01);
         }
-
-        int selectionReproductionSize = 2;      // TODO: move to properties
 
         Map<Integer, Long> map = new HashMap<>();
         double sumFitness = 0;
