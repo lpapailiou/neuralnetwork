@@ -20,13 +20,13 @@ public class GeneticAlgorithmGeneration {
     private static GeneticAlgorithmObject templateObject;
     private int populationSize;
     private NeuralNetwork bestNeuralNetwork;
+    private NeuralNetwork bestNeuralNetworkForReproduction;
     private List<GeneticAlgorithmObject> populationList = new ArrayList<>();
     private int selectionReproductionSize = 2;
     private Constructor<?> templateBuilder;
 
     GeneticAlgorithmGeneration(int id, int populationSize) {
         this.id = id;
-        this.templateObject = templateObject;
         this.populationSize = populationSize;
         selectionReproductionSize = Integer.parseInt(GeneticAlgorithmBatch.properties.getProperty("selectionReproductionSize"));
         try {
@@ -52,11 +52,17 @@ public class GeneticAlgorithmGeneration {
             LOG.log(Level.WARNING, "executor service interrupted unexpectedly!", e);
             Thread.currentThread().interrupt();
         }
-        return evolve();
+
+        bestNeuralNetworkForReproduction = evolve();
+        return bestNeuralNetworkForReproduction;
     }
 
     NeuralNetwork getBestNeuralNetwork() {
         return bestNeuralNetwork;
+    }
+
+    NeuralNetwork getBestNeuralNetworkForReproduction() {
+        return bestNeuralNetworkForReproduction;
     }
 
     private NeuralNetwork evolve() {
@@ -117,6 +123,10 @@ public class GeneticAlgorithmGeneration {
         return chosen;
     }
 
+    List<GeneticAlgorithmObject> getPopulationList() {
+        return populationList;
+    }
+
     class BackgroundProcess implements Runnable {
         NeuralNetwork neuralNetwork;
         GeneticAlgorithmObject object;
@@ -126,7 +136,7 @@ public class GeneticAlgorithmGeneration {
             try {
                 object = (GeneticAlgorithmObject) templateBuilder.newInstance(neuralNetwork);
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                throw new UnsupportedOperationException("geneticAlgorithmObjectTemplate property is not set correctly!", e);
+                throw new UnsupportedOperationException("geneticAlgorithmObjectTemplate property is not a suitable class!", e);
             }
             populationList.add(object);
         }

@@ -1,7 +1,9 @@
 package neuralnet;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is the central class of this library, allowing to create a freely configurable neural network.

@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class GeneticAlgorithmBatch {
@@ -50,6 +52,20 @@ public class GeneticAlgorithmBatch {
 
     public NeuralNetwork getBestNeuralNetwork() {
         return currentGeneration.getBestNeuralNetwork();
+    }
+
+    public NeuralNetwork getBestNeuralNetworkForReproduction() {
+        return currentGeneration.getBestNeuralNetworkForReproduction();
+    }
+
+    public List<NeuralNetwork> getBestNeuralNetworks(int count) {
+        List<NeuralNetwork> networks = new ArrayList<>();
+        int index = Math.min(count, populationSize);
+        List<GeneticAlgorithmObject> populationList = currentGeneration.getPopulationList();
+        for (int i = 0; i < index; i++) {
+            networks.add(populationList.get(i).getNeuralNetwork());
+        }
+        return networks;
     }
 
     public void setGeneticAlgorithmObjectTemplate(String templateName) {
