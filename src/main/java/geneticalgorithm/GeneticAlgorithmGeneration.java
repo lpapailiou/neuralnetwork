@@ -124,7 +124,7 @@ public class GeneticAlgorithmGeneration {
         BackgroundProcess(NeuralNetwork neuralNetwork, List<GeneticAlgorithmObject> populationList) {
             this.neuralNetwork = neuralNetwork;
             try {
-                object = (GeneticAlgorithmObject) templateBuilder.newInstance(new Object[] {neuralNetwork});
+                object = (GeneticAlgorithmObject) templateBuilder.newInstance(neuralNetwork);
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
                 throw new UnsupportedOperationException("geneticAlgorithmObjectTemplate property is not set correctly!", e);
             }
