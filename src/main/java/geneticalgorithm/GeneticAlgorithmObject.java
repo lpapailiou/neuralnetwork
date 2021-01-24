@@ -17,19 +17,17 @@ public abstract class GeneticAlgorithmObject<T> implements Comparable<GeneticAlg
         return neuralNetwork.predict(inputValues);
     }
 
-    public NeuralNetwork getNeuralNetwork() {
+    NeuralNetwork getNeuralNetwork() {
         return neuralNetwork;
     }
 
-    public abstract long getFitness();
+    abstract long getFitness();
 
-    public abstract boolean executeStep();
+    abstract boolean executeStep();
 
-    public abstract boolean isImmature();
+    abstract boolean isImmature();
 
-    public abstract GeneticAlgorithmObject getGeneticAlgorithmObject(NeuralNetwork neuralNetwork);
-
-    public abstract GeneticAlgorithmObject<T> get(NeuralNetwork neuralNetwork);
+    abstract GeneticAlgorithmObject getGeneticAlgorithmObject(NeuralNetwork neuralNetwork);
 
     @Override
     public int compareTo(@NotNull GeneticAlgorithmObject<T> other) {

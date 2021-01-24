@@ -7,6 +7,7 @@ public class GeneticAlgorithmBatch {
 
     private int generationCount = Integer.MAX_VALUE;
     private int currentGenerationId;
+    private GeneticAlgorithmGeneration currentGeneration;
     private final int populationSize;
     private NeuralNetwork neuralNetwork;
 
@@ -21,12 +22,16 @@ public class GeneticAlgorithmBatch {
     }
 
     public NeuralNetwork processGeneration() {
-        GeneticAlgorithmGeneration generation = new GeneticAlgorithmGeneration(currentGenerationId, populationSize);
-        neuralNetwork = generation.runGeneration(neuralNetwork);
+        currentGeneration = new GeneticAlgorithmGeneration(currentGenerationId, populationSize);
+        neuralNetwork = currentGeneration.runGeneration(neuralNetwork);
         if (currentGenerationId == generationCount) {
             return null;
         }
         currentGenerationId++;
         return neuralNetwork;
+    }
+
+    public NeuralNetwork getBestNeuralNetwork() {
+        return currentGeneration.getBestNeuralNetwork();
     }
 }

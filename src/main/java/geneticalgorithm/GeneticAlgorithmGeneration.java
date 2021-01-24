@@ -19,7 +19,7 @@ public class GeneticAlgorithmGeneration {
     private NeuralNetwork bestNeuralNetwork;
     private List<GeneticAlgorithmObject> populationList = new ArrayList<>();
 
-    public GeneticAlgorithmGeneration(int id, int populationSize) {
+    GeneticAlgorithmGeneration(int id, int populationSize) {
         this.id = id;
         this.populationSize = populationSize;
     }
@@ -43,7 +43,7 @@ public class GeneticAlgorithmGeneration {
         return evolve();
     }
 
-    public NeuralNetwork getBestNeuralNetwork() {
+    NeuralNetwork getBestNeuralNetwork() {
         return bestNeuralNetwork;
     }
 
