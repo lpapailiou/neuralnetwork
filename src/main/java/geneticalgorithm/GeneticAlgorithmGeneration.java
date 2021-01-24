@@ -30,7 +30,7 @@ public class GeneticAlgorithmGeneration {
         this.populationSize = populationSize;
         selectionReproductionSize = Integer.parseInt(GeneticAlgorithmBatch.properties.getProperty("selectionReproductionSize"));
         try {
-            templateBuilder = Class.forName(GeneticAlgorithmBatch.properties.getProperty("geneticAlgorithmObjectTemplate")).getConstructor(String.class);
+            templateBuilder = Class.forName(GeneticAlgorithmBatch.properties.getProperty("geneticAlgorithmObjectTemplate")).getConstructor(NeuralNetwork.class);
         } catch (NoSuchMethodException | ClassNotFoundException e) {
             throw new UnsupportedOperationException("geneticAlgorithmObjectTemplate property is not set correctly!", e);
         }
