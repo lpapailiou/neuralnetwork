@@ -29,6 +29,10 @@ public abstract class GeneticAlgorithmObject<T> implements Comparable<GeneticAlg
 
     public abstract GeneticAlgorithmObject getGeneticAlgorithmObject(NeuralNetwork neuralNetwork);
 
+    public String getLogMessage() {
+        return "fitness: \t " + getFitness();
+    }
+
     @Override
     public int compareTo(@NotNull GeneticAlgorithmObject<T> other) {
         long fitness = this.getFitness();

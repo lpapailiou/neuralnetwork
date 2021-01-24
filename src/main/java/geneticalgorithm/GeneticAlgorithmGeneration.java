@@ -54,7 +54,7 @@ public class GeneticAlgorithmGeneration {
         bestNeuralNetwork = populationList.get(0).getNeuralNetwork();
         NeuralNetwork bestForReproduction = bestNeuralNetwork;
 
-        LOG.log(Level.INFO, () -> String.format("max fitness for gen #%d: \t %d \t ", id, populationList.get(0).getFitness()));
+        LOG.log(Level.INFO, () -> String.format("generation #%d: \t %s", id, populationList.get(0).getLogMessage()));
 
         if (populationList.size() < 2) {
             return bestNeuralNetwork;
@@ -71,7 +71,7 @@ public class GeneticAlgorithmGeneration {
             selectionPoolSize = (int) (populationSize * 0.01);
         }
 
-        int selectionReproductionSize = 2;
+        int selectionReproductionSize = 2;      // TODO: move to properties
 
         Map<Integer, Long> map = new HashMap<>();
         double sumFitness = 0;
@@ -82,11 +82,18 @@ public class GeneticAlgorithmGeneration {
             map.put(i, fitness);
         }
 
+        List<NeuralNetwork> mergeList = new ArrayList<>();
+
         for (int i = 0; i < selectionReproductionSize; i++) {
-            bestForReproduction = NeuralNetwork.merge(bestForReproduction, spinRouletteWheel(map, selectionPoolSize, sumFitness));
+            mergeList.add(0, spinRouletteWheel(map, selectionPoolSize, sumFitness));
         }
 
-        return bestForReproduction;
+        bestForReproduction = mergeList.get(0);
+        for (int i = 1; i < mergeList.size(); i++) {
+            bestForReproduction = NeuralNetwork.merge(bestForReproduction, mergeList.get(i));
+        }
+
+        return NeuralNetwork.merge(bestNeuralNetwork, bestForReproduction);
     }
 
     private NeuralNetwork spinRouletteWheel(Map<Integer, Long> map, int selectionPoolSize, double sumFitness) {
