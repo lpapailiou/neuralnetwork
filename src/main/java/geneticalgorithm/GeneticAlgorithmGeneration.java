@@ -2,13 +2,8 @@ package geneticalgorithm;
 
 import neuralnet.NeuralNetwork;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Paths;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -26,22 +21,18 @@ public class GeneticAlgorithmGeneration {
     private int populationSize;
     private NeuralNetwork bestNeuralNetwork;
     private List<GeneticAlgorithmObject> populationList = new ArrayList<>();
-    private Properties properties = new Properties();
     private int selectionReproductionSize = 2;
+    private Constructor<?> templateBuilder;
 
-    GeneticAlgorithmGeneration(int id, GeneticAlgorithmObject templateObject, int populationSize) {
+    GeneticAlgorithmGeneration(int id, int populationSize) {
         this.id = id;
         this.templateObject = templateObject;
         this.populationSize = populationSize;
-
-        URL path = getClass().getClassLoader().getResource("geneticalgorithm.properties");
-        File file = null;
+        selectionReproductionSize = Integer.parseInt(GeneticAlgorithmBatch.properties.getProperty("selectionReproductionSize"));
         try {
-            file = Paths.get(path.toURI()).toFile();
-            properties.load(new FileInputStream(file));
-            selectionReproductionSize = Integer.parseInt(properties.getProperty("selectionReproductionSize"));
-        } catch (URISyntaxException | IOException e) {
-            e.printStackTrace();
+            templateBuilder = Class.forName(GeneticAlgorithmBatch.properties.getProperty("geneticAlgorithmObjectTemplate")).getConstructor(String.class);
+        } catch (NoSuchMethodException | ClassNotFoundException e) {
+            throw new UnsupportedOperationException("geneticAlgorithmObjectTemplate property is not set correctly!", e);
         }
     }
 
@@ -132,7 +123,11 @@ public class GeneticAlgorithmGeneration {
 
         BackgroundProcess(NeuralNetwork neuralNetwork, List<GeneticAlgorithmObject> populationList) {
             this.neuralNetwork = neuralNetwork;
-            object = templateObject.getGeneticAlgorithmObject(neuralNetwork);
+            try {
+                object = (GeneticAlgorithmObject) templateBuilder.newInstance(new Object[] {neuralNetwork});
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+                throw new UnsupportedOperationException("geneticAlgorithmObjectTemplate property is not set correctly!", e);
+            }
             populationList.add(object);
         }
 

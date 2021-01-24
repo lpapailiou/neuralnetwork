@@ -27,8 +27,6 @@ public abstract class GeneticAlgorithmObject<T> implements Comparable<GeneticAlg
 
     public abstract boolean isImmature();
 
-    public abstract GeneticAlgorithmObject getGeneticAlgorithmObject(NeuralNetwork neuralNetwork);
-
     public String getLogMessage() {
         return "fitness: \t " + getFitness();
     }
