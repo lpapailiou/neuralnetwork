@@ -15,12 +15,14 @@ public class GeneticAlgorithmGeneration {
     private  static final Logger LOG = Logger.getLogger("generation logger");
     private static final int THREAD_POOL = 16;
     private int id;
+    private static GeneticAlgorithmObject templateObject;
     private int populationSize;
     private NeuralNetwork bestNeuralNetwork;
     private List<GeneticAlgorithmObject> populationList = new ArrayList<>();
 
-    GeneticAlgorithmGeneration(int id, int populationSize) {
+    GeneticAlgorithmGeneration(int id, GeneticAlgorithmObject templateObject, int populationSize) {
         this.id = id;
+        this.templateObject = templateObject;
         this.populationSize = populationSize;
     }
 
@@ -106,7 +108,7 @@ public class GeneticAlgorithmGeneration {
 
         BackgroundProcess(NeuralNetwork neuralNetwork, List<GeneticAlgorithmObject> populationList) {
             this.neuralNetwork = neuralNetwork;
-            this.object = object.getGeneticAlgorithmObject(neuralNetwork);
+            object = templateObject.getGeneticAlgorithmObject(neuralNetwork);
             populationList.add(object);
         }
 
