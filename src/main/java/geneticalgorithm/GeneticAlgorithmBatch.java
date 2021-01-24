@@ -16,9 +16,6 @@ public class GeneticAlgorithmBatch {
         this.neuralNetwork = neuralNetwork;
         this.populationSize = populationSize;
         this.templateObject = templateObject;
-        String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-        String defaultConfigPath = rootPath + "geneticalgorithm.properties";
-        System.out.println(defaultConfigPath);
     }
 
     public GeneticAlgorithmBatch(NeuralNetwork neuralNetwork, GeneticAlgorithmObject templateObject, int populationSize, int generationCount) {
