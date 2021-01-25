@@ -17,7 +17,6 @@ class GeneticAlgorithmGeneration {
     private  static final Logger LOG = Logger.getLogger("generation logger");
     private static final int THREAD_POOL = 16;
     private int id;
-    private static GeneticAlgorithmObject templateObject;
     private int populationSize;
     private NeuralNetwork bestNeuralNetwork;
     private NeuralNetwork bestNeuralNetworkForReproduction;
@@ -73,7 +72,8 @@ class GeneticAlgorithmGeneration {
         LOG.log(Level.INFO, () -> String.format("generation #%d: \t %s", id, populationList.get(0).getLogMessage()));
 
         if (populationList.get(0).isPerfectScore()) {
-            LOG.log(Level.INFO, "****************** PERFECT SCORE ACHIEVED! ******************");
+            double scorePercent = 100 / populationSize * populationList.stream().filter(o -> o.isPerfectScore()).count();
+            LOG.log(Level.INFO, () -> String.format("****************** PERFECT SCORE ACHIEVED! ****************** \nat generation #%d, %.2f%s units reached a perfect score.", id, scorePercent, "%"));
         }
 
         if (populationList.size() < 2) {
