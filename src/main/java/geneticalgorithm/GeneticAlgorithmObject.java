@@ -23,6 +23,8 @@ public abstract class GeneticAlgorithmObject<T> implements Comparable<GeneticAlg
 
     public abstract long getFitness();
 
+    public abstract boolean isPerfectScore();
+
     public abstract boolean executeStep();
 
     public abstract boolean isImmature();
