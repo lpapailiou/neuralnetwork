@@ -73,7 +73,7 @@ public class GeneticAlgorithmGeneration {
         LOG.log(Level.INFO, () -> String.format("generation #%d: \t %s", id, populationList.get(0).getLogMessage()));
 
         if (populationList.get(0).isPerfectScore()) {
-            LOG.log(Level.INFO, "************** PERFECT SCORE ACHIEVED! **************");
+            LOG.log(Level.INFO, "****************** PERFECT SCORE ACHIEVED! ******************");
         }
 
         if (populationList.size() < 2) {
