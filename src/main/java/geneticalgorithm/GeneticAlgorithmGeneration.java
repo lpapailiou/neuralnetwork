@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class GeneticAlgorithmGeneration {
+class GeneticAlgorithmGeneration {
 
     private  static final Logger LOG = Logger.getLogger("generation logger");
     private static final int THREAD_POOL = 16;
