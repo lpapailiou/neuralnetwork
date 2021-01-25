@@ -74,7 +74,7 @@ class GeneticAlgorithmGeneration {
         if (populationList.get(0).isPerfectScore()) {
             double calc = populationList.stream().filter(o -> o.isPerfectScore()).count();
             double scorePercent = 100.0 / populationSize * calc ;
-            LOG.log(Level.INFO, () -> String.format("****************** PERFECT SCORE ACHIEVED! ****************** \nat generation #%d, %.2f%s units reached a perfect score.", id, scorePercent, "%"));
+            LOG.log(Level.INFO, () -> String.format("****************** PERFECT SCORE ACHIEVED! ****************** \nat generation #%d, %.2f%s units (%d of %d) reached a perfect score.", id, scorePercent, "%", calc, populationSize));
         }
 
         if (populationList.size() < 2) {
