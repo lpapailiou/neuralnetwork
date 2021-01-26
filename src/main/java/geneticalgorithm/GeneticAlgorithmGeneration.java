@@ -12,9 +12,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class GeneticAlgorithmGeneration {
+class GeneticAlgorithmGeneration<T> {
 
-    private Constructor geneticAlgorithmObjectConstructor;
+    private Constructor<T> geneticAlgorithmObjectConstructor;
     private static final Logger LOG = Logger.getLogger("generation logger");
     private static final int THREAD_POOL = 16;
     private int id;
@@ -24,7 +24,7 @@ class GeneticAlgorithmGeneration {
     private List<IGeneticAlgorithmObject> populationList = new ArrayList<>();
     private int selectionReproductionSize = 2;
 
-    GeneticAlgorithmGeneration(Properties properties, Constructor geneticAlgorithmObjectConstructor, int id, int populationSize) {
+    GeneticAlgorithmGeneration(Properties properties, Constructor<T> geneticAlgorithmObjectConstructor, int id, int populationSize) {
         this.geneticAlgorithmObjectConstructor = geneticAlgorithmObjectConstructor;
         this.id = id;
         this.populationSize = populationSize;
@@ -132,7 +132,7 @@ class GeneticAlgorithmGeneration {
         NeuralNetwork neuralNetwork;
         IGeneticAlgorithmObject object;
 
-        BackgroundProcess(Constructor geneticAlgorithmObjectConstructor, NeuralNetwork neuralNetwork, List<IGeneticAlgorithmObject> populationList) {
+        BackgroundProcess(Constructor<T> geneticAlgorithmObjectConstructor, NeuralNetwork neuralNetwork, List<IGeneticAlgorithmObject> populationList) {
             this.neuralNetwork = neuralNetwork;
             try {
                 object = (IGeneticAlgorithmObject) geneticAlgorithmObjectConstructor.newInstance(neuralNetwork);

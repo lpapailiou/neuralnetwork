@@ -14,19 +14,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class GeneticAlgorithmBatch {
+public class GeneticAlgorithmBatch<T> {
 
     private int generationCount = Integer.MAX_VALUE;
     private int currentGenerationId;
-    private GeneticAlgorithmGeneration currentGeneration;
-    private Constructor constructor;
+    private GeneticAlgorithmGeneration<T> currentGeneration;
+    private Constructor<T> constructor;
     private final int populationSize;
     private NeuralNetwork neuralNetwork;
     private Properties properties = new Properties();
 
-    public GeneticAlgorithmBatch(@NotNull Class<?> type, @NotNull NeuralNetwork neuralNetwork, int populationSize) {
+    public GeneticAlgorithmBatch(@NotNull Class<T> templateGeneticAlgorithmObject, @NotNull NeuralNetwork neuralNetwork, int populationSize) {
         try {
-             constructor = type.getDeclaredConstructor(NeuralNetwork.class);
+             constructor = templateGeneticAlgorithmObject.getDeclaredConstructor(NeuralNetwork.class);
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException("Wrong generic class given. Must have constructor with argument NeuralNetwork!", e);
         }
@@ -42,8 +42,8 @@ public class GeneticAlgorithmBatch {
         }
     }
 
-    public GeneticAlgorithmBatch(Class<?> type, NeuralNetwork neuralNetwork, int populationSize, int generationCount) {
-        this(type, neuralNetwork, populationSize);
+    public GeneticAlgorithmBatch(Class<T> templateGeneticAlgorithmObject, NeuralNetwork neuralNetwork, int populationSize, int generationCount) {
+        this(templateGeneticAlgorithmObject, neuralNetwork, populationSize);
         this.generationCount = generationCount;
     }
 
