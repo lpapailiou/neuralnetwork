@@ -22,7 +22,7 @@ class GeneticAlgorithmGeneration<T> {
     private NeuralNetwork bestNeuralNetwork;
     private NeuralNetwork bestNeuralNetworkForReproduction;
     private List<IGeneticAlgorithmObject> populationList = new ArrayList<>();
-    private int reproductionPoolSize = 3;
+    private int reproductionPoolSize;
 
     GeneticAlgorithmGeneration(Properties properties, Constructor<T> geneticAlgorithmObjectConstructor, int id, int populationSize) {
         this.geneticAlgorithmObjectConstructor = geneticAlgorithmObjectConstructor;
@@ -63,12 +63,12 @@ class GeneticAlgorithmGeneration<T> {
     private NeuralNetwork evolve() {
         populationList.sort(Comparator.nullsLast(Collections.reverseOrder()));
         bestNeuralNetwork = populationList.get(0).getNeuralNetwork();
-        NeuralNetwork bestForReproduction = bestNeuralNetwork;
+        NeuralNetwork bestForReproduction;
 
         LOG.log(Level.INFO, () -> String.format("generation #%d: \t %s", id, populationList.get(0).getLogMessage()));
 
         if (populationList.get(0).isPerfectScore()) {
-            long calc = populationList.stream().filter(o -> o.isPerfectScore()).count();
+            long calc = populationList.stream().filter(IGeneticAlgorithmObject::isPerfectScore).count();
             double scorePercent = 100.0 / populationSize * (double) calc ;
             LOG.log(Level.INFO, () -> String.format("****************** PERFECT SCORE ACHIEVED! ****************** \nat generation #%d, %.2f%s units (%d of %d) reached a perfect score.", id, scorePercent, "%", calc, populationSize));
         }
@@ -146,7 +146,7 @@ class GeneticAlgorithmGeneration<T> {
         public void run() {
             boolean running = true;
             while(running) {
-                running = object.apply();
+                running = object.perform();
             }
         }
     }

@@ -24,7 +24,7 @@ public class GeneticAlgorithmBatch<T> {
     private Properties properties = new Properties();
 
     private Constructor<T> geneticAlgorithmObjectConstructor;
-    private NeuralNetwork neuralNetwork;
+    private NeuralNetwork seedNeuralNetwork;
     private int generationCount = Integer.MAX_VALUE;
     private int currentGenerationId;
     private GeneticAlgorithmGeneration<T> currentGeneration;
@@ -32,7 +32,8 @@ public class GeneticAlgorithmBatch<T> {
 
     /**
      * Constructor to create a new batch. With given parameters, the genetic algorithm will be able to run.
-     * It additionally loads the geneticalgorithm.properties file which can be configured to modify the genetic algorithm.
+     * It additionally loads the geneticalgorithm.properties file from the resources, which can be configured
+     * to modify the genetic algorithm.
      * @param templateGeneticAlgorithmObject the type which implements the actual logic of the genetic algorithm.
      * @param seedNeuralNetwork the NeuralNetwork to be seeded for the first population.
      * @param populationSize the population size for the genetic algorithm.
@@ -43,44 +44,78 @@ public class GeneticAlgorithmBatch<T> {
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException("Wrong generic class given. Must have constructor with argument NeuralNetwork!", e);
         }
-        this.neuralNetwork = seedNeuralNetwork;
+        this.seedNeuralNetwork = seedNeuralNetwork;
         this.populationSize = populationSize;
         URL path = getClass().getClassLoader().getResource("geneticalgorithm.properties");
-        File file = null;
+        File file;
         try {
+            assert path != null;
             file = Paths.get(path.toURI()).toFile();
             properties.load(new FileInputStream(file));
-            System.out.println(properties.getProperty("reproductionPoolSize"));
         } catch (URISyntaxException | IOException e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Could not access properties file geneticalgorithm.properties!", e);
         }
     }
 
-    public GeneticAlgorithmBatch(Class<T> templateGeneticAlgorithmObject, NeuralNetwork neuralNetwork, int populationSize, int generationCount) {
-        this(templateGeneticAlgorithmObject, neuralNetwork, populationSize);
+    /**
+     * Constructor to create a new batch. With given parameters, the genetic algorithm will be able to run.
+     * It additionally loads the geneticalgorithm.properties file which can be configured to modify the genetic algorithm.
+     * @param templateGeneticAlgorithmObject the type which implements the actual logic of the genetic algorithm.
+     * @param seedNeuralNetwork the NeuralNetwork to be seeded for the first population.
+     * @param populationSize the population size for the genetic algorithm.
+     * @param generationCount the maximum number of generations for this batch.
+     */
+    public GeneticAlgorithmBatch(Class<T> templateGeneticAlgorithmObject, NeuralNetwork seedNeuralNetwork, int populationSize, int generationCount) {
+        this(templateGeneticAlgorithmObject, seedNeuralNetwork, populationSize);
         this.generationCount = generationCount;
     }
 
+    /**
+     * This method will create a new generation and process it afterwards.
+     * @return the best NeuralNetwork for reproduction (i.e. the seed for a new generation).
+     */
     public NeuralNetwork processGeneration() {
-        currentGeneration = new GeneticAlgorithmGeneration<T>(properties, geneticAlgorithmObjectConstructor, currentGenerationId, populationSize);
-        neuralNetwork = currentGeneration.runGeneration(neuralNetwork);
+        currentGeneration = new GeneticAlgorithmGeneration<>(properties, geneticAlgorithmObjectConstructor, currentGenerationId, populationSize);
+        seedNeuralNetwork = currentGeneration.runGeneration(seedNeuralNetwork);
         if (currentGenerationId == generationCount) {
             return null;
         }
         currentGenerationId++;
-        return neuralNetwork;
+        return seedNeuralNetwork;
     }
 
+    /**
+     * This method will return the current NeuralNetwork considered best for creating the next generation.
+     * @return the best NeuralNetwork for reproduction (i.e. the seed for a new generation).
+     */
     public NeuralNetwork getBestNeuralNetworkForReproduction() {
+        if (currentGeneration == null) {
+            return seedNeuralNetwork;
+        }
         return currentGeneration.getBestNeuralNetworkForReproduction();
     }
 
+    /**
+     * This method will return the current NeuralNetwork which performed best in the most recent generation.
+     * @return the best NeuralNetwork or null if no generation was processed yet.
+     */
     public NeuralNetwork getBestNeuralNetwork() {
+        if (currentGeneration == null) {
+            return null;
+        }
         return currentGeneration.getBestNeuralNetwork();
     }
 
+    /**
+     * This method will return the best NeuralNetworks which performed best in the most recent generation.
+     * @param count the count of NeuralNetworks to be returned.
+     * @return a List of the best NeuralNetworks or an empty List if no generation was processed yet.
+     */
     public List<NeuralNetwork> getBestNeuralNetworks(int count) {
         List<NeuralNetwork> networks = new ArrayList<>();
+        if (currentGeneration == null) {
+            return networks;
+        }
         int index = Math.min(count, populationSize);
         List<IGeneticAlgorithmObject> populationList = currentGeneration.getPopulationList();
         for (int i = 0; i < index; i++) {

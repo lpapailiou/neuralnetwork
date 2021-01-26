@@ -3,6 +3,11 @@ This is a library for a neural network in java 8.
 The library can be used both for supervised and unsupervised machine learning approaches.  
 The network architecture is freely configurable.  
 
+## Genetic Algorithm
+The package ``geneticalgorithm`` introduced in version 2.0 will allow easy implementation of the
+genetic algorithm with reinforced learning. If it is used, please make sure to load the
+``geneticalgorithm.properties`` file to the resources folder of your project.
+
 ### From a Jar file
 You can download the Jar file directly from the [latest release](https://github.com/lpapailiou/neuralnetwork/releases/latest). Alternatively, you can build it yourself.  
 Just add the jar as external library.
@@ -21,6 +26,7 @@ Add following snippets to your ``pom.xml`` file:
         <dependency>    
             <groupId>neuralnetwork</groupId>    
             <artifactId>neural-network-repo</artifactId>    
-            <version>1.15</version>    
+            <version>2.0</version>    
         </dependency>    
     </dependencies>    
+    
