@@ -42,7 +42,7 @@ public class GeneticAlgorithmBatch<T> {
         try {
             geneticAlgorithmObjectConstructor = templateGeneticAlgorithmObject.getDeclaredConstructor(NeuralNetwork.class);
         } catch (NoSuchMethodException e) {
-            throw new IllegalArgumentException("Wrong class definition. Must have constructor with single argument NeuralNetwork!", e);
+            throw new IllegalArgumentException("Wrong class definition of first passed argument templateGeneticAlgorithmObject. Must have constructor with single argument NeuralNetwork!", e);
         }
         this.seedNeuralNetwork = seedNeuralNetwork;
         this.populationSize = populationSize;
