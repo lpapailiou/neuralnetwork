@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.ParameterizedType;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -15,19 +14,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class GeneticAlgorithmBatch<T> {
+public class GeneticAlgorithmBatch {
 
     private int generationCount = Integer.MAX_VALUE;
     private int currentGenerationId;
-    private GeneticAlgorithmGeneration<T> currentGeneration;
-    private Constructor<T> constructor;
+    private GeneticAlgorithmGeneration currentGeneration;
+    private Constructor constructor;
     private final int populationSize;
     private NeuralNetwork neuralNetwork;
     private Properties properties = new Properties();
 
-    public GeneticAlgorithmBatch(@NotNull NeuralNetwork neuralNetwork, int populationSize) {
-        ParameterizedType superClass = (ParameterizedType) getClass().getGenericSuperclass();
-        Class<T> type = (Class<T>) superClass.getActualTypeArguments()[0];
+    public GeneticAlgorithmBatch(@NotNull Class<?> type, @NotNull NeuralNetwork neuralNetwork, int populationSize) {
         try {
              constructor = type.getDeclaredConstructor(NeuralNetwork.class);
         } catch (NoSuchMethodException e) {
@@ -45,13 +42,13 @@ public class GeneticAlgorithmBatch<T> {
         }
     }
 
-    public GeneticAlgorithmBatch(NeuralNetwork neuralNetwork, int populationSize, int generationCount) {
-        this(neuralNetwork, populationSize);
+    public GeneticAlgorithmBatch(Class<?> type, NeuralNetwork neuralNetwork, int populationSize, int generationCount) {
+        this(type, neuralNetwork, populationSize);
         this.generationCount = generationCount;
     }
 
     public NeuralNetwork processGeneration() {
-        currentGeneration = new GeneticAlgorithmGeneration<T>(properties, constructor, currentGenerationId, populationSize);
+        currentGeneration = new GeneticAlgorithmGeneration(properties, constructor, currentGenerationId, populationSize);
         neuralNetwork = currentGeneration.runGeneration(neuralNetwork);
         if (currentGenerationId == generationCount) {
             return null;
