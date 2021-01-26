@@ -22,13 +22,13 @@ class GeneticAlgorithmGeneration<T> {
     private NeuralNetwork bestNeuralNetwork;
     private NeuralNetwork bestNeuralNetworkForReproduction;
     private List<IGeneticAlgorithmObject> populationList = new ArrayList<>();
-    private int selectionReproductionSize = 2;
+    private int reproductionPoolSize = 3;
 
     GeneticAlgorithmGeneration(Properties properties, Constructor<T> geneticAlgorithmObjectConstructor, int id, int populationSize) {
         this.geneticAlgorithmObjectConstructor = geneticAlgorithmObjectConstructor;
         this.id = id;
         this.populationSize = populationSize;
-        selectionReproductionSize = Integer.parseInt(properties.getProperty("selectionReproductionSize"));
+        reproductionPoolSize = Integer.parseInt(properties.getProperty("reproductionPoolSize"));
     }
 
     NeuralNetwork runGeneration(NeuralNetwork seedNeuralNetwork) {
@@ -99,7 +99,7 @@ class GeneticAlgorithmGeneration<T> {
 
         List<NeuralNetwork> mergeList = new ArrayList<>();
 
-        for (int i = 0; i < selectionReproductionSize; i++) {
+        for (int i = 0; i < reproductionPoolSize-1; i++) {
             mergeList.add(0, spinRouletteWheel(map, selectionPoolSize, sumFitness));
         }
 

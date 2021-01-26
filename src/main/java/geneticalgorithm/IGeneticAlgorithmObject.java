@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObject> {
 
-    List<Double> predict (@NotNull double[] inputValues);
+    List<Double> predict(@NotNull double[] inputValues);
 
     NeuralNetwork getNeuralNetwork();
 
