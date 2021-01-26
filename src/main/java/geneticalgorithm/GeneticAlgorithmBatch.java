@@ -50,6 +50,7 @@ public class GeneticAlgorithmBatch<T> {
         try {
             file = Paths.get(path.toURI()).toFile();
             properties.load(new FileInputStream(file));
+            System.out.println(properties.getProperty("reproductionPoolSize"));
         } catch (URISyntaxException | IOException e) {
             e.printStackTrace();
         }

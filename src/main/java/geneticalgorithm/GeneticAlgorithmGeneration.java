@@ -98,7 +98,6 @@ class GeneticAlgorithmGeneration<T> {
         }
 
         List<NeuralNetwork> mergeList = new ArrayList<>();
-        System.out.println("reproductionPoolSize: " + reproductionPoolSize);
 
         for (int i = 0; i < reproductionPoolSize-1; i++) {
             mergeList.add(0, spinRouletteWheel(map, selectionPoolSize, sumFitness));
