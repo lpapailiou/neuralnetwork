@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public abstract class GeneticAlgorithmObject<T> implements Comparable<GeneticAlgorithmObject<T>> {
+public abstract class GeneticAlgorithmObject implements IGeneticAlgorithmObject {
 
     private NeuralNetwork neuralNetwork;
 
@@ -13,28 +13,35 @@ public abstract class GeneticAlgorithmObject<T> implements Comparable<GeneticAlg
         this.neuralNetwork = neuralNetwork;
     }
 
-    protected List<Double> predict(@NotNull double[] inputValues) {
+    @Override
+    public List<Double> predict(@NotNull double[] inputValues) {
         return neuralNetwork.predict(inputValues);
     }
 
-    NeuralNetwork getNeuralNetwork() {
+    @Override
+    public NeuralNetwork getNeuralNetwork() {
         return neuralNetwork;
     }
 
+    @Override
     public abstract long getFitness();
 
+    @Override
     public abstract boolean isPerfectScore();
 
-    public abstract boolean executeStep();
+    @Override
+    public abstract boolean apply();
 
+    @Override
     public abstract boolean isImmature();
 
+    @Override
     public String getLogMessage() {
         return "fitness: \t " + getFitness();
     }
 
     @Override
-    public int compareTo(@NotNull GeneticAlgorithmObject<T> other) {
+    public int compareTo(@NotNull IGeneticAlgorithmObject other) {
         long fitness = this.getFitness();
         long otherFitness = other.getFitness();
         if (fitness > otherFitness) {

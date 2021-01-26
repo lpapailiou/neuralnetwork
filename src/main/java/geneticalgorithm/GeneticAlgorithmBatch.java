@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.ParameterizedType;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -13,16 +15,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class GeneticAlgorithmBatch {
+public class GeneticAlgorithmBatch<T> {
 
     private int generationCount = Integer.MAX_VALUE;
     private int currentGenerationId;
-    private GeneticAlgorithmGeneration currentGeneration;
+    private GeneticAlgorithmGeneration<T> currentGeneration;
+    private Constructor<T> constructor;
     private final int populationSize;
     private NeuralNetwork neuralNetwork;
-    static Properties properties = new Properties();
+    private Properties properties = new Properties();
 
     public GeneticAlgorithmBatch(@NotNull NeuralNetwork neuralNetwork, int populationSize) {
+        ParameterizedType superClass = (ParameterizedType) getClass().getGenericSuperclass();
+        Class<T> type = (Class<T>) superClass.getActualTypeArguments()[0];
+        try {
+             constructor = type.getDeclaredConstructor(NeuralNetwork.class);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException("Wrong generic class given. Must have constructor with argument NeuralNetwork!", e);
+        }
         this.neuralNetwork = neuralNetwork;
         this.populationSize = populationSize;
         URL path = getClass().getClassLoader().getResource("geneticalgorithm.properties");
@@ -41,7 +51,7 @@ public class GeneticAlgorithmBatch {
     }
 
     public NeuralNetwork processGeneration() {
-        currentGeneration = new GeneticAlgorithmGeneration(currentGenerationId, populationSize);
+        currentGeneration = new GeneticAlgorithmGeneration<T>(properties, constructor, currentGenerationId, populationSize);
         neuralNetwork = currentGeneration.runGeneration(neuralNetwork);
         if (currentGenerationId == generationCount) {
             return null;
@@ -61,14 +71,11 @@ public class GeneticAlgorithmBatch {
     public List<NeuralNetwork> getBestNeuralNetworks(int count) {
         List<NeuralNetwork> networks = new ArrayList<>();
         int index = Math.min(count, populationSize);
-        List<GeneticAlgorithmObject> populationList = currentGeneration.getPopulationList();
+        List<IGeneticAlgorithmObject> populationList = currentGeneration.getPopulationList();
         for (int i = 0; i < index; i++) {
             networks.add(populationList.get(i).getNeuralNetwork());
         }
         return networks;
     }
 
-    public void setGeneticAlgorithmObjectTemplate(String templateName) {
-        properties.setProperty("geneticAlgorithmObjectTemplate", templateName);
-    }
 }

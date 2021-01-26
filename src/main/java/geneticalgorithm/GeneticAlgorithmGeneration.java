@@ -12,34 +12,30 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class GeneticAlgorithmGeneration {
+class GeneticAlgorithmGeneration<T> {
 
-    private  static final Logger LOG = Logger.getLogger("generation logger");
+    private Constructor<T> geneticAlgorithmObjectConstructor;
+    private static final Logger LOG = Logger.getLogger("generation logger");
     private static final int THREAD_POOL = 16;
     private int id;
     private int populationSize;
     private NeuralNetwork bestNeuralNetwork;
     private NeuralNetwork bestNeuralNetworkForReproduction;
-    private List<GeneticAlgorithmObject> populationList = new ArrayList<>();
+    private List<IGeneticAlgorithmObject> populationList = new ArrayList<>();
     private int selectionReproductionSize = 2;
-    private Constructor<?> templateBuilder;
 
-    GeneticAlgorithmGeneration(int id, int populationSize) {
+    GeneticAlgorithmGeneration(Properties properties, Constructor<T> geneticAlgorithmObjectConstructor, int id, int populationSize) {
+        this.geneticAlgorithmObjectConstructor = geneticAlgorithmObjectConstructor;
         this.id = id;
         this.populationSize = populationSize;
-        selectionReproductionSize = Integer.parseInt(GeneticAlgorithmBatch.properties.getProperty("selectionReproductionSize"));
-        try {
-            templateBuilder = Class.forName(GeneticAlgorithmBatch.properties.getProperty("geneticAlgorithmObjectTemplate")).getConstructor(NeuralNetwork.class);
-        } catch (NoSuchMethodException | ClassNotFoundException e) {
-            throw new UnsupportedOperationException("geneticAlgorithmObjectTemplate property is not set correctly!", e);
-        }
+        selectionReproductionSize = Integer.parseInt(properties.getProperty("selectionReproductionSize"));
     }
 
     NeuralNetwork runGeneration(NeuralNetwork seedNeuralNetwork) {
         ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL);
         List<Runnable> tasks = new ArrayList<>();
         for (int i = 0; i < populationSize; i++) {
-            tasks.add(new BackgroundProcess(i == 0 ? seedNeuralNetwork : seedNeuralNetwork.clone(), populationList));
+            tasks.add(new BackgroundProcess(geneticAlgorithmObjectConstructor, i == 0 ? seedNeuralNetwork : seedNeuralNetwork.clone(), populationList));
         }
         CompletableFuture<?>[] futures = tasks.stream().map(task -> CompletableFuture.runAsync(task, executorService)).toArray(CompletableFuture[]::new);
         CompletableFuture.allOf(futures).join();
@@ -95,7 +91,7 @@ class GeneticAlgorithmGeneration {
         Map<Integer, Long> map = new HashMap<>();
         double sumFitness = 0;
         for (int i = 0; i < selectionPoolSize; i++) {
-            GeneticAlgorithmObject object = populationList.get(i);
+            IGeneticAlgorithmObject object = populationList.get(i);
             long fitness = object.getFitness();
             sumFitness += fitness;
             map.put(i, fitness);
@@ -128,20 +124,20 @@ class GeneticAlgorithmGeneration {
         return chosen;
     }
 
-    List<GeneticAlgorithmObject> getPopulationList() {
+    List<IGeneticAlgorithmObject> getPopulationList() {
         return populationList;
     }
 
     class BackgroundProcess implements Runnable {
         NeuralNetwork neuralNetwork;
-        GeneticAlgorithmObject object;
+        IGeneticAlgorithmObject object;
 
-        BackgroundProcess(NeuralNetwork neuralNetwork, List<GeneticAlgorithmObject> populationList) {
+        BackgroundProcess(Constructor<T> geneticAlgorithmObjectConstructor, NeuralNetwork neuralNetwork, List<IGeneticAlgorithmObject> populationList) {
             this.neuralNetwork = neuralNetwork;
             try {
-                object = (GeneticAlgorithmObject) templateBuilder.newInstance(neuralNetwork);
+                object = (IGeneticAlgorithmObject) geneticAlgorithmObjectConstructor.newInstance(neuralNetwork);
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                throw new UnsupportedOperationException("geneticAlgorithmObjectTemplate property is not a suitable class!", e);
+                throw new UnsupportedOperationException("geneticAlgorithmObjectConstructor does not allow creation of an instance implementing IGeneticAlgorithmObject!", e);
             }
             populationList.add(object);
         }
@@ -150,7 +146,7 @@ class GeneticAlgorithmGeneration {
         public void run() {
             boolean running = true;
             while(running) {
-                running = object.executeStep();
+                running = object.apply();
             }
         }
     }
