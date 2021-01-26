@@ -90,13 +90,13 @@ public abstract class GeneticAlgorithmObject implements IGeneticAlgorithmObject 
     /**
      * This methods will compare this instance with other instances from the same generation. With the according output
      * it is possible to decide which instance performed best within the current population.
-     * @param other the other instance to be compared with this instance.
+     * @param o the other instance to be compared with this instance.
      * @return 1 if this instance performed better, -1 if worse or 0 if equal.
      */
     @Override
-    public int compareTo(@NotNull IGeneticAlgorithmObject other) {
+    public int compareTo(@NotNull IGeneticAlgorithmObject o) {
         long fitness = this.getFitness();
-        long otherFitness = other.getFitness();
+        long otherFitness = o.getFitness();
         if (fitness > otherFitness) {
             return 1;
         } else if (fitness < otherFitness) {
