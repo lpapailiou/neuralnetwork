@@ -347,7 +347,7 @@ public class NeuralNetwork implements Serializable {
             }
         } else if (key.equals("genetic_reproduction_pool_size")) {
             if (Double.parseDouble(value) < 2) {
-                throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
+                throw new IllegalArgumentException("Reproduction pool size must be set above 2!");
             }
         }
         PROPERTIES.setProperty(key, value);
