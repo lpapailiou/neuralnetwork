@@ -81,7 +81,6 @@ See below a full test of the neural network with supervised learning:
 
     // prepare input set
     double[][] in = {{0,0}, {1,0}, {0,1}, {1,1}};
-    // prepare expected output set
     double[][] out = {{0}, {1}, {1}, {0}};
     
     // create neural network
@@ -91,15 +90,8 @@ See below a full test of the neural network with supervised learning:
     // train neural network
     net.train(in, out, 2000);
     
-    // process output values of neural network
-    List<Double> expected = getStandardizedOutputList(net.predict(in[0]));
-    List<Double> actual = net.predict(in[0]);
-    for (int i = 0; i < expected.size(); i++) {
-        assertEquals(expected.get(i), actual.get(i), 0.2);
-    }
-    
     // print output values
-    System.out.println("test with rectifier: " + Rectifier.TANH.getDescription());
+    System.out.println("test with rectifier: " + Rectifier.SIGMOID.getDescription());
     System.out.println("combo 1: " + net.predict(in[0]));
     System.out.println("combo 2: " + net.predict(in[1]));
     System.out.println("combo 3: " + net.predict(in[2]));
