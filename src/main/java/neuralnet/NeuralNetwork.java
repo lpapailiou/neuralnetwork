@@ -65,10 +65,25 @@ public class NeuralNetwork implements Serializable {
             layers.add(new Layer(layerParams[i], layerParams[i-1]));
         }
 
-        this.rectifier = Rectifier.valueOf(PROPERTIES.getProperty("rectifier").toUpperCase());
-        this.learningRateDescent = LearningRateDescent.valueOf(PROPERTIES.getProperty("learning_rate_descent").toUpperCase());
-        this.learningRate = Double.parseDouble(PROPERTIES.getProperty("learning_rate"));
-        this.momentum = Double.parseDouble(PROPERTIES.getProperty("learning_decay_momentum"));
+        try {
+            this.rectifier = Rectifier.valueOf(PROPERTIES.getProperty("rectifier").toUpperCase());
+            this.learningRateDescent = LearningRateDescent.valueOf(PROPERTIES.getProperty("learning_rate_descent").toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Please choose valid enum constant. See properties files for hints.", e);
+        }
+
+        try {
+            this.learningRate = Double.parseDouble(PROPERTIES.getProperty("learning_rate"));
+            if (learningRate < 0 || learningRate > 1) {
+                throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
+            }
+            this.momentum = Double.parseDouble(PROPERTIES.getProperty("learning_decay_momentum"));
+            if (momentum < 0 || momentum > 1) {
+                throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
+            }
+        } catch (NumberFormatException e) {
+            throw new NumberFormatException("Please set a double value for this property!");
+        }
     }
 
     private NeuralNetwork(int inputLayerNodes, List<Layer> layers) {
@@ -106,7 +121,8 @@ public class NeuralNetwork implements Serializable {
      * Decreases the current learning rate according to the chosen LearningRateDescent function.
      */
     public void decreaseLearningRate() {
-        this.learningRate = learningRateDescent.decrease(learningRate, momentum, iteration_count);
+        double newLearningRate = learningRateDescent.decrease(learningRate, momentum, iteration_count);
+        this.learningRate = Math.max(newLearningRate, 0);
         iteration_count++;
     }
 
@@ -117,6 +133,9 @@ public class NeuralNetwork implements Serializable {
      * @return the NeuralNetwork.
      */
     public NeuralNetwork setLearningRate(double learningRate) {
+        if (learningRate < 0 || learningRate > 1) {
+            throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
+        }
         this.learningRate = learningRate;
         return this;
     }
@@ -128,15 +147,29 @@ public class NeuralNetwork implements Serializable {
      */
     public NeuralNetwork setMomentum(double momentum) {
         this.momentum = momentum;
+        if (momentum < 0 || momentum > 1) {
+            throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
+        }
         return this;
     }
 
     /**
      * Setter to allow altering properties for the NeuralNetwork configuration.
+     * The set value will not be validated within this method. Please see neuralnetwork.properties
+     * as guideline.
      * @param key the key of the property.
      * @param value the value of the property.
      */
     public static void setProperty(String key, String value) {
+        if (key.equals("learning_rate")) {
+            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
+                throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
+            }
+        } else if (key.equals("learning_decay_momentum")) {
+            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
+                throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
+            }
+        }
         PROPERTIES.setProperty(key, value);
     }
 

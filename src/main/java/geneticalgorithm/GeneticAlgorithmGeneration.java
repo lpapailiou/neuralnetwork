@@ -29,6 +29,9 @@ class GeneticAlgorithmGeneration<T> {
         this.id = id;
         this.populationSize = populationSize;
         reproductionPoolSize = Integer.parseInt(properties.getProperty("genetic_reproduction_pool_size"));
+        if (reproductionPoolSize < 2) {
+            throw new IllegalArgumentException("reproduction pool must be set to at least 2!");
+        }
     }
 
     NeuralNetwork runGeneration(NeuralNetwork seedNeuralNetwork) {
