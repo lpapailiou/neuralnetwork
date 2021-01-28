@@ -107,10 +107,10 @@ See below a full test of the neural network with supervised learning:
 
 Output:  
 
-    combo 1: [0.050048804790397854]
-    combo 2: [0.9566678654619005]
-    combo 3: [0.6068835047795367]
-    combo 4: [0.6136820209748536]
+    combo 1: [0.05062227783220413]
+    combo 2: [0.9461083391423777]
+    combo 3: [0.9425030935131657]
+    combo 4: [0.07157249157075309]
 
 ### Genetic algorithm
 Step one is to create an own class which extends or implements the required functionality:
