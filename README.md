@@ -62,7 +62,7 @@ The configuration of the neural network can be done as following:
 ### Constructor of NeuralNetwork
 Create a neural network with three input nodes and two output nodes:
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(3,22);
+    NeuralNetwork neuralNetwork = new NeuralNetwork(3, 2);
   
 Create a neural network with two output nodes, two hidden layers (4 and 5 nodes) and 6 output nodes:
 
@@ -144,7 +144,7 @@ Step one is to create an own class which extends or implements the required func
 
 Then create an according batch to start doing what you want to do:  
 
-    NeuralNetwork seed = new NeuralNetwork(4,8,4);
+    NeuralNetwork seed = new NeuralNetwork(4, 8, 4);
     int populationSize = 1000;
     int generationCount = 50;
      
