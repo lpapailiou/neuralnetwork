@@ -30,6 +30,7 @@ public class NeuralNetwork implements Serializable {
 
     private Rectifier rectifier;
     private LearningRateDescent learningRateDescent;
+    private double initialLearningRate;
     private double learningRate;
     private double momentum;
     private int iteration_count;
@@ -73,7 +74,8 @@ public class NeuralNetwork implements Serializable {
         }
 
         try {
-            this.learningRate = Double.parseDouble(PROPERTIES.getProperty("learning_rate"));
+            this.initialLearningRate = Double.parseDouble(PROPERTIES.getProperty("learning_rate"));
+            this.learningRate = initialLearningRate;
             if (learningRate < 0 || learningRate > 1) {
                 throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
             }
@@ -121,7 +123,7 @@ public class NeuralNetwork implements Serializable {
      * Decreases the current learning rate according to the chosen LearningRateDescent function.
      */
     public void decreaseLearningRate() {
-        double newLearningRate = learningRateDescent.decrease(learningRate, momentum, iteration_count);
+        double newLearningRate = learningRateDescent.decrease(initialLearningRate, momentum, iteration_count);
         this.learningRate = Math.max(newLearningRate, 0);
         iteration_count++;
     }
@@ -136,6 +138,7 @@ public class NeuralNetwork implements Serializable {
         if (learningRate < 0 || learningRate > 1) {
             throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
         }
+        this.initialLearningRate = learningRate;
         this.learningRate = learningRate;
         return this;
     }
@@ -306,6 +309,13 @@ public class NeuralNetwork implements Serializable {
         NeuralNetwork neuralNetwork = new NeuralNetwork(inputLayerNodes, layers);
         neuralNetwork.setRectifier(this.rectifier).setLearningRateDescent(this.learningRateDescent).setLearningRate(this.learningRate).setMomentum(this.momentum);
         return neuralNetwork;
+    }
+
+    /**
+     * This method will reset the learning rate to its original state.
+     */
+    public void resetLearningRate() {
+        this.learningRate = this.initialLearningRate;
     }
 
     private void randomize(double factor) {
