@@ -214,12 +214,12 @@ Below an overview of the `neuralnetwork.properties` file.
     # the learning rate must have a value between 0.0 and 1.0.
     learning_rate=0.8
     
-    # the default rectifier is the sigmoid activation.
+    # the default rectifier as activation function for the neural network.
     # available values: gelu|identity|relu|sigmoid|sigmoid_accurate|silu|silu_accurate|softplus|tanh.
     rectifier=sigmoid
     
     # the descent of the learning rate between iterations.
-    # available values: none|sdg
+    # available values: none|sgd
     learning_rate_descent=sgd
     
     # the learning rate decay as momentum.
