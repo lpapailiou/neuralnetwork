@@ -202,7 +202,7 @@ In case it is not present, you may include following plugin to your `pom.xml` fi
         </executions>
     </plugin>
 
-and run `mvn build` to complete the import of the properties file.
+and run `mvn compile` to complete the import of the properties file.
 
 ### Properties
 Below an overview of the `neuralnetwork.properties` file.
