@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,8 +41,8 @@ public class NeuralNetwork implements Serializable {
             assert path != null;
             file = Paths.get(path.toURI()).toFile();
             PROPERTIES.load(new FileInputStream(file));
-        } catch (URISyntaxException | IOException e) {
-            throw new IllegalStateException("Could not access properties file neuralnetwork.properties!", e);
+        } catch (URISyntaxException | IOException | FileSystemNotFoundException e) {
+            throw new IllegalStateException("Could not access properties file neuralnetwork.properties in local resources folder!", e);
         }
     }
 
