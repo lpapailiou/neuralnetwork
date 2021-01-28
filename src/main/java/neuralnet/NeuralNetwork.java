@@ -33,7 +33,7 @@ public class NeuralNetwork implements Serializable {
     private double initialLearningRate;
     private double learningRate;
     private double momentum;
-    private int iteration_count;
+    private int iterationCount;
 
     static {
         URL path = NeuralNetwork.class.getClassLoader().getResource("neuralnetwork.properties");
@@ -150,7 +150,7 @@ public class NeuralNetwork implements Serializable {
         Matrix target = Matrix.fromArray(rectifier, expectedOutputNodes);
 
         // backward propagate to adjust weights in layers
-        iteration_count++;
+        iterationCount++;
         Matrix error = null;
         for (int i = steps.size()-1; i >= 0; i--) {
             if (error == null) {
@@ -219,7 +219,12 @@ public class NeuralNetwork implements Serializable {
      */
     public NeuralNetwork copy() {
         NeuralNetwork neuralNetwork = new NeuralNetwork(inputLayerNodes, layers);
-        neuralNetwork.setRectifier(this.rectifier).setLearningRateDescent(this.learningRateDescent).setLearningRate(this.learningRate).setMomentum(this.momentum);
+        neuralNetwork.rectifier = this.rectifier;
+        neuralNetwork.learningRateDescent = this.learningRateDescent;
+        neuralNetwork.momentum = this.momentum;
+        neuralNetwork.initialLearningRate = this.initialLearningRate;
+        neuralNetwork.learningRate = this.learningRate;
+        neuralNetwork.iterationCount = this.iterationCount;
         return neuralNetwork;
     }
 
@@ -295,8 +300,8 @@ public class NeuralNetwork implements Serializable {
      * Decreases the current learning rate according to the chosen LearningRateDescent function.
      */
     public void decreaseLearningRate() {
-        this.learningRate = learningRateDescent.decrease(initialLearningRate, momentum, iteration_count);
-        iteration_count++;
+        this.learningRate = learningRateDescent.decrease(initialLearningRate, momentum, iterationCount);
+        iterationCount++;
     }
 
     /**
@@ -389,7 +394,7 @@ public class NeuralNetwork implements Serializable {
 
     @Override
     public int hashCode() {
-        return Integer.parseInt(learningRate + "" + iteration_count + layers.size());
+        return Integer.parseInt(learningRate + "" + iterationCount + layers.size());
     }
 
     @Override
