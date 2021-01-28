@@ -1,7 +1,16 @@
 package util;
 
+/**
+ * The rectifier is the activation function for the nodes of the neural networks. Each type holds a short description,
+ * the activation function and the derivation function (the latter is used for supervised learning only).
+ */
 public enum Rectifier {
 
+    /**
+     * The identity will not modify the value of the input.
+     * formula:    f(x)  = x
+     * derivation: f(x)' = 1
+     */
     IDENTITY("Identity") {
         @Override
         public double activate(double value) {
@@ -12,6 +21,12 @@ public enum Rectifier {
             return 1;
         }
     },
+    /**
+     * The sigmoid is a common activation function as it performs well and its results are quite accurate.
+     * The derivation function is simplified in order to get better performance.
+     * formula:    f(x)  = 1 / (1 + e^(-x))
+     * derivation: f(x)' = x * (1 - x)
+     */
     SIGMOID("Sigmoid") {
         @Override
         public double activate(double value) {
@@ -22,6 +37,12 @@ public enum Rectifier {
             return value * (1 - value);
         }
     },
+    /**
+     * The sigmoid is a common activation function as it performs well and its results are quite accurate.
+     * In this enum type the derivation is mathematically accurate, but performs slightly slower than SIGMOID.
+     * formula:    f(x)  = 1 / (1 + e^(-x))
+     * derivation: f(x)' = e^(-x) / (e^(-x) + 1)^2
+     */
     SIGMOID_ACCURATE("Sigmoid with accurate derivation") {
         @Override
         public double activate(double value) {
@@ -32,6 +53,13 @@ public enum Rectifier {
             return Math.exp(-value) / Math.pow((Math.exp(-value) + 1), 2);
         }
     },
+    /**
+     * The sigmoid linear unit is based on the sigmoid function. It's result is comparable with an overshooting
+     * RELU function.
+     * This simplified version uses the same derivation as the sigmoid, as it performs a bit faster.
+     * formula:    f(x)  = x / (1 + e^(-x))
+     * derivation: f(x)' = x * (1 - x)
+     */
     SILU("Sigmoid Linear Unit") {
         @Override
         public double activate(double value) {
@@ -42,6 +70,13 @@ public enum Rectifier {
             return value * (1 - value);
         }
     },
+    /**
+     * The sigmoid linear unit is based on the sigmoid function. It's result is comparable with an overshooting
+     * RELU function.
+     * In this enum type the derivation is mathematically accurate, but performs slightly slower than SILU.
+     * formula:    f(x)  = x / (1 + e^(-x))
+     * derivation: f(x)' = (e^(x) * (x + e^(x) + 1)) / (e^(x) + 1)^2
+     */
     SILU_ACCURATE("Sigmoid Linear Unit with accurate derivation") {
         @Override
         public double activate(double value) {
@@ -52,6 +87,12 @@ public enum Rectifier {
             return (Math.exp(value) * (value + Math.exp(value) + 1)) / Math.pow(Math.exp(value) + 1, 2);
         }
     },
+    /**
+     * The rectified linear unit is linear growth for values above 0 and 0 for values less or equal to 0.
+     * This is a quite common activation function for neural networks.
+     * formula:    f(x)  = x        if x greater than 0, else 0
+     * derivation: f(x)' = 1        if x greater than 0, else 0
+     */
     RELU("Rectified Linear Unit") {
         @Override
         public double activate(double value) {
@@ -62,6 +103,12 @@ public enum Rectifier {
             return value > 0 ? 1 : 0;
         }
     },
+    /**
+     * The tangent hyperbolic function is similar to the sigmoid, but maps values below zero
+     * to negative output values.
+     * formula:    f(x)  = tanh(x)
+     * derivation: f(x)' = 1 - (x)^2
+     */
     TANH("Tangent Hyperbolic Function") {
         @Override
         public double activate(double value) {
@@ -72,16 +119,28 @@ public enum Rectifier {
             return 1 - (value * value);
         }
     },
+    /**
+     * The gaussian error linear unit is the state-of-the-art activation function as it allows good results.
+     * On the other hand, it performs slower as the implementation is more complex. This implementation
+     * is a simplified version to improve performance.
+     * formula:    f(x)  = 0.5 * x * (1 + tanh(sqrt(2 / pi) * (x + 0.044715 * x^3))
+     * derivation: f(x)' = 0.5 * tanh(0.0356774 * x^3 + 0.797885 * x) + (0.0535161 * x^3 + 0.398942 * x) * (1 / cosh(0.0356774 * x^3 + 0.797885 * x))^2 + 0.5
+     */
     GELU("Gaussian Error Linear Unit") {
         @Override
         public double activate(double value) {
-            return 0.5 * value * (1 + Math.tanh(Math.sqrt(2 / Math.PI) * (value+ 0.044715 * (value * Math.pow(value, 3)))));
+            return 0.5 * value * (1 + Math.tanh(Math.sqrt(2 / Math.PI) * (value + 0.044715 * Math.pow(value, 3))));
         }
         @Override
         public double derive(double value) {
-            return 0.5 * Math.tanh(0.0356774*Math.pow(value, 3)+ 0.797885 * value) + (0.0535161 * Math.pow(value, 3)+ 0.398942 * value) * Math.pow((1/Math.cosh(0.0356774 * Math.pow(value, 3) + 0.797885 * value)), 2) + 0.5;
+            return 0.5 * Math.tanh(0.0356774 * Math.pow(value, 3) + 0.797885 * value) + (0.0535161 * Math.pow(value, 3)+ 0.398942 * value) * Math.pow((1/Math.cosh(0.0356774 * Math.pow(value, 3) + 0.797885 * value)), 2) + 0.5;
         }
     },
+    /**
+     * The softplus activation function - also popular - is similar to a smoothed RELU, where low negative x values reach a low positive result.
+     * formula:    f(x)  = ln(1 + e^x)
+     * derivation: f(x)' = e^x / (1 + e^x)
+     */
     SOFTPLUS("Softplus") {
         @Override
         public double activate(double value) {
@@ -96,14 +155,29 @@ public enum Rectifier {
     private final String description;
 
     Rectifier(String description) {
-        this.description = description;
+        this.description = description + "(" + this.name() + ")";
     }
 
+    /**
+     * Gets short description of the learning rate descent function.
+     * @return the description.
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Returns the result of the according activation function.
+     * @param value the input value x
+     * @return the result f(x)
+     */
     public abstract double activate(double value);
 
+    /**
+     * Returns the result of the derivate of the according activation function.
+     * @param value the input value x
+     * @return the result f(x)'
+     */
     public abstract double derive(double value);
+
 }

@@ -24,14 +24,11 @@ class GeneticAlgorithmGeneration<T> {
     private List<IGeneticAlgorithmObject> populationList = new ArrayList<>();
     private int reproductionPoolSize;
 
-    GeneticAlgorithmGeneration(Properties properties, Constructor<T> geneticAlgorithmObjectConstructor, int id, int populationSize) {
+    GeneticAlgorithmGeneration(Constructor<T> geneticAlgorithmObjectConstructor, int id, int reproductionPoolSize, int populationSize) {
         this.geneticAlgorithmObjectConstructor = geneticAlgorithmObjectConstructor;
         this.id = id;
+        this.reproductionPoolSize = reproductionPoolSize;
         this.populationSize = populationSize;
-        reproductionPoolSize = Integer.parseInt(properties.getProperty("genetic_reproduction_pool_size"));
-        if (reproductionPoolSize < 2) {
-            throw new IllegalArgumentException("reproduction pool must be set to at least 2 in neuralnetwork.properties!");
-        }
     }
 
     NeuralNetwork runGeneration(NeuralNetwork seedNeuralNetwork) {

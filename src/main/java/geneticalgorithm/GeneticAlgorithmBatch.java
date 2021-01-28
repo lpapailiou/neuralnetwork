@@ -28,6 +28,7 @@ public class GeneticAlgorithmBatch<T> {
     private int generationCount = Integer.MAX_VALUE;
     private int currentGenerationId;
     private GeneticAlgorithmGeneration<T> currentGeneration;
+    private int reproductionPoolSize;
     private final int populationSize;
 
     /**
@@ -55,6 +56,10 @@ public class GeneticAlgorithmBatch<T> {
         } catch (URISyntaxException | IOException e) {
             throw new IllegalStateException("Could not access properties file neuralnetwork.properties!", e);
         }
+        reproductionPoolSize = Integer.parseInt(properties.getProperty("genetic_reproduction_pool_size"));
+        if (reproductionPoolSize < 2) {
+            throw new IllegalArgumentException("reproduction pool must be set to at least 2 in neuralnetwork.properties!");
+        }
     }
 
     /**
@@ -75,7 +80,7 @@ public class GeneticAlgorithmBatch<T> {
      * @return the best NeuralNetwork for reproduction (i.e. the seed for a new generation).
      */
     public NeuralNetwork processGeneration() {
-        currentGeneration = new GeneticAlgorithmGeneration<>(properties, geneticAlgorithmObjectConstructor, currentGenerationId, populationSize);
+        currentGeneration = new GeneticAlgorithmGeneration<>(geneticAlgorithmObjectConstructor, currentGenerationId, reproductionPoolSize, populationSize);
         seedNeuralNetwork = currentGeneration.runGeneration(seedNeuralNetwork);
         if (currentGenerationId == generationCount) {
             return null;
@@ -122,6 +127,24 @@ public class GeneticAlgorithmBatch<T> {
             networks.add(populationList.get(i).getNeuralNetwork());
         }
         return networks;
+    }
+
+    /**
+     * Sets reproduction pool size for the genetic algorithm.
+     * @param reproductionPoolSize the count of neural networks to be merged for reproduction.
+     * @return the current genetic algorithm batch.
+     */
+    public GeneticAlgorithmBatch<T> setReproductionPoolSize(int reproductionPoolSize) {
+        this.reproductionPoolSize = reproductionPoolSize;
+        return this;
+    }
+
+    /**
+     * Returns current reproduction pool size for the genetic algorithm. Must not match corresponding property.
+     * @return the reproduction pool size.
+     */
+    public int getReproductionPoolSize() {
+        return reproductionPoolSize;
     }
 
 }

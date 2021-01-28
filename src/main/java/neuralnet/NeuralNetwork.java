@@ -98,94 +98,6 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * Method to set the rectifier for the NeuralNetwork.
-     * The rectifier is the activation function for the nodes of the NeuralNetwork.
-     * @param rectifier the rectifier to be chosen.
-     * @return the NeuralNetwork.
-     */
-    public NeuralNetwork setRectifier(Rectifier rectifier) {
-        this.rectifier = rectifier;
-        return this;
-    }
-
-    /**
-     * Method to set the learning rate descent.
-     * Supervised learning only.
-     * @param learningRateDescent the descent function the learning rate.
-     * @return the NeuralNetwork.
-     */
-    public NeuralNetwork setLearningRateDescent(LearningRateDescent learningRateDescent) {
-        this.learningRateDescent = learningRateDescent;
-        return this;
-    }
-
-    /**
-     * Decreases the current learning rate according to the chosen LearningRateDescent function.
-     */
-    public void decreaseLearningRate() {
-        double newLearningRate = learningRateDescent.decrease(initialLearningRate, momentum, iteration_count);
-        this.learningRate = Math.max(newLearningRate, 0);
-        iteration_count++;
-    }
-
-    /**
-     * Method to set the learning rate. The learning rate may be decreased in case of
-     * unsupervised learning.
-     * @param learningRate the learning rate.
-     * @return the NeuralNetwork.
-     */
-    public NeuralNetwork setLearningRate(double learningRate) {
-        if (learningRate < 0 || learningRate > 1) {
-            throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
-        }
-        this.initialLearningRate = learningRate;
-        this.learningRate = learningRate;
-        return this;
-    }
-
-    /**
-     * Sets momentum for the decrease of the learning rate.
-     * @param momentum the momentum to decrease the learning rate.
-     * @return the NeuralNetwork.
-     */
-    public NeuralNetwork setMomentum(double momentum) {
-        this.momentum = momentum;
-        if (momentum < 0 || momentum > 1) {
-            throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
-        }
-        return this;
-    }
-
-    /**
-     * Setter to allow altering properties for the NeuralNetwork configuration.
-     * The set value will not be validated within this method. Please see neuralnetwork.properties
-     * as guideline.
-     * @param key the key of the property.
-     * @param value the value of the property.
-     */
-    public static void setProperty(String key, String value) {
-        if (key.equals("learning_rate")) {
-            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
-                throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
-            }
-        } else if (key.equals("learning_decay_momentum")) {
-            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
-                throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
-            }
-        }
-        PROPERTIES.setProperty(key, value);
-    }
-
-    /**
-     * Getter for the NeuralNetwork properties.
-     * @param key the key of the property.
-     * @return the value of the according property.
-     */
-    public static String getProperty(String key) {
-        return PROPERTIES.getProperty(key);
-    }
-
-    /**
      * This method will take input nodes as parameter and return the predicted output nodes.
      * The neural net will not be modified. This method can be used for testing or the unsupervised machine learning approach.
      * @param inputNodes the input nodes as double array
@@ -311,13 +223,6 @@ public class NeuralNetwork implements Serializable {
         return neuralNetwork;
     }
 
-    /**
-     * This method will reset the learning rate to its original state.
-     */
-    public void resetLearningRate() {
-        this.learningRate = this.initialLearningRate;
-    }
-
     private void randomize(double factor) {
         for (Layer layer : layers) {
             layer.weight.randomize(factor);
@@ -325,11 +230,152 @@ public class NeuralNetwork implements Serializable {
         }
     }
 
+    /**
+     * Method to set the rectifier for the NeuralNetwork.
+     * The rectifier is the activation function for the nodes of the NeuralNetwork.
+     * @param rectifier the rectifier to be chosen.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setRectifier(Rectifier rectifier) {
+        this.rectifier = rectifier;
+        return this;
+    }
+
+    /**
+     * Returns current rectifier of this NeuralNetwork. Must not match corresponding property.
+     * @return the rectifier.
+     */
+    public Rectifier getRectifier() {
+        return rectifier;
+    }
+
+    /**
+     * Method to set the learning rate descent.
+     * Supervised learning only.
+     * @param learningRateDescent the descent function the learning rate.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setLearningRateDescent(LearningRateDescent learningRateDescent) {
+        this.learningRateDescent = learningRateDescent;
+        return this;
+    }
+
+    /**
+     * Returns current learning rate descent of this NeuralNetwork. Must not match corresponding property.
+     * @return the learning rate descent.
+     */
+    public LearningRateDescent getLearningRateDescent() {
+        return learningRateDescent;
+    }
+
+    /**
+     * Method to set the learning rate. The learning rate may be decreased in case of
+     * unsupervised learning.
+     * @param learningRate the learning rate.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setLearningRate(double learningRate) {
+        if (learningRate < 0 || learningRate > 1) {
+            throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
+        }
+        this.initialLearningRate = learningRate;
+        this.learningRate = learningRate;
+        return this;
+    }
+
+    /**
+     * Returns current learning rate of this NeuralNetwork. Must not match corresponding property.
+     * @return the learning rate.
+     */
+    public double getLearningRate() {
+        return learningRate;
+    }
+
+    /**
+     * Decreases the current learning rate according to the chosen LearningRateDescent function.
+     */
+    public void decreaseLearningRate() {
+        this.learningRate = learningRateDescent.decrease(initialLearningRate, momentum, iteration_count);
+        iteration_count++;
+    }
+
+    /**
+     * This method will reset the learning rate to its original state.
+     */
+    public void resetLearningRate() {
+        this.learningRate = this.initialLearningRate;
+    }
+
+    /**
+     * Sets momentum for the decrease of the learning rate.
+     * @param momentum the momentum to decrease the learning rate.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setMomentum(double momentum) {
+        this.momentum = momentum;
+        if (momentum < 0 || momentum > 1) {
+            throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
+        }
+        return this;
+    }
+
+    /**
+     * Returns current momentum of this NeuralNetwork. Must not match corresponding property.
+     * @return the momentum.
+     */
+    public double getMomentum() {
+        return momentum;
+    }
+
+    /**
+     * Setter to allow altering properties for the NeuralNetwork configuration.
+     * The set value will not be validated within this method. Please see neuralnetwork.properties
+     * as guideline.
+     * @param key the key of the property.
+     * @param value the value of the property.
+     */
+    public static void setProperty(String key, String value) {
+        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_descent") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size")) {
+            throw new IllegalArgumentException("Property with key " + key + "is not valid in this context!");
+        } else if (key.equals("learning_rate")) {
+            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
+                throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
+            }
+        } else if (key.equals("learning_decay_momentum")) {
+            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
+                throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
+            }
+        } else if (key.equals("genetic_reproduction_pool_size")) {
+            if (Double.parseDouble(value) < 2) {
+                throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
+            }
+        }
+        PROPERTIES.setProperty(key, value);
+    }
+
+    /**
+     * Getter for the NeuralNetwork properties.
+     * @param key the key of the property.
+     * @return the value of the according property.
+     */
+    public static String getProperty(String key) {
+        return PROPERTIES.getProperty(key);
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("randomization rate: ");
+        sb.append("rectifier: ");
+        sb.append(rectifier.getDescription());
+        sb.append(", ");
+        sb.append("learning rate: ");
         sb.append(learningRate);
+        sb.append(", ");
+        sb.append("learning rate descent: ");
+        sb.append(learningRateDescent.getDescription());
+        sb.append(", ");
+        sb.append("momentum: ");
+        sb.append(momentum);
         sb.append("\n");
         for (int i = 0; i < layers.size(); i++) {
             sb.append(" ----- layer ");
