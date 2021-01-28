@@ -1,6 +1,7 @@
 package neuralnet;
 
 import org.junit.Test;
+import util.Rectifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,22 +15,22 @@ public class MatrixTest {
     public void additionTest() {
         double[][] d = new double[][] {{0,1},{2,3},{4,5}};
         double[][] da = new double[][] {{0,2},{4,6},{8,10}};
-        Matrix m = new Matrix(d);
+        Matrix m = new Matrix(Rectifier.SIGMOID, d);
         m.print();
         m.add(m);
         m.print();
-        Matrix ma = new Matrix(da);
+        Matrix ma = new Matrix(Rectifier.SIGMOID, da);
         assertEquals(m, ma);
     }
 
     @Test
     public void biasTest() {
         double[][] d = new double[][] {{0,1},{1,1},{1,1}};
-        Matrix a = new Matrix(d);
+        Matrix a = new Matrix(Rectifier.SIGMOID, d);
         double[][] db = new double[][] {{1,2}};
-        Matrix b = new Matrix(db);
+        Matrix b = new Matrix(Rectifier.SIGMOID, db);
         double[][] de = new double[][] {{1,3},{2,3},{2,3}};
-        Matrix e = new Matrix(de);
+        Matrix e = new Matrix(Rectifier.SIGMOID, de);
         a.addBias(b);
         a.print();
         assertEquals(a, e);
@@ -39,11 +40,11 @@ public class MatrixTest {
     public void subtractionTest() {
         double[][] d = new double[][] {{0,1},{2,3},{4,5}};
         double[][] da = new double[][] {{0,0},{0,0},{0,0}};
-        Matrix m = new Matrix(d);
+        Matrix m = new Matrix(Rectifier.SIGMOID, d);
         m.print();
-        m = m.subtract(m, m);
+        m = Matrix.subtract(m, m);
         m.print();
-        Matrix ma = new Matrix(da);
+        Matrix ma = new Matrix(Rectifier.SIGMOID, da);
         assertEquals(m, ma);
     }
 
@@ -52,12 +53,12 @@ public class MatrixTest {
         double[][] d = new double[][] {{0,1},{2,3},{4,5}};
         double[][] dm = new double[][] {{1,0},{0,5},{6,0}};
         double[][] de = new double[][] {{-1,1},{2,-2},{-2,5}};
-        Matrix m = new Matrix(d);
-        Matrix mm = new Matrix(dm);
+        Matrix m = new Matrix(Rectifier.SIGMOID, d);
+        Matrix mm = new Matrix(Rectifier.SIGMOID, dm);
         m.print();
         m = m.subtract(m, mm);
         m.print();
-        Matrix ma = new Matrix(de);
+        Matrix ma = new Matrix(Rectifier.SIGMOID, de);
         assertEquals(m, ma);
     }
 
@@ -66,11 +67,11 @@ public class MatrixTest {
         double[][] d = new double[][] {{2,1},{1,0},{2,0}};
         double scaler = 2.5;
         double[][] de = new double[][] {{5,2.5},{2.5,0},{5,0}};
-        Matrix a = new Matrix(d);
+        Matrix a = new Matrix(Rectifier.SIGMOID, d);
         a.print();
         a.multiply(scaler);
         a.print();
-        Matrix b = new Matrix(de);
+        Matrix b = new Matrix(Rectifier.SIGMOID, de);
         assertEquals(a, b);
     }
 
@@ -79,9 +80,9 @@ public class MatrixTest {
         double[][] d = new double[][] {{2,1},{1,0},{2,0}};
         double[][] dm = new double[][] {{2,0},{1,0},{0.5,0}};
         double[][] de = new double[][] {{4,0},{1,0},{1,0}};
-        Matrix a = new Matrix(d);
-        Matrix b = new Matrix(dm);
-        Matrix e = new Matrix(de);
+        Matrix a = new Matrix(Rectifier.SIGMOID, d);
+        Matrix b = new Matrix(Rectifier.SIGMOID, dm);
+        Matrix e = new Matrix(Rectifier.SIGMOID, de);
         a.print();
         a.multiplyElementwise(b);
         a.print();
@@ -93,13 +94,13 @@ public class MatrixTest {
         double[][] d = new double[][] {{2,1},{1,0},{2,0}};
         double[][] c = new double[][] {{1},{2}};
         double[][] mul = new double[][] {{4},{1},{2}};
-        Matrix a = new Matrix(d);
+        Matrix a = new Matrix(Rectifier.SIGMOID, d);
         a.print();
-        Matrix b = new Matrix(c);
+        Matrix b = new Matrix(Rectifier.SIGMOID, c);
         b.print();
         Matrix m = Matrix.multiply(a, b);
         m.print();
-        Matrix mt = new Matrix(mul);
+        Matrix mt = new Matrix(Rectifier.SIGMOID, mul);
         assertEquals(m, mt);
     }
 
@@ -107,19 +108,19 @@ public class MatrixTest {
     public void transponseTest() {
         double[][] d = new double[][] {{2,1},{3,5},{7,4}};
         double[][] dt = new double[][] {{2,3,7},{1,5,4}};
-        Matrix a = new Matrix(d);
+        Matrix a = new Matrix(Rectifier.SIGMOID, d);
         a.print();
-        Matrix b = Matrix.transponse(a);
+        Matrix b = Matrix.transpose(a);
         b.print();
-        Matrix c = new Matrix(dt);
+        Matrix c = new Matrix(Rectifier.SIGMOID, dt);
         assertEquals(b, c);
     }
 
     @Test
     public void sigmoidTest() {
         double[][] d = new double[][] {{0,-1},{1,2}};
-        Matrix a = new Matrix(d);
-        a.sigmoid();
+        Matrix a = new Matrix(Rectifier.SIGMOID, d);
+        a.activate();
         a.print();
         List<Double> list = Matrix.asList(a);
         assertEquals(0.5, Double.parseDouble(list.get(0)+""), 0.001);
@@ -131,8 +132,8 @@ public class MatrixTest {
     @Test
     public void diSigmoidTest() {
         double[][] d = new double[][] {{0.25,5},{1,2}};
-        Matrix a = new Matrix(d);
-        a = a.dsigmoid();
+        Matrix a = new Matrix(Rectifier.SIGMOID, d);
+        a = a.derive();
         a.print();
         List<Double> list = Matrix.asList(a);
         assertEquals(0.2, Double.parseDouble(list.get(0)+""), 0.1);
@@ -144,7 +145,7 @@ public class MatrixTest {
     @Test
     public void utilitiesTest() {
         double[] d = new double[] {0.25,5};
-        Matrix m = Matrix.fromArray(d);
+        Matrix m = Matrix.fromArray(Rectifier.SIGMOID, d);
         List<Double> newList = Matrix.asList(m);
         List<Double> oldList = new ArrayList<>();
         for (double dbl : d) {
@@ -156,10 +157,10 @@ public class MatrixTest {
     @Test
     public void randomizationTest() {
         double[][] d = new double[][] {{1,1},{1,1},{1,1}};
-        Matrix a = new Matrix(d);
+        Matrix a = new Matrix(Rectifier.SIGMOID, d);
         a.print();
-        Matrix b = a.clone();
-        Matrix c = a.clone();
+        Matrix b = a.copy();
+        Matrix c = a.copy();
         b.print();
         assertEquals(a, b);
         b.randomize(0.9);

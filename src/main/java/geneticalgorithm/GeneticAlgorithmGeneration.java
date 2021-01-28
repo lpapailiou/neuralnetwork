@@ -28,14 +28,14 @@ class GeneticAlgorithmGeneration<T> {
         this.geneticAlgorithmObjectConstructor = geneticAlgorithmObjectConstructor;
         this.id = id;
         this.populationSize = populationSize;
-        reproductionPoolSize = Integer.parseInt(properties.getProperty("reproductionPoolSize"));
+        reproductionPoolSize = Integer.parseInt(properties.getProperty("genetic_reproduction_pool_size"));
     }
 
     NeuralNetwork runGeneration(NeuralNetwork seedNeuralNetwork) {
         ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL);
         List<Runnable> tasks = new ArrayList<>();
         for (int i = 0; i < populationSize; i++) {
-            tasks.add(new BackgroundProcess(geneticAlgorithmObjectConstructor, i == 0 ? seedNeuralNetwork : seedNeuralNetwork.clone(), populationList));
+            tasks.add(new BackgroundProcess(geneticAlgorithmObjectConstructor, i == 0 ? seedNeuralNetwork : seedNeuralNetwork.mutate(), populationList));
         }
         CompletableFuture<?>[] futures = tasks.stream().map(task -> CompletableFuture.runAsync(task, executorService)).toArray(CompletableFuture[]::new);
         CompletableFuture.allOf(futures).join();
@@ -49,6 +49,7 @@ class GeneticAlgorithmGeneration<T> {
         }
 
         bestNeuralNetworkForReproduction = evolve();
+        bestNeuralNetworkForReproduction.decreaseLearningRate();
         return bestNeuralNetworkForReproduction;
     }
 

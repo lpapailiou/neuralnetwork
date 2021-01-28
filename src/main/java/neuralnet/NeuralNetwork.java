@@ -1,9 +1,19 @@
 package neuralnet;
 
+import util.LearningRateDescent;
+import util.Rectifier;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.Serializable;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * This is the central class of this library, allowing to create a freely configurable neural network.
@@ -12,15 +22,34 @@ import java.util.List;
  */
 public class NeuralNetwork implements Serializable {
 
+    private static final Properties PROPERTIES = new Properties();
     private static final long serialVersionUID = 2L;
     private List<Layer> layers = new ArrayList<>();
     private int inputLayerNodes;
-    private double randomizationRate = 0.1;
+
+    private Rectifier rectifier;
+    private LearningRateDescent learningRateDescent;
+    private double learningRate;
+    private double momentum;
+    private int iteration_count;
+
+    static {
+        URL path = NeuralNetwork.class.getClassLoader().getResource("neuralnetwork.properties");
+        File file;
+        try {
+            assert path != null;
+            file = Paths.get(path.toURI()).toFile();
+            PROPERTIES.load(new FileInputStream(file));
+        } catch (URISyntaxException | IOException e) {
+            throw new IllegalStateException("Could not access properties file neuralnetwork.properties!", e);
+        }
+    }
 
     /**
      * A constructor of the neural network.
      * The varag parameters will define the architecture of the neural network. You need to enter at least two parameters.
-     * Please note there is another constructor which allows to set the randomization rate for clones.
+     * For hyperparameters and additional default settings, please use the neuralnetwork.properties files or
+     * the according setters (builder pattern available).
      * @param layerParams the architecture of the neural network. First argument = node count of input layer; last argument = node count of output layer; arguments between = node count per hidden layer.
      */
     public NeuralNetwork(int... layerParams) {
@@ -34,28 +63,89 @@ public class NeuralNetwork implements Serializable {
         for (int i = 1; i < layerParams.length; i++) {
             layers.add(new Layer(layerParams[i], layerParams[i-1]));
         }
+
+        this.rectifier = Rectifier.valueOf(PROPERTIES.getProperty("rectifier").toUpperCase());
+        this.learningRateDescent = LearningRateDescent.valueOf(PROPERTIES.getProperty("learning_rate_descent").toUpperCase());
+        this.learningRate = Double.parseDouble(PROPERTIES.getProperty("learning_rate"));
+        this.momentum = Double.parseDouble(PROPERTIES.getProperty("learning_decay_momentum"));
     }
 
-    /**
-     * A constructor of the neural network.
-     * The varag parameters will define the architecture of the neural network. You need to enter at least two parameters.
-     * Please note there is another constructor which does not require randomization rate (defaults to 0.1).
-     * @param randomizationRate the randomization rate, used for unsupervised machine learning approach where cloning instead of back propagating is used.
-     * @param layerParams the architecture of the neural network. First argument = node count of input layer; last argument = node count of output layer; arguments between = node count per hidden layer.
-     */
-    public NeuralNetwork(double randomizationRate, int... layerParams) {
-        this(layerParams);
-        this.randomizationRate = randomizationRate;
-    }
-
-    private NeuralNetwork(int inputLayerNodes, double randomizationRate, List<Layer> layers) {
+    private NeuralNetwork(int inputLayerNodes, List<Layer> layers) {
         List<Layer> newLayerSet = new ArrayList<>();
         for (Layer layer : layers) {
-            newLayerSet.add(layer.clone());
+            newLayerSet.add(layer.copy());
         }
         this.layers = newLayerSet;
         this.inputLayerNodes = inputLayerNodes;
-        this.randomizationRate = randomizationRate;
+    }
+
+    /**
+     * Method to set the rectifier for the NeuralNetwork.
+     * The rectifier is the activation function for the nodes of the NeuralNetwork.
+     * @param rectifier the rectifier to be chosen.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setRectifier(Rectifier rectifier) {
+        this.rectifier = rectifier;
+        return this;
+    }
+
+    /**
+     * Method to set the learning rate descent.
+     * Supervised learning only.
+     * @param learningRateDescent the descent function the learning rate.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setLearningRateDescent(LearningRateDescent learningRateDescent) {
+        this.learningRateDescent = learningRateDescent;
+        return this;
+    }
+
+    /**
+     * Decreases the current learning rate according to the chosen LearningRateDescent function.
+     */
+    public void decreaseLearningRate() {
+        this.learningRate = learningRateDescent.decrease(learningRate, momentum, iteration_count);
+        iteration_count++;
+    }
+
+    /**
+     * Method to set the learning rate. The learning rate may be decreased in case of
+     * unsupervised learning.
+     * @param learningRate the learning rate.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setLearningRate(double learningRate) {
+        this.learningRate = learningRate;
+        return this;
+    }
+
+    /**
+     * Sets momentum for the decrease of the learning rate.
+     * @param momentum the momentum to decrease the learning rate.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setMomentum(double momentum) {
+        this.momentum = momentum;
+        return this;
+    }
+
+    /**
+     * Setter to allow altering properties for the NeuralNetwork configuration.
+     * @param key the key of the property.
+     * @param value the value of the property.
+     */
+    public static void setProperty(String key, String value) {
+        PROPERTIES.setProperty(key, value);
+    }
+
+    /**
+     * Getter for the NeuralNetwork properties.
+     * @param key the key of the property.
+     * @return the value of the according property.
+     */
+    public static String getProperty(String key) {
+        return PROPERTIES.getProperty(key);
     }
 
     /**
@@ -71,12 +161,12 @@ public class NeuralNetwork implements Serializable {
             throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + inputLayerNodes + " input nodes.");
         }
 
-        Matrix tmp = Matrix.fromArray(inputNodes);
+        Matrix tmp = Matrix.fromArray(rectifier, inputNodes);
 
         for (Layer layer : layers) {
             tmp = Matrix.multiply(layer.weight, tmp);
             tmp.addBias(layer.bias);
-            tmp.sigmoid();
+            tmp.activate();
         }
 
         return Matrix.asList(tmp);
@@ -96,7 +186,7 @@ public class NeuralNetwork implements Serializable {
             throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + inputLayerNodes + " input nodes.");
         }
 
-        Matrix input = Matrix.fromArray(inputNodes);
+        Matrix input = Matrix.fromArray(rectifier, inputNodes);
 
         // forward propagate and prepare output
         List<Matrix> steps = new ArrayList<>();
@@ -104,24 +194,26 @@ public class NeuralNetwork implements Serializable {
         for (Layer layer : layers) {
             tmp = Matrix.multiply(layer.weight, tmp);
             tmp.addBias(layer.bias);
-            tmp.sigmoid();
+            tmp.activate();
             steps.add(tmp);
         }
 
-        Matrix target = Matrix.fromArray(expectedOutputNodes);
+        Matrix target = Matrix.fromArray(rectifier, expectedOutputNodes);
 
         // backward propagate to adjust weights in layers
+        iteration_count++;
         Matrix error = null;
         for (int i = steps.size()-1; i >= 0; i--) {
             if (error == null) {
                 error = Matrix.subtract(target, steps.get(steps.size()-1));
             } else {
-                error = Matrix.multiply(Matrix.transponse(layers.get(i+1).weight), error);
+                error = Matrix.multiply(Matrix.transpose(layers.get(i+1).weight), error);
             }
-            Matrix gradient = steps.get(i).dsigmoid();
+            Matrix gradient = steps.get(i).derive();
             gradient.multiplyElementwise(error);
-            gradient.multiply(randomizationRate);
-            Matrix delta = Matrix.multiply(gradient, Matrix.transponse((i == 0) ? input : steps.get(i-1)));
+            decreaseLearningRate();
+            gradient.multiply(learningRate);
+            Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : steps.get(i-1)));
             layers.get(i).weight.add(delta);
             layers.get(i).bias.addBias(gradient);
         }
@@ -163,14 +255,13 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * This method will provide a randomized clone of the current neural network. The output neural network will not be connected to the cloned neural network.
-     * @return a randomized clone of this instance
+     * This method will provide a randomized copy of the current neural network. The output neural network will not be connected to the copied neural network.
+     * @return a mutated copy of this instance
      */
-    @Override
-    public NeuralNetwork clone() {
-        NeuralNetwork net = new NeuralNetwork(inputLayerNodes, randomizationRate, layers);
-        net.randomize(randomizationRate);
-        return net;
+    public NeuralNetwork mutate() {
+        NeuralNetwork neuralNetwork = this.copy();
+        neuralNetwork.randomize(learningRate);
+        return neuralNetwork;
     }
 
     /**
@@ -178,7 +269,9 @@ public class NeuralNetwork implements Serializable {
      * @return an identical copy of this instance
      */
     public NeuralNetwork copy() {
-        return new NeuralNetwork(inputLayerNodes, randomizationRate, layers);
+        NeuralNetwork neuralNetwork = new NeuralNetwork(inputLayerNodes, layers);
+        neuralNetwork.setRectifier(this.rectifier).setLearningRateDescent(this.learningRateDescent).setLearningRate(this.learningRate).setMomentum(this.momentum);
+        return neuralNetwork;
     }
 
     private void randomize(double factor) {
@@ -191,17 +284,22 @@ public class NeuralNetwork implements Serializable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("randomization rate: " + randomizationRate + "\n");
+        sb.append("randomization rate: ");
+        sb.append(learningRate);
+        sb.append("\n");
         for (int i = 0; i < layers.size(); i++) {
-            sb.append(" ----- layer " + i + " -----\n");
-            sb.append(layers.get(i).toString() + "\n");
+            sb.append(" ----- layer ");
+            sb.append(i);
+            sb.append(" -----\n");
+            sb.append(layers.get(i).toString());
+            sb.append("\n");
         }
         return sb.toString();
     }
 
     @Override
     public int hashCode() {
-        return Integer.parseInt(randomizationRate + "" + layers.size());
+        return Integer.parseInt(learningRate + "" + iteration_count + layers.size());
     }
 
     @Override

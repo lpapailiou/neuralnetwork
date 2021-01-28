@@ -6,7 +6,7 @@ The network architecture is freely configurable.
 ## Genetic Algorithm
 The package ``geneticalgorithm`` introduced in version 2.0 will allow easy implementation of the
 genetic algorithm with reinforced learning. If it is used, please make sure to load the
-``geneticalgorithm.properties`` file to the resources folder of your project.
+``neuralnetwork.properties`` file to the resources folder of your project.
 
 ### From a Jar file
 You can download the Jar file directly from the [latest release](https://github.com/lpapailiou/neuralnetwork/releases/latest). Alternatively, you can build it yourself.  

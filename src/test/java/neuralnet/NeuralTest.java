@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static neuralnet.NetUtils.getStandardizedOutputList;
+import static util.NetUtils.getStandardizedOutputList;
 import static org.junit.Assert.assertEquals;
 
 public class NeuralTest {

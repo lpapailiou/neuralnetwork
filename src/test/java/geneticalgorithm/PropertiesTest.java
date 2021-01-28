@@ -14,7 +14,7 @@ public class PropertiesTest {
 
     @Test
     public void propertiesTest() throws IOException, URISyntaxException {
-        URL defaultConfigPath2 = getClass().getClassLoader().getResource("geneticalgorithm.properties");
+        URL defaultConfigPath2 = getClass().getClassLoader().getResource("neuralnetwork.properties");
         File file = Paths.get(defaultConfigPath2.toURI()).toFile();
         Properties defaultProps = new Properties();
         defaultProps.load(new FileInputStream(file));
@@ -22,7 +22,7 @@ public class PropertiesTest {
 
         /*
         String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-        String defaultConfigPath = rootPath + "geneticalgorithm.properties";
+        String defaultConfigPath = rootPath + "neuralnetwork.properties";
         Properties defaultProps = new Properties();
         defaultProps.load(new FileInputStream(defaultConfigPath));
         assertEquals("2", defaultProps.getProperty("selectionReproductionSize"));*/

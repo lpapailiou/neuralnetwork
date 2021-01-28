@@ -1,5 +1,7 @@
 package neuralnet;
 
+import util.Rectifier;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.List;
 public class Matrix implements Serializable {
 
     private static final long serialVersionUID = 2L;
+    private final Rectifier rectifier;
     private double[][] data;
     private int rows;
     private int cols;
@@ -19,7 +22,8 @@ public class Matrix implements Serializable {
      * @param rows the row count of the matrix
      * @param cols the column count of the matrix
      */
-    Matrix(int rows, int cols) {
+    Matrix(Rectifier rectifier, int rows, int cols) {
+        this.rectifier = rectifier;
         data = new double[rows][cols];
         this.rows = rows;
         this.cols = cols;
@@ -29,7 +33,8 @@ public class Matrix implements Serializable {
      * Constructor used for testing
      * @param input the input 2d array to be converted to a matrix
      */
-    Matrix(double[][] input) {
+    Matrix(Rectifier rectifier, double[][] input) {
+        this.rectifier = rectifier;
         data = input;
         rows = input.length;
         cols = input[0].length;
@@ -81,10 +86,10 @@ public class Matrix implements Serializable {
         return a;
     }
 
-    void multiply(double scaler) {
+    void multiply(double scalar) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                data[i][j] *= scaler;
+                data[i][j] *= scalar;
             }
         }
     }
@@ -104,7 +109,7 @@ public class Matrix implements Serializable {
         if (a.cols != b.rows) {
             throw new IllegalArgumentException("wrong input matrix dimensions for multiplication! " + a.getType() + " " + b.getType());
         }
-        Matrix tmp = new Matrix(a.rows, b.cols);
+        Matrix tmp = new Matrix(a.rectifier, a.rows, b.cols);
         for (int i = 0; i < tmp.rows; i++) {
             for (int j = 0; j < tmp.cols; j++) {
                 double sum = 0;
@@ -117,8 +122,8 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
-    static Matrix transponse(Matrix m) {
-        Matrix tmp = new Matrix(m.cols, m.rows);
+    static Matrix transpose(Matrix m) {
+        Matrix tmp = new Matrix(m.rectifier, m.cols, m.rows);
         for (int i = 0; i < m.rows; i++) {
             for (int j = 0; j < m.cols; j++) {
                 tmp.data[j][i] = m.data[i][j];
@@ -127,19 +132,19 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
-    void sigmoid() {
+    void activate() {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                data[i][j] = 1/(1 + Math.exp(-data[i][j]));
+                data[i][j] = rectifier.activate(data[i][j]);
             }
         }
     }
 
-    Matrix dsigmoid() {
-        Matrix tmp = new Matrix(rows, cols);
+    Matrix derive() {
+        Matrix tmp = new Matrix(rectifier, rows, cols);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                tmp.data[i][j] = data[i][j] * (1 - data[i][j]);
+                tmp.data[i][j] = rectifier.derive(data[i][j]);
             }
         }
         return tmp;
@@ -157,8 +162,8 @@ public class Matrix implements Serializable {
         return cols;
     }
 
-    static Matrix fromArray(double[] arr) {
-        Matrix tmp = new Matrix(arr.length, 1);
+    static Matrix fromArray(Rectifier rectifier, double[] arr) {
+        Matrix tmp = new Matrix(rectifier, arr.length, 1);
         for (int i = 0; i < arr.length; i++) {
             tmp.data[i][0] = arr[i];
         }
@@ -197,9 +202,8 @@ public class Matrix implements Serializable {
         System.out.println(this.toString());
     }
 
-    @Override
-    protected Matrix clone() {
-        Matrix m = new Matrix(rows, cols);
+    Matrix copy() {
+        Matrix m = new Matrix(rectifier, rows, cols);
         for (int i = 0; i < m.rows; i++) {
             if (m.cols >= 0) System.arraycopy(this.data[i], 0, m.data[i], 0, m.cols);
         }

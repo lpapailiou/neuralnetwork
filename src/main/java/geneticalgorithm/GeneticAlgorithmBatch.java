@@ -32,7 +32,7 @@ public class GeneticAlgorithmBatch<T> {
 
     /**
      * Constructor to create a new batch. With given parameters, the genetic algorithm will be able to run.
-     * It additionally loads the geneticalgorithm.properties file from the resources, which can be configured
+     * It additionally loads the neuralnetwork.properties file from the resources, which can be configured
      * to modify the genetic algorithm.
      * @param templateGeneticAlgorithmObject the type which implements the actual logic of the genetic algorithm.
      * @param seedNeuralNetwork the NeuralNetwork to be seeded for the first population.
@@ -46,20 +46,20 @@ public class GeneticAlgorithmBatch<T> {
         }
         this.seedNeuralNetwork = seedNeuralNetwork;
         this.populationSize = populationSize;
-        URL path = getClass().getClassLoader().getResource("geneticalgorithm.properties");
+        URL path = getClass().getClassLoader().getResource("neuralnetwork.properties");
         File file;
         try {
             assert path != null;
             file = Paths.get(path.toURI()).toFile();
             properties.load(new FileInputStream(file));
         } catch (URISyntaxException | IOException e) {
-            throw new IllegalStateException("Could not access properties file geneticalgorithm.properties!", e);
+            throw new IllegalStateException("Could not access properties file neuralnetwork.properties!", e);
         }
     }
 
     /**
      * Constructor to create a new batch. With given parameters, the genetic algorithm will be able to run.
-     * It additionally loads the geneticalgorithm.properties file which can be configured to modify the genetic algorithm.
+     * It additionally loads the neuralnetwork.properties file which can be configured to modify the genetic algorithm.
      * @param templateGeneticAlgorithmObject the type which implements the actual logic of the genetic algorithm.
      * @param seedNeuralNetwork the NeuralNetwork to be seeded for the first population.
      * @param populationSize the population size for the genetic algorithm.
