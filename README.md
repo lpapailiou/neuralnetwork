@@ -167,7 +167,7 @@ Add following snippets to your ``pom.xml`` file to import the library:
         <dependency>    
             <groupId>neuralnetwork</groupId>    
             <artifactId>neural-network-repo</artifactId>    
-            <version>2.2</version>    
+            <version>2.3</version>    
         </dependency>    
     </dependencies>    
     
