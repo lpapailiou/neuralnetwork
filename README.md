@@ -172,7 +172,7 @@ Add following snippets to your ``pom.xml`` file to import the library:
     </dependencies>    
     
 Please note the `neuralnetwork.properties` file should be imported as well to your `resources` folder.  
-In case it is not present, you may include following plugin to your pom.xml file:  
+In case it is not present, you may include following plugin to your `pom.xml` file:  
 
     <plugin>
         <groupId>org.apache.maven.plugins</groupId>
