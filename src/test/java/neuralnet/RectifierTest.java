@@ -1,6 +1,7 @@
 package neuralnet;
 
 import org.junit.Test;
+import util.LearningRateDescent;
 import util.Rectifier;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class RectifierTest {
 
         NeuralNetwork net = new NeuralNetwork(2, 4, 1);
         net.setRectifier(rectifier);
-        net.train(in, out, 10000);
+        net.train(in, out, 4000);
 
         //assertEquals(net.predict(in[0]), net.predict(in[0]), 0.2);
         List<Double> expected = getStandardizedOutputList(net.predict(in[0]));
@@ -41,9 +42,27 @@ public class RectifierTest {
 
         System.out.println("rectifier: " + rectifier.getDescription());
         System.out.println(" - error: " + (net.predict(in[0]).get(0) + (1.0-net.predict(in[1]).get(0)) + (1-net.predict(in[2]).get(0)) + net.predict(in[3]).get(0))/4);
-        /*System.out.println("combo 1: " + net.predict(in[0]));
+    }
+
+    @Test
+    public void xOrTest() {
+        double[][] in = {{0,0}, {1,0}, {0,1}, {1,1}};
+        double[][] out = {{0}, {1}, {1}, {0}};
+
+        NeuralNetwork net = new NeuralNetwork(2, 4, 1);
+        net.setRectifier(Rectifier.SIGMOID).setLearningRate(0.8).setLearningRateDescent(LearningRateDescent.NONE);
+        net.train(in, out, 2000);
+
+        List<Double> expected = getStandardizedOutputList(net.predict(in[0]));
+        List<Double> actual = net.predict(in[0]);
+        for (int i = 0; i < expected.size(); i++) {
+            assertEquals(expected.get(i), actual.get(i), 0.2);
+        }
+
+        System.out.println("test with rectifier: " + Rectifier.TANH.getDescription());
+        System.out.println("combo 1: " + net.predict(in[0]));
         System.out.println("combo 2: " + net.predict(in[1]));
         System.out.println("combo 3: " + net.predict(in[2]));
-        System.out.println("combo 4: " + net.predict(in[3]));*/
+        System.out.println("combo 4: " + net.predict(in[3]));
     }
 }
