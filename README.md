@@ -212,7 +212,7 @@ In case it is not present, you may include following plugin to your pom.xml file
 
 and run `mvn build` to complete the import of the properties file.
 
-## Properties
+### Properties
 Below an overview of the `neuralnetwork.properties` file.
 
     # **************************************************************************************************** #
