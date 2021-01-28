@@ -3,16 +3,9 @@ package geneticalgorithm;
 import neuralnet.NeuralNetwork;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * This class allows an easy handling of the genetic algorithm. It will prepare according populations and allows processing generation by generation.
@@ -20,8 +13,6 @@ import java.util.Properties;
  * @param <T> the type of the GeneticAlgorithmObject to be used.
  */
 public class GeneticAlgorithmBatch<T> {
-
-    private Properties properties = new Properties();
 
     private Constructor<T> geneticAlgorithmObjectConstructor;
     private NeuralNetwork seedNeuralNetwork;
@@ -47,16 +38,7 @@ public class GeneticAlgorithmBatch<T> {
         }
         this.seedNeuralNetwork = seedNeuralNetwork;
         this.populationSize = populationSize;
-        URL path = getClass().getClassLoader().getResource("neuralnetwork.properties");
-        File file;
-        try {
-            assert path != null;
-            file = Paths.get(path.toURI()).toFile();
-            properties.load(new FileInputStream(file));
-        } catch (URISyntaxException | IOException e) {
-            throw new IllegalStateException("Could not access properties file neuralnetwork.properties!", e);
-        }
-        reproductionPoolSize = Integer.parseInt(properties.getProperty("genetic_reproduction_pool_size"));
+        reproductionPoolSize = Integer.parseInt(NeuralNetwork.getProperty("genetic_reproduction_pool_size"));
         if (reproductionPoolSize < 2) {
             throw new IllegalArgumentException("reproduction pool must be set to at least 2 in neuralnetwork.properties!");
         }
