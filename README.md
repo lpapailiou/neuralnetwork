@@ -183,35 +183,37 @@ In case it is not present, you may include following plugin to your `pom.xml` fi
                 </directory>
             </resource>
         </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.1</version>
-                <executions>
-                    <execution>
-                        <id>resource-dependencies</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>neuralnetwork</groupId>
-                                    <artifactId>neural-network-repo</artifactId>
-                                    <version>${neuralnetwork.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>true</overWrite>
-                                </artifactItem>
-                            </artifactItems>
-                            <includes>**/*.properties</includes>
-                            <outputDirectory>${project.basedir}/src/main/resources</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.1.1</version>
+                    <executions>
+                        <execution>
+                            <id>resource-dependencies</id>
+                            <phase>compile</phase>
+                            <goals>
+                                <goal>unpack</goal>
+                            </goals>
+                            <configuration>
+                                <artifactItems>
+                                    <artifactItem>
+                                        <groupId>neuralnetwork</groupId>
+                                        <artifactId>neural-network-repo</artifactId>
+                                        <version>${neuralnetwork.version}</version>
+                                        <type>jar</type>
+                                        <overWrite>true</overWrite>
+                                    </artifactItem>
+                                </artifactItems>
+                                <includes>**/*.properties</includes>
+                                <outputDirectory>${project.basedir}/src/main/resources</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
 and run `mvn compile` to complete the import of the properties file.
