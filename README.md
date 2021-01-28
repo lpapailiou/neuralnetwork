@@ -31,7 +31,7 @@ This is a maven library for neural networks in java 8.
 #### Genetic algorithm
 The package `geneticalgorithm` offers a convenient base for implementing the genetic algorithm easily.  
 There are two interfaces to be taken care of: 
-- `GeneticAlgorithmObject`: may be extended from the abstract class `GeneticAlgorithmObject` or the interface `IGeneticAlgorithmObject`. This will be the implementation
+- `GeneticAlgorithmObject`: may be extended from the abstract class `GeneticAlgorithmObject` or implemented from the interface `IGeneticAlgorithmObject`. This will be the implementation
 for the instance being capable of acting according to NeuralNetwork inputs.
 - `GeneticAlgorithmBatch`: with this class, the genetic algorithm is implemented and executed from.
 The 'actual machine learning part' is processed within the library, and does not have to be taken care of.
