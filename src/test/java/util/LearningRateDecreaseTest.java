@@ -14,7 +14,7 @@ public class LearningRateDecreaseTest {
         double lrinit = 0.8;
         double lr = 0.8;
         System.out.println("testing with: " + lrd.getDescription());
-        int iter = 20;
+        int iter = 110;
         for (int i = 0; i < iter; i++) {
             lr = lrd.decrease(lrinit, 0.005, i);
         }

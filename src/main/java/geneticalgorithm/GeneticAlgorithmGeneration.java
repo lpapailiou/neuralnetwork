@@ -79,14 +79,15 @@ class GeneticAlgorithmGeneration<T> {
         } else if (populationList.size() < 20 || populationList.get(0).isImmature()) {
             return NeuralNetwork.merge(bestNeuralNetwork, populationList.get(1).getNeuralNetwork());
         }
-
         int selectionPoolSize = 8;
         if (populationList.size() >= 100 && populationList.size() < 200) {
             selectionPoolSize = (int) (populationSize * 0.2);
         } else if (populationList.size() >= 200 && populationList.size() < 1000) {
             selectionPoolSize = (int) (populationSize * 0.1);
-        } else if (populationList.size() >= 1000) {
+        } else if (populationList.size() >= 1000 && populationList.size() < 10000) {
             selectionPoolSize = (int) (populationSize * 0.01);
+        } else if (populationList.size() >= 10000) {
+            selectionPoolSize = (int) (populationSize * 0.001);
         }
 
         Map<Integer, Long> map = new HashMap<>();
