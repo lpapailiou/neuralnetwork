@@ -12,11 +12,11 @@ public class LearningRateDecreaseTest {
 
     void descentTest(LearningRateDescent lrd) {
         double lrinit = 0.8;
-        double lr = 0;
+        double lr = 0.8;
         System.out.println("testing with: " + lrd.getDescription());
-        int iter = 250;
+        int iter = 20;
         for (int i = 0; i < iter; i++) {
-            lr = lrd.decrease(lr, 0.005, i);
+            lr = lrd.decrease(lrinit, 0.005, i);
         }
         System.out.println("learning rate " + lr + " after " + iter + " iterations.\n");
     }
