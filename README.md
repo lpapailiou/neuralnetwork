@@ -100,8 +100,8 @@ Fit the neural network model sequentially with according input and expected outp
 
     double[] in = {{1,0.5}, {0.2,0.9};                          // input set
     double[] out = {{1,0}, {0,1}};                              // expected output set
-    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 1, 2000); 
-    neuralNetwork.fit(in, out);                                 // adjustment of model in 2000 iterations
+    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4); 
+    neuralNetwork.fit(in, out, 2000);                           // adjustment of model in 2000 iterations
 
 #### Genetic algorithm
 Merge two instances of NeuralNetwork, where as the first instance will be returned modified.
@@ -111,6 +111,21 @@ This will work only, if both neural networks are of the same architecture.
     NeuralNetwork neuralNetworkB = new NeuralNetwork(2, 4, 2);
     NeuralNetwork result = NeuralNetwork.merge(neuralNetworkA, neuralNetworkB);
     
+Mutate a neural network according to the current settings.
+
+    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 2);
+    neuralNetwork.mutate();
+    
+If you want to decrease the learning rate, you may call `decreaseLearningRate()`. Please note you should then
+select another type than `LearningRateDescent.NONE` (and according learning rate and momentum).
+As the decreasing learning rate is optional and has to be performed on a neural network instance chosen
+for reproduction only, it has to be called separately.
+
+    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 2);
+    neuralNetwork.mutate();
+    // do something
+    neuralNetwork.decreaseLerningRate();
+
 Obtain an identical copy of a NeuralNetwork instance.
 
     NeuralNetwork master = new NeuralNetwork(2, 4, 2);
