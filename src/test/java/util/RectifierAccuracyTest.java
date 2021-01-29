@@ -2,13 +2,8 @@ package util;
 
 import neuralnet.NeuralNetwork;
 import org.junit.Test;
-import util.LearningRateDescent;
-import util.Rectifier;
-
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static util.NetUtils.getStandardizedOutputList;
 
 public class RectifierAccuracyTest {
 
@@ -32,7 +27,7 @@ public class RectifierAccuracyTest {
 
         NeuralNetwork net = new NeuralNetwork(2, 4, 1).setLearningRate(0.9).setLearningRateDescent(LearningRateDescent.NONE);
         net.setRectifier(rectifier);
-        net.train(in, out, 5000);
+        net.fit(in, out, 5000);
 
         System.out.println("rectifier: " + rectifier.getDescription());
         System.out.println(" - error: " + (net.predict(in[0]).get(0) + (1.0-net.predict(in[1]).get(0)) + (1.0-net.predict(in[2]).get(0)) + net.predict(in[3]).get(0))/4.0);
@@ -51,7 +46,7 @@ public class RectifierAccuracyTest {
 
         NeuralNetwork net = new NeuralNetwork(2, 4, 1);
         net.setRectifier(rectifier).setLearningRate(0.8).setLearningRateDescent(LearningRateDescent.NONE);
-        net.train(in, out, 1000);
+        net.fit(in, out, 1000);
 
         System.out.println("test with rectifier: " + rectifier.getDescription());
         System.out.println("  combo 1: " + net.predict(in[0]));

@@ -5,14 +5,14 @@ This is a maven library for neural networks in java 8.
 1. [Features](#features)  
 	1.1 [Architecture](#architecture)  
 	1.2 [Supported algorithms](#supported-algorithms)  
-    	1.2.1 [Genetic algorithm](#genetic-algorithm)  
     1.3 [Rectifiers](#rectifiers)  
     1.4 [Learning rate descent](#learning-rate-descent)  
     1.5 [Configuration](#configuration)   
 2. [Examples](#examples)  
     2.1 [Constructor of NeuralNetwork](#constructor-of-neuralnetwork)   
-    2.2 [Supervised learning](#supervised-learning)   
-    2.3 [Genetic algorithm](#genetic-algorithm)   
+    2.2 [Methods of NeuralNetwork](#methods-of-neuralnetwork)   
+    2.3 [Supervised learning](#supervised-learning)   
+    2.4 [Genetic algorithm](#genetic-algorithm)   
 3. [Implementation](#implementation)  
     3.1 [From a Jar file](#from-a-jar-file)  
     3.2 [From a Maven dependency](#from-a-maven-dependency)  
@@ -64,7 +64,7 @@ Create a neural network with three input nodes and two output nodes:
 
     NeuralNetwork neuralNetwork = new NeuralNetwork(3, 2);
   
-Create a neural network with two output nodes, two hidden layers (4 and 5 nodes) and 6 output nodes:
+Create a neural network with two input nodes, two hidden layers (4 and 5 nodes) and 6 output nodes:
 
     NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 5, 6);
   
@@ -75,41 +75,84 @@ Create a neural network adding hyper parameters (builder pattern may be used as 
     neuralNetwork.setLearningRateDescent(LearningRateDescent.SGD);
     neuralNetwork.setLearningRate(0.8);
     neuralNetwork.setMomentum(0.005);
+    neuralNetwork.setMutationRate(0.5);
 
-### Supervised learning
-See below a full test of the neural network with supervised learning: 
+### Methods of NeuralNetwork
+#### Common methods
+Use the neural network to predict a value from a given input array.
 
-    // prepare input set
+    double[] in = {1,0.5};                                      // input values
+    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 1);
+    List<Double> out = neuralNetwork.predict(in);               // prediction
+
+Get a full overview of the actual contents of a neural network by calling the `toString()` method.
+
+#### Supervised learning
+Fit the neural network model to given input array and the expected output.
+The neural network will return a prediction and adjust accordingly.
+
+    double[] in = {1,0.5};                                      // input
+    double[] out = {1,0};                                       // expected output
+    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 1);
+    List<Double> prediction = neuralNetwork.fit(in, out);       // prediction and adjustment of model
+    
+Fit the neural network model sequentially with according input and expected output sets.
+
+    double[] in = {{1,0.5}, {0.2,0.9};                          // input set
+    double[] out = {{1,0}, {0,1}};                              // expected output set
+    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 1, 2000); 
+    neuralNetwork.fit(in, out);                                 // adjustment of model in 2000 iterations
+
+#### Genetic algorithm
+Merge two instances of NeuralNetwork, where as the first instance will be returned modified.
+This will work only, if both neural networks are of the same architecture.
+
+    NeuralNetwork neuralNetworkA = new NeuralNetwork(2, 4, 2);
+    NeuralNetwork neuralNetworkB = new NeuralNetwork(2, 4, 2);
+    NeuralNetwork result = NeuralNetwork.merge(neuralNetworkA, neuralNetworkB);
+    
+Obtain an identical copy of a NeuralNetwork instance.
+
+    NeuralNetwork master = new NeuralNetwork(2, 4, 2);
+    NeuralNetwork copy = master.copy();
+    
+### Supervised learning implementation
+See below a full xor test of the neural network with supervised learning: 
+
+    // prepare set of expected input values
     double[][] in = {{0,0}, {1,0}, {0,1}, {1,1}};
+    
+    // prepare corresponding expected output values
     double[][] out = {{0}, {1}, {1}, {0}};
     
-    // create neural network
-    NeuralNetwork net = new NeuralNetwork(2, 4, 1);
-    net.setRectifier(Rectifier.SIGMOID).setLearningRate(0.8).setLearningRateDescent(LearningRateDescent.NONE);
+    // create and configure neural network
+    Rectifier rectifier = Rectifier.SIGMOID
+    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 1);
+    neuralNetwork.setRectifier(rectifier).setLearningRate(0.8).setLearningRateDescent(LearningRateDescent.NONE);
     
-    // train neural network
-    net.train(in, out, 2000);
+    // train neural network with the input set, the corresponding expected output set and the training epochs
+    neuralNetwork.train(in, out, 2000);
     
-    // print output values
-    System.out.println("test with rectifier: " + Rectifier.SIGMOID.getDescription());
-    System.out.println("combo 1: " + net.predict(in[0]));
-    System.out.println("combo 2: " + net.predict(in[1]));
-    System.out.println("combo 3: " + net.predict(in[2]));
-    System.out.println("combo 4: " + net.predict(in[3]));
+    // use the trained NeuralNetwork to predict the output values given to the input set
+    System.out.println("test with rectifier: " + rectifier.getDescription());
+    System.out.println("combo 1: " + neuralNetwork.predict(in[0]));
+    System.out.println("combo 2: " + neuralNetwork.predict(in[1]));
+    System.out.println("combo 3: " + neuralNetwork.predict(in[2]));
+    System.out.println("combo 4: " + neuralNetwork.predict(in[3]));
 
 Output:  
 
-    combo 1: [0.05062227783220413]
-    combo 2: [0.9461083391423777]
-    combo 3: [0.9425030935131657]
-    combo 4: [0.07157249157075309]
+    combo 1: [0.05062227783220413]          // close to 0
+    combo 2: [0.9461083391423777]           // close to 1
+    combo 3: [0.9425030935131657]           // close to 1
+    combo 4: [0.07157249157075309]          // close to 0
 
-### Genetic algorithm
+### Genetic algorithm implementation
 Step one is to create an own class which extends or implements the required functionality:
 
     public class GeneticObjectExample extends GeneticAlgorithmObject {
     
-        public GeneticObject(NeuralNetwork neuralNetwork) {
+        public GeneticObject(NeuralNetwork neuralNetwork) {  
             super(neuralNetwork);
         }
     
@@ -167,7 +210,7 @@ Add following snippets to your ``pom.xml`` file to import the library:
         <dependency>    
             <groupId>neuralnetwork</groupId>    
             <artifactId>neural-network-repo</artifactId>    
-            <version>2.4</version>    
+            <version>2.5</version>    
         </dependency>    
     </dependencies>    
     
@@ -259,3 +302,7 @@ Below an overview of the `neuralnetwork.properties` file.
     # the reproduction pool is the count of NeuralNetworks chosen for reproduction to be seeded to
     # the new generation to come. value must not be below 2.
     genetic_reproduction_pool_size=3
+    
+    # the mutation rate is the percentage of the mutated components of the neural network matrices.
+    # must have a value between 0.0 and 1.0
+    genetic_mutation_rate=0.5

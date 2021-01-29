@@ -27,7 +27,7 @@ public class RectifierSpeedTest {
         net.setRectifier(rectifier);
 
         long startTime = System.currentTimeMillis();
-        net.train(in, out, 100000);
+        net.fit(in, out, 100000);
         long duration = System.currentTimeMillis() - startTime;
 
         System.out.println("rectifier: " + rectifier.getDescription());

@@ -21,7 +21,7 @@ public class NeuralTest {
         double[][] in = {{0,0}, {1,0}, {0,1}, {1,1}};
         double[][] out = {{0}, {1}, {1}, {0}};
         NeuralNetwork net = new NeuralNetwork(2, 15, 15, 1);
-        net.train(in, out, 4000);
+        net.fit(in, out, 4000);
 
         //assertEquals(net.predict(in[0]), net.predict(in[0]), 0.2);
         List<Double> expected = getStandardizedOutputList(net.predict(in[0]));

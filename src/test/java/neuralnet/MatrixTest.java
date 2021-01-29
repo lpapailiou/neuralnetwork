@@ -163,7 +163,7 @@ public class MatrixTest {
         Matrix c = a.copy();
         b.print();
         assertEquals(a, b);
-        b.randomize(0.9);
+        b.randomize(0.9, 0.5);
         b.print();
         assertNotEquals(a, b);
         c.randomize();

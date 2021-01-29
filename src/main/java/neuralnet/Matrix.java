@@ -188,10 +188,10 @@ public class Matrix implements Serializable {
         }
     }
 
-    void randomize(double factor) {
+    void randomize(double factor, double mutationRate) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                if (Math.random() < 0.5) {
+                if (Math.random() < mutationRate) {
                     data[i][j] = data[i][j] + (Math.random() * 2 - 1) * factor;
                 }
             }

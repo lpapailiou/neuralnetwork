@@ -34,6 +34,7 @@ public class NeuralNetwork implements Serializable {
     private double learningRate;
     private double momentum;
     private int iterationCount;
+    private double mutationRate;
 
     static {
         URL path = NeuralNetwork.class.getClassLoader().getResource("neuralnetwork.properties");
@@ -76,12 +77,17 @@ public class NeuralNetwork implements Serializable {
         try {
             this.initialLearningRate = Double.parseDouble(PROPERTIES.getProperty("learning_rate"));
             this.learningRate = initialLearningRate;
+            this.mutationRate = Double.parseDouble(PROPERTIES.getProperty("genetic_mutation_rate"));
             if (learningRate < 0 || learningRate > 1) {
                 throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
             }
             this.momentum = Double.parseDouble(PROPERTIES.getProperty("learning_decay_momentum"));
             if (momentum < 0 || momentum > 1) {
                 throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
+            }
+            this.mutationRate = Double.parseDouble(PROPERTIES.getProperty("genetic_mutation_rate"));
+            if (mutationRate < 0 || mutationRate > 1) {
+                throw new IllegalArgumentException("Mutation rate must be set between 0.0 and 1.0!");
             }
         } catch (NumberFormatException e) {
             throw new NumberFormatException("Please set a double value for this property!");
@@ -128,7 +134,7 @@ public class NeuralNetwork implements Serializable {
      * @param expectedOutputNodes the expected output nodes as double array
      * @return the actual output nodes as Double List
      */
-    public List<Double> learn(double[] inputNodes, double[] expectedOutputNodes) {
+    public List<Double> fit(double[] inputNodes, double[] expectedOutputNodes) {
         if (inputNodes == null || expectedOutputNodes == null) {
             throw new NullPointerException("inputNodes and expectedOutputNodes are required!");
         } else if (inputNodes.length != inputLayerNodes) {
@@ -174,15 +180,15 @@ public class NeuralNetwork implements Serializable {
      * This method can be used to batch train the neural net with the supervised machine learning approach.
      * @param inputSet the input set of possible input node values
      * @param expectedOutputSet the output set of according expected output values
-     * @param rounds the count of repetitions of the batch training
+     * @param epochs the count of repetitions of the batch training
      */
-    public void train(double[][] inputSet, double[][] expectedOutputSet, int rounds) {
+    public void fit(double[][] inputSet, double[][] expectedOutputSet, int epochs) {
         if (inputSet == null || expectedOutputSet == null) {
             throw new NullPointerException("inputSet and expectedOutputSet are required!");
         }
-        for (int i = 0; i < rounds; i++) {
+        for (int i = 0; i < epochs; i++) {
             int sampleIndex = (int) (Math.random() * inputSet.length);
-            learn(inputSet[sampleIndex], expectedOutputSet[sampleIndex]);
+            fit(inputSet[sampleIndex], expectedOutputSet[sampleIndex]);
         }
     }
 
@@ -225,13 +231,14 @@ public class NeuralNetwork implements Serializable {
         neuralNetwork.initialLearningRate = this.initialLearningRate;
         neuralNetwork.learningRate = this.learningRate;
         neuralNetwork.iterationCount = this.iterationCount;
+        neuralNetwork.mutationRate = this.mutationRate;
         return neuralNetwork;
     }
 
     private void randomize(double factor) {
         for (Layer layer : layers) {
-            layer.weight.randomize(factor);
-            layer.bias.randomize(factor);
+            layer.weight.randomize(factor, mutationRate);
+            layer.bias.randomize(factor, mutationRate);
         }
     }
 
@@ -319,7 +326,7 @@ public class NeuralNetwork implements Serializable {
     public NeuralNetwork setMomentum(double momentum) {
         this.momentum = momentum;
         if (momentum < 0 || momentum > 1) {
-            throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
+            throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
         }
         return this;
     }
@@ -333,6 +340,27 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
+     * Sets mutation rate in percentage for the count of mutated components of the neural network.
+     * @param mutationRate the mutation rate. Must be between 0.0 and 1.0.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setMutationRate(double mutationRate) {
+        this.mutationRate = mutationRate;
+        if (mutationRate < 0 || mutationRate > 1) {
+            throw new IllegalArgumentException("Mutation rate rate must be set between 0.0 and 1.0!");
+        }
+        return this;
+    }
+
+    /**
+     * Returns current mutation rate of this NeuralNetwork. Must not match corresponding property.
+     * @return the mutation rate.
+     */
+    public double getMutationRate() {
+        return mutationRate;
+    }
+
+    /**
      * Setter to allow altering properties for the NeuralNetwork configuration.
      * The set value will not be validated within this method. Please see neuralnetwork.properties
      * as guideline.
@@ -340,7 +368,7 @@ public class NeuralNetwork implements Serializable {
      * @param value the value of the property.
      */
     public static void setProperty(String key, String value) {
-        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_descent") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size")) {
+        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_descent") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size") && !key.equals("genetic_mutation_rate")) {
             throw new IllegalArgumentException("Property with key " + key + "is not valid in this context!");
         } else if (key.equals("learning_rate")) {
             if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
@@ -353,6 +381,10 @@ public class NeuralNetwork implements Serializable {
         } else if (key.equals("genetic_reproduction_pool_size")) {
             if (Double.parseDouble(value) < 2) {
                 throw new IllegalArgumentException("Reproduction pool size must be set above 2!");
+            }
+        } else if (key.equals("genetic_mutation_rate")) {
+            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
+                throw new IllegalArgumentException("Mutation rate must be set between 0.0 and 1.0!");
             }
         }
         PROPERTIES.setProperty(key, value);
