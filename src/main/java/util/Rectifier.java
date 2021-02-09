@@ -155,7 +155,7 @@ public enum Rectifier {
     private final String description;
 
     Rectifier(String description) {
-        this.description = description + "(" + this.name() + ")";
+        this.description = description + " (" + this.name() + ")";
     }
 
     /**

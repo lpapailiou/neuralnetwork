@@ -31,7 +31,7 @@ public enum Descent {
     private final String description;
 
     Descent(String description) {
-        this.description = description + "(" + this.name() + ")";
+        this.description = description + " (" + this.name() + ")";
     }
 
     /**
