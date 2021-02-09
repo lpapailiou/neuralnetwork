@@ -49,7 +49,7 @@ class GeneticAlgorithmGeneration<T> {
         }
 
         bestNeuralNetworkForReproduction = evolve();
-        bestNeuralNetworkForReproduction.decreaseLearningRate();
+        bestNeuralNetworkForReproduction.decreaseRate();
         return bestNeuralNetworkForReproduction;
     }
 

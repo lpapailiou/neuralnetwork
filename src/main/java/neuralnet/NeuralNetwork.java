@@ -1,6 +1,6 @@
 package neuralnet;
 
-import util.LearningRateDescent;
+import util.Descent;
 import util.Rectifier;
 
 import java.io.File;
@@ -29,12 +29,15 @@ public class NeuralNetwork implements Serializable {
     private int inputLayerNodes;
 
     private Rectifier rectifier;
-    private LearningRateDescent learningRateDescent;
+    private Descent learningRateDescent;
     private double initialLearningRate;
     private double learningRate;
-    private double momentum;
+    private double learningRateMomentum;
     private int iterationCount;
+    private Descent mutationRateDescent;
+    private double initialMutationRate;
     private double mutationRate;
+    private double mutationRateMomentum;
 
     static {
         URL path = NeuralNetwork.class.getClassLoader().getResource("neuralnetwork.properties");
@@ -69,7 +72,8 @@ public class NeuralNetwork implements Serializable {
 
         try {
             this.rectifier = Rectifier.valueOf(PROPERTIES.getProperty("rectifier").toUpperCase());
-            this.learningRateDescent = LearningRateDescent.valueOf(PROPERTIES.getProperty("learning_rate_descent").toUpperCase());
+            this.learningRateDescent = Descent.valueOf(PROPERTIES.getProperty("learning_rate_descent").toUpperCase());
+            this.mutationRateDescent = Descent.valueOf(PROPERTIES.getProperty("mutation_rate_descent").toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Please choose valid enum constant. See properties files for hints.", e);
         }
@@ -81,13 +85,18 @@ public class NeuralNetwork implements Serializable {
             if (learningRate < 0 || learningRate > 1) {
                 throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
             }
-            this.momentum = Double.parseDouble(PROPERTIES.getProperty("learning_decay_momentum"));
-            if (momentum < 0 || momentum > 1) {
+            this.learningRateMomentum = Double.parseDouble(PROPERTIES.getProperty("learning_decay_momentum"));
+            if (learningRateMomentum < 0 || learningRateMomentum > 1) {
                 throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
             }
-            this.mutationRate = Double.parseDouble(PROPERTIES.getProperty("genetic_mutation_rate"));
+            this.initialMutationRate = Double.parseDouble(PROPERTIES.getProperty("genetic_mutation_rate"));
+            this.mutationRate = initialMutationRate;
             if (mutationRate < 0 || mutationRate > 1) {
                 throw new IllegalArgumentException("Mutation rate must be set between 0.0 and 1.0!");
+            }
+            this.mutationRateMomentum = Double.parseDouble(PROPERTIES.getProperty("mutation_decay_momentum"));
+            if (mutationRateMomentum < 0 || mutationRateMomentum > 1) {
+                throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
             }
         } catch (NumberFormatException e) {
             throw new NumberFormatException("Please set a double value for this property!");
@@ -166,13 +175,12 @@ public class NeuralNetwork implements Serializable {
             }
             Matrix gradient = steps.get(i).derive();
             gradient.multiplyElementwise(error);
-            decreaseLearningRate();
             gradient.multiply(learningRate);
             Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : steps.get(i-1)));
             layers.get(i).weight.add(delta);
             layers.get(i).bias.addBias(gradient);
         }
-
+        decreaseRate();
         return Matrix.asList(tmp);
     }
 
@@ -215,7 +223,7 @@ public class NeuralNetwork implements Serializable {
      */
     public NeuralNetwork mutate() {
         NeuralNetwork neuralNetwork = this.copy();
-        neuralNetwork.randomize(learningRate);
+        neuralNetwork.randomize(learningRate, mutationRate);
         return neuralNetwork;
     }
 
@@ -227,18 +235,21 @@ public class NeuralNetwork implements Serializable {
         NeuralNetwork neuralNetwork = new NeuralNetwork(inputLayerNodes, layers);
         neuralNetwork.rectifier = this.rectifier;
         neuralNetwork.learningRateDescent = this.learningRateDescent;
-        neuralNetwork.momentum = this.momentum;
+        neuralNetwork.learningRateMomentum = this.learningRateMomentum;
         neuralNetwork.initialLearningRate = this.initialLearningRate;
         neuralNetwork.learningRate = this.learningRate;
         neuralNetwork.iterationCount = this.iterationCount;
+        neuralNetwork.mutationRateDescent = this.mutationRateDescent;
+        neuralNetwork.mutationRateMomentum = this.mutationRateMomentum;
+        neuralNetwork.initialMutationRate = this.initialMutationRate;
         neuralNetwork.mutationRate = this.mutationRate;
         return neuralNetwork;
     }
 
-    private void randomize(double factor) {
+    private void randomize(double factor, double grade) {
         for (Layer layer : layers) {
-            layer.weight.randomize(factor, mutationRate);
-            layer.bias.randomize(factor, mutationRate);
+            layer.weight.randomize(factor, grade);
+            layer.bias.randomize(factor, grade);
         }
     }
 
@@ -263,11 +274,10 @@ public class NeuralNetwork implements Serializable {
 
     /**
      * Method to set the learning rate descent.
-     * Supervised learning only.
      * @param learningRateDescent the descent function the learning rate.
      * @return the NeuralNetwork.
      */
-    public NeuralNetwork setLearningRateDescent(LearningRateDescent learningRateDescent) {
+    public NeuralNetwork setLearningRateDescent(Descent learningRateDescent) {
         this.learningRateDescent = learningRateDescent;
         return this;
     }
@@ -276,7 +286,7 @@ public class NeuralNetwork implements Serializable {
      * Returns current learning rate descent of this NeuralNetwork. Must not match corresponding property.
      * @return the learning rate descent.
      */
-    public LearningRateDescent getLearningRateDescent() {
+    public Descent getLearningRateDescent() {
         return learningRateDescent;
     }
 
@@ -304,10 +314,11 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * Decreases the current learning rate according to the chosen LearningRateDescent function.
+     * Decreases the current learning and mutation rate according to the chosen Descent function.
      */
-    public void decreaseLearningRate() {
-        this.learningRate = learningRateDescent.decrease(initialLearningRate, momentum, iterationCount);
+    public void decreaseRate() {
+        this.learningRate = learningRateDescent.decrease(initialLearningRate, learningRateMomentum, iterationCount);
+        this.mutationRate = mutationRateDescent.decrease(initialMutationRate, mutationRateMomentum, iterationCount);
         iterationCount++;
     }
 
@@ -320,12 +331,12 @@ public class NeuralNetwork implements Serializable {
 
     /**
      * Sets momentum for the decrease of the learning rate.
-     * @param momentum the momentum to decrease the learning rate.
+     * @param learningRateMomentum the momentum to decrease the learning rate.
      * @return the NeuralNetwork.
      */
-    public NeuralNetwork setMomentum(double momentum) {
-        this.momentum = momentum;
-        if (momentum < 0 || momentum > 1) {
+    public NeuralNetwork setLearningRateMomentum(double learningRateMomentum) {
+        this.learningRateMomentum = learningRateMomentum;
+        if (learningRateMomentum < 0 || learningRateMomentum > 1) {
             throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
         }
         return this;
@@ -335,8 +346,27 @@ public class NeuralNetwork implements Serializable {
      * Returns current momentum of this NeuralNetwork. Must not match corresponding property.
      * @return the momentum.
      */
-    public double getMomentum() {
-        return momentum;
+    public double getLearningRateMomentum() {
+        return learningRateMomentum;
+    }
+
+    /**
+     * Method to set the mutation rate descent.
+     * Genetic algorithm only.
+     * @param mutationRateDescent the descent function the mutation rate.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setMutationRateDescent(Descent mutationRateDescent) {
+        this.mutationRateDescent = mutationRateDescent;
+        return this;
+    }
+
+    /**
+     * Returns current mutation rate descent of this NeuralNetwork. Must not match corresponding property.
+     * @return the mutation rate descent.
+     */
+    public Descent getMutationRateDescent() {
+        return mutationRateDescent;
     }
 
     /**
@@ -345,6 +375,7 @@ public class NeuralNetwork implements Serializable {
      * @return the NeuralNetwork.
      */
     public NeuralNetwork setMutationRate(double mutationRate) {
+        this.initialMutationRate = mutationRate;
         this.mutationRate = mutationRate;
         if (mutationRate < 0 || mutationRate > 1) {
             throw new IllegalArgumentException("Mutation rate rate must be set between 0.0 and 1.0!");
@@ -361,6 +392,34 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
+     * This method will reset the mutation rate to its original state.
+     */
+    public void resetMutationRate() {
+        this.mutationRate = this.initialMutationRate;
+    }
+
+    /**
+     * Sets momentum for the decrease of the mutation rate.
+     * @param mutationRateMomentum the momentum to decrease the mutation rate.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setMutationRateMomentum(double mutationRateMomentum) {
+        this.mutationRateMomentum = mutationRateMomentum;
+        if (mutationRateMomentum < 0 || mutationRateMomentum > 1) {
+            throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
+        }
+        return this;
+    }
+
+    /**
+     * Returns current momentum of this NeuralNetwork. Must not match corresponding property.
+     * @return the momentum.
+     */
+    public double getMutationRateMomentum() {
+        return mutationRateMomentum;
+    }
+
+    /**
      * Setter to allow altering properties for the NeuralNetwork configuration.
      * The set value will not be validated within this method. Please see neuralnetwork.properties
      * as guideline.
@@ -368,13 +427,13 @@ public class NeuralNetwork implements Serializable {
      * @param value the value of the property.
      */
     public static void setProperty(String key, String value) {
-        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_descent") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size") && !key.equals("genetic_mutation_rate")) {
+        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_descent") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size") && !key.equals("genetic_mutation_rate") && !key.equals("mutation_rate_descent") && !key.equals("mutation_decay_momentum")) {
             throw new IllegalArgumentException("Property with key " + key + "is not valid in this context!");
         } else if (key.equals("learning_rate")) {
             if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
                 throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
             }
-        } else if (key.equals("learning_decay_momentum")) {
+        } else if (key.equals("learning_decay_momentum") || key.equals("mutation_decay_momentum")) {
             if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
                 throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
             }
@@ -411,8 +470,17 @@ public class NeuralNetwork implements Serializable {
         sb.append("learning rate descent: ");
         sb.append(learningRateDescent.getDescription());
         sb.append(", ");
-        sb.append("momentum: ");
-        sb.append(momentum);
+        sb.append("learning rate momentum: ");
+        sb.append(learningRateMomentum);
+        sb.append(", ");
+        sb.append("mutation rate: ");
+        sb.append(mutationRate);
+        sb.append(", ");
+        sb.append("mutation rate descent: ");
+        sb.append(mutationRateDescent.getDescription());
+        sb.append(", ");
+        sb.append("mutation rate momentum: ");
+        sb.append(mutationRateMomentum);
         sb.append("\n");
         for (int i = 0; i < layers.size(); i++) {
             sb.append(" ----- layer ");

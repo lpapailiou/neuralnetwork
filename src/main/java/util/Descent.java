@@ -5,7 +5,7 @@ package util;
  * It may make sense to start with a high learning rate in order to get good results fast. Over multiple
  * iterations, the learning rate decrease will optimize the result.
  */
-public enum LearningRateDescent {
+public enum Descent {
 
     /**
      * The static implementation will have no effect on the learning rate.
@@ -30,7 +30,7 @@ public enum LearningRateDescent {
 
     private final String description;
 
-    LearningRateDescent(String description) {
+    Descent(String description) {
         this.description = description + "(" + this.name() + ")";
     }
 

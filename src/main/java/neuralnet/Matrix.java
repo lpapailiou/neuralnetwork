@@ -192,7 +192,13 @@ public class Matrix implements Serializable {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (Math.random() < mutationRate) {
-                    data[i][j] = data[i][j] + (Math.random() * 2 - 1) * factor;
+                    double mutation = data[i][j] + (Math.random() * 2 - 1) * factor;
+                    if (mutation > 1) {
+                        mutation = 1;
+                    } else if (mutation < -1) {
+                        mutation = -1;
+                    }
+                    data[i][j] = mutation;
                 }
             }
         }

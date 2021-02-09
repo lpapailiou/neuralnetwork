@@ -25,7 +25,7 @@ public class RectifierAccuracyTest {
     void testXOr(Rectifier rectifier, double[][] in, double[][] out) {
         // testing xor function
 
-        NeuralNetwork net = new NeuralNetwork(2, 4, 1).setLearningRate(0.9).setLearningRateDescent(LearningRateDescent.NONE);
+        NeuralNetwork net = new NeuralNetwork(2, 4, 1).setLearningRate(0.9).setLearningRateDescent(Descent.NONE);
         net.setRectifier(rectifier);
         net.fit(in, out, 5000);
 
@@ -45,7 +45,7 @@ public class RectifierAccuracyTest {
         Rectifier rectifier = Rectifier.SIGMOID;
 
         NeuralNetwork net = new NeuralNetwork(2, 4, 1);
-        net.setRectifier(rectifier).setLearningRate(0.8).setLearningRateDescent(LearningRateDescent.NONE);
+        net.setRectifier(rectifier).setLearningRate(0.8).setLearningRateDescent(Descent.NONE);
         net.fit(in, out, 1000);
 
         System.out.println("test with rectifier: " + rectifier.getDescription());

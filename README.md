@@ -6,7 +6,7 @@ This is a maven library for neural networks in java 8.
 	1.1 [Architecture](#architecture)  
 	1.2 [Supported algorithms](#supported-algorithms)  
     1.3 [Rectifiers](#rectifiers)  
-    1.4 [Learning rate descent](#learning-rate-descent)  
+    1.4 [Learning rate descent](#learning-and-mutation-rate-descent)  
     1.5 [Configuration](#configuration)   
 2. [Examples](#examples)  
     2.1 [Constructor of NeuralNetwork](#constructor-of-neuralnetwork)   
@@ -48,7 +48,7 @@ Implemented are following activation functions:
 - GELU
 - Softplus
 
-### Learning rate descent
+### Learning and mutation rate descent
 - none (static learning rate)
 - stochastic gradient descent
 
@@ -68,14 +68,16 @@ Create a neural network with two input nodes, two hidden layers (4 and 5 nodes) 
 
     NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 5, 6);
   
-Create a neural network adding hyper parameters (builder pattern may be used as well).
+Create a neural network adding parameters (builder pattern may be used as well).
 
     NeuralNetwork neuralNetwork = new NeuralNetwork(2, 2);
     neuralNetwork.setRectifier(Rectifier.SIGMOID);
-    neuralNetwork.setLearningRateDescent(LearningRateDescent.SGD);
+    neuralNetwork.setLearningRateDescent(Descent.SGD);
     neuralNetwork.setLearningRate(0.8);
-    neuralNetwork.setMomentum(0.005);
+    neuralNetwork.setLearningRateMomentum(0.005);
+    neuralNetwork.setMutationRateDescent(Descent.SGD);
     neuralNetwork.setMutationRate(0.5);
+    neuralNetwork.setMutationRateMomentum(0.07);
 
 ### Methods of NeuralNetwork
 #### Common methods
@@ -116,8 +118,8 @@ Mutate a neural network according to the current settings.
     NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 2);
     neuralNetwork.mutate();
     
-If you want to decrease the learning rate, you may call `decreaseLearningRate()`. Please note you should then
-select another type than `LearningRateDescent.NONE` (and according learning rate and momentum).
+If you want to decrease the learning rate manually, you may call `decreaseLearningRate()`. Please note you
+should then select another type than `LearningRateDescent.NONE` (and according learning rate and momentum).
 As the decreasing learning rate is optional and has to be performed on a neural network instance chosen
 for reproduction only, it has to be called separately.
 
