@@ -42,7 +42,7 @@ public class RectifierAccuracyTest {
         double[][] in = {{0,0}, {1,0}, {0,1}, {1,1}};
         double[][] out = {{0}, {1}, {1}, {0}};
 
-        Rectifier rectifier = Rectifier.SIGMOID;
+        Rectifier rectifier = Rectifier.RELU;
 
         NeuralNetwork net = new NeuralNetwork(2, 4, 1);
         net.setRectifier(rectifier).setLearningRate(0.8).setLearningRateDescent(Descent.NONE);

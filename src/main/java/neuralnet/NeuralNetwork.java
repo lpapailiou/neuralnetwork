@@ -27,6 +27,7 @@ public class NeuralNetwork implements Serializable {
     private static final long serialVersionUID = 2L;
     private List<Layer> layers = new ArrayList<>();
     private int inputLayerNodes;
+    private int[] configuration;
 
     private Rectifier rectifier;
     private Descent learningRateDescent;
@@ -66,6 +67,7 @@ public class NeuralNetwork implements Serializable {
         }
 
         this.inputLayerNodes = layerParams[0];
+        this.configuration = layerParams;
         for (int i = 1; i < layerParams.length; i++) {
             layers.add(new Layer(layerParams[i], layerParams[i-1]));
         }
@@ -233,6 +235,7 @@ public class NeuralNetwork implements Serializable {
      */
     public NeuralNetwork copy() {
         NeuralNetwork neuralNetwork = new NeuralNetwork(inputLayerNodes, layers);
+        neuralNetwork.configuration = this.configuration;
         neuralNetwork.rectifier = this.rectifier;
         neuralNetwork.learningRateDescent = this.learningRateDescent;
         neuralNetwork.learningRateMomentum = this.learningRateMomentum;
@@ -456,6 +459,14 @@ public class NeuralNetwork implements Serializable {
      */
     public static String getProperty(String key) {
         return PROPERTIES.getProperty(key);
+    }
+
+    public int getLayerCount() {
+        return layers.size() + 1;
+    }
+
+    public int[] getConfiguration() {
+        return configuration;
     }
 
     @Override
