@@ -192,16 +192,14 @@ public class Matrix implements Serializable {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (Math.random() < mutationRate) {
-                    double mutation = data[i][j] + (Math.random() * 2 - 1) * factor;
-                    if (mutation > 1) {
-                        mutation = 1;
-                    } else if (mutation < -1) {
-                        mutation = -1;
-                    }
-                    data[i][j] = mutation;
+                    data[i][j] = data[i][j] + (Math.random() * 2 - 1) * factor;;
                 }
             }
         }
+    }
+
+    double[][] getData() {
+        return data.clone();
     }
 
     void print() {
@@ -223,7 +221,8 @@ public class Matrix implements Serializable {
         for (int i = 0; i < rows; i++) {
             sb.append("[");
             for (int j = 0; j < cols; j++) {
-                sb.append(data[i][j] + ", ");
+                sb.append(data[i][j]);
+                sb.append(", ");
             }
             sb.replace(sb.length()-2, sb.length(), "");
             sb.append("],\n");

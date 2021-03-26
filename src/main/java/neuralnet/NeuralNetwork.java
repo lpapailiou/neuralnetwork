@@ -3,6 +3,8 @@ package neuralnet;
 import util.Descent;
 import util.Rectifier;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -20,14 +22,18 @@ import java.util.Properties;
  * This is the central class of this library, allowing to create a freely configurable neural network.
  * The architecture can be set by parameters. Input and output values are designed to be double arrays.
  * It supports supervised and unsupervised machine learning.
+ * The neural network also offers property change support for the predict method.
  */
 public class NeuralNetwork implements Serializable {
 
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
     private static final Properties PROPERTIES = new Properties();
     private static final long serialVersionUID = 2L;
-    private List<Layer> layers = new ArrayList<>();
-    private int inputLayerNodes;
+
     private int[] configuration;
+    private List<Layer> layers = new ArrayList<>();
+    private List<List<Double>> cachedNodeValues = new ArrayList<>();
 
     private Rectifier rectifier;
     private Descent learningRateDescent;
@@ -66,7 +72,6 @@ public class NeuralNetwork implements Serializable {
             throw new IllegalArgumentException("every layer must have at least one node!");
         }
 
-        this.inputLayerNodes = layerParams[0];
         this.configuration = layerParams;
         for (int i = 1; i < layerParams.length; i++) {
             layers.add(new Layer(layerParams[i], layerParams[i-1]));
@@ -105,35 +110,40 @@ public class NeuralNetwork implements Serializable {
         }
     }
 
-    private NeuralNetwork(int inputLayerNodes, List<Layer> layers) {
+    private NeuralNetwork(List<Layer> layers) {
         List<Layer> newLayerSet = new ArrayList<>();
         for (Layer layer : layers) {
             newLayerSet.add(layer.copy());
         }
         this.layers = newLayerSet;
-        this.inputLayerNodes = inputLayerNodes;
     }
 
     /**
      * This method will take input nodes as parameter and return the predicted output nodes.
      * The neural net will not be modified. This method can be used for testing or the unsupervised machine learning approach.
+     * Additionally, this method offers property change support.
      * @param inputNodes the input nodes as double array
      * @return the predicted output nodes as Double List
      */
     public List<Double> predict(double[] inputNodes) {
         if (inputNodes == null) {
             throw new NullPointerException("inputNodes must not be null!");
-        } else if (inputNodes.length != inputLayerNodes) {
-            throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + inputLayerNodes + " input nodes.");
+        } else if (inputNodes.length != configuration[0]) {
+            throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + configuration[0] + " input nodes.");
         }
 
+        cachedNodeValues.clear();
         Matrix tmp = Matrix.fromArray(rectifier, inputNodes);
 
         for (Layer layer : layers) {
+            cachedNodeValues.add(Matrix.asList(tmp));
             tmp = Matrix.multiply(layer.weight, tmp);
             tmp.addBias(layer.bias);
             tmp.activate();
         }
+
+        cachedNodeValues.add(Matrix.asList(tmp));
+        pcs.firePropertyChange("predict", false, true);
 
         return Matrix.asList(tmp);
     }
@@ -148,8 +158,8 @@ public class NeuralNetwork implements Serializable {
     public List<Double> fit(double[] inputNodes, double[] expectedOutputNodes) {
         if (inputNodes == null || expectedOutputNodes == null) {
             throw new NullPointerException("inputNodes and expectedOutputNodes are required!");
-        } else if (inputNodes.length != inputLayerNodes) {
-            throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + inputLayerNodes + " input nodes.");
+        } else if (inputNodes.length != configuration[0]) {
+            throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + configuration[0] + " input nodes.");
         }
 
         Matrix input = Matrix.fromArray(rectifier, inputNodes);
@@ -203,7 +213,7 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * This method will merge two neural networks to one. Please note that the first neural network given as parameter will be altered in the process.
+     * This method will merge two neural networks to a new neural network.
      * @param a neural network to be altered and merged
      * @param b neural network to be merged
      * @return the neural network a merged with b
@@ -212,6 +222,7 @@ public class NeuralNetwork implements Serializable {
         if (a == null || b == null) {
             throw new NullPointerException("two NeuralNetwork instances required!");
         }
+        a = a.copy();
         for (int i = 0; i < a.layers.size(); i++) {
             a.layers.get(i).weight = Matrix.merge(a.layers.get(i).weight, b.layers.get(i).weight);
             a.layers.get(i).bias = Matrix.merge(a.layers.get(i).bias, b.layers.get(i).bias);
@@ -234,7 +245,7 @@ public class NeuralNetwork implements Serializable {
      * @return an identical copy of this instance
      */
     public NeuralNetwork copy() {
-        NeuralNetwork neuralNetwork = new NeuralNetwork(inputLayerNodes, layers);
+        NeuralNetwork neuralNetwork = new NeuralNetwork(layers);
         neuralNetwork.configuration = this.configuration;
         neuralNetwork.rectifier = this.rectifier;
         neuralNetwork.learningRateDescent = this.learningRateDescent;
@@ -461,12 +472,39 @@ public class NeuralNetwork implements Serializable {
         return PROPERTIES.getProperty(key);
     }
 
-    public int getLayerCount() {
-        return layers.size() + 1;
-    }
-
+    /**
+     * Getter of the configuration of the neural network, which was used to create it.
+     * @return the node count per layer.
+     */
     public int[] getConfiguration() {
         return configuration;
+    }
+
+    /**
+     * With this method, the actual values of every node during a prediction process can be querieed. The
+     * values are available right after a prediction was executed.
+     * @return the cached values for every node after a prediction.
+     */
+    public List<List<Double>> getCachedNodeValues() {
+        return cachedNodeValues;
+    }
+
+    /**
+     * This method allows do extracts the weight matrix of a specific layer.
+     * @param layer the index of the layer.
+     * @return the weight matrix of the layer.
+     */
+    public double[][] getWeights(int layer) {
+        return layers.get(layer).weight.getData();
+    }
+
+    /**
+     * This method allows to set a property change listener to the neural network.
+     * It will fire when a prediction is made.
+     * @param listener the PropertyChangeListener to be added.
+     */
+    public void addListener(PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener("predict", listener);
     }
 
     @Override

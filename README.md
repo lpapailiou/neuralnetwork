@@ -7,7 +7,9 @@ This is a maven library for neural networks in java 8.
 	1.2 [Supported algorithms](#supported-algorithms)  
     1.3 [Rectifiers](#rectifiers)  
     1.4 [Learning rate descent](#learning-and-mutation-rate-descent)  
-    1.5 [Configuration](#configuration)   
+    1.5 [Parametrization](#parametrization)  
+    1.6 [Persistance](#persistance)  
+    1.7 [UI](#ui)  
 2. [Examples](#examples)  
     2.1 [Constructor of NeuralNetwork](#constructor-of-neuralnetwork)   
     2.2 [Methods of NeuralNetwork](#methods-of-neuralnetwork)   
@@ -52,11 +54,17 @@ Implemented are following activation functions:
 - none (static learning rate)
 - stochastic gradient descent
 
-### Configuration
+### Parametrization
 The configuration of the neural network can be done as following:
 - during initialization (vararg for architecture + builder pattern)
 - during runtime (according setters)
 - by `neuralnetwork.properties` in case default values are used constantly
+
+### Persistance
+- neural network instances are fully serializable
+
+### UI
+- with the additional ui package, you may be able to visualize the neural network interactively with a javafx framework.
   
 ## Examples
 ### Constructor of NeuralNetwork
