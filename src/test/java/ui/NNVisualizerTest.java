@@ -75,7 +75,7 @@ public class NNVisualizerTest extends Application {
             int[][] config = new int[][] {{2, 5, 8, 5, 2}, {2,2}, {2,10,10,10,10,2}, {2,3,4,5,4,3,2}, {2,4,2}, {2,2,1,2,2}, {2,4,8,16,8,4,2}, {2,4,12,7,2}, {2,12,3,2}};
             neuralNetwork[0] = new NeuralNetwork(config[new Random().nextInt(config.length)]);
             visualizer.setNeuralNetwork(neuralNetwork[0]);
-            visualizer.setInputNodeLabels(new String[] {"0", "1"});
+            visualizer.setInputNodeLabels(new String[] {"a", "b"});
         });
         btnBox.getChildren().add(btnr);
 
@@ -97,7 +97,7 @@ public class NNVisualizerTest extends Application {
         visualizer = new NNVisualizer(context).setNeuralNetwork(neuralNetwork);
         visualizer.setGraphInputNodeCount(3, 0);
         visualizer.setOutputLabels(new String[] {"0", "1"});
-        visualizer.setInputNodeLabels(new String[] {"(this node is not in use)", "0", "1"});
+        visualizer.setInputNodeLabels(new String[] {"(this node is not in use)", "a", "b"});
         visualizer.setWidthOffset(120);
     }
 
