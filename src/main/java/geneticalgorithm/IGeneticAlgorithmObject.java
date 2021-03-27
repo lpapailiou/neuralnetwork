@@ -9,6 +9,8 @@ import java.util.List;
  * This interface provides a free implementation of a genetic algorithm object.
  * Such instance will handle the collection of data for computer vision, feed it to the NeuralNetwork it holds,
  * read the according output and implement the acton to be performed.
+ * To get it working, the implementing class must have a constructor which takes a NeuralNetwork
+ * as parameter.
  * As this interface extends Comparable, the compareTo method must be implemented. Please make sure it uses the
  * fitness function and the higher value indicates better performance.
  * Alternatively, the abstract class GeneticAlgorithmObject can be extended, which will provide more implementations,
