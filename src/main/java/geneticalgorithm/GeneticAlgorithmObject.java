@@ -18,6 +18,7 @@ public abstract class GeneticAlgorithmObject implements IGeneticAlgorithmObject 
 
     /**
      * The constructor requires a NeuralNetwork, which will be used to predict an action to be taken.
+     * If you work with the GeneticAlgorithmBacht, it is required that this constructor is used.
      * @param neuralNetwork the NeuralNetwork as 'brain' for this instance.
      */
     public GeneticAlgorithmObject (NeuralNetwork neuralNetwork) {
