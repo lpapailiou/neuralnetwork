@@ -14,10 +14,10 @@ public class NNColorPalette {
     private Color lineColor;
     private Color flashedNodeColor;
     private Color inactiveInputNodeColor;
-    private Color positiveAccentNodeColor;
-    private Color negativeAccentNodeColor;
-    private Color positiveAccentWeightColor;
-    private Color negativeAccentWeightColor;
+    private Color upperAccentNodeColor;
+    private Color lowerAccentNodeColor;
+    private Color upperAccentWeightColor;
+    private Color lowerAccentWeightColor;
 
     /**
      * Tho colors of this calor palette can be passed by the constructor only.
@@ -26,21 +26,21 @@ public class NNColorPalette {
      * @param lineColor the edge color of the neural network graph as well as text color.
      * @param flashedNodeColor the color of the output node with the highest value.
      * @param inactiveInputNodeColor the color of inactive input nodes.
-     * @param positiveAccentNodeColor the color to indicate positive node values.
-     * @param negativeAccentNodeColor the color to indicate negative node values.
-     * @param positiveAccentWeightColor the color to indicate positive weights.
-     * @param negativeAccentWeightColor the color to indicate negative weights.
+     * @param upperAccentNodeColor the color to indicate higher node values.
+     * @param lowerAccentNodeColor the color to indicate lower node values.
+     * @param upperAccentWeightColor the color to indicate higher weights.
+     * @param lowerAccentWeightColor the color to indicate lower weights.
      */
-    public NNColorPalette(Color backgroundColor, Color nodeColor, Color lineColor, Color flashedNodeColor, Color inactiveInputNodeColor, Color positiveAccentNodeColor, Color negativeAccentNodeColor, Color positiveAccentWeightColor, Color negativeAccentWeightColor) {
+    public NNColorPalette(Color backgroundColor, Color nodeColor, Color lineColor, Color flashedNodeColor, Color inactiveInputNodeColor, Color upperAccentNodeColor, Color lowerAccentNodeColor, Color upperAccentWeightColor, Color lowerAccentWeightColor) {
         this.backgroundColor = backgroundColor;
         this.nodeColor = nodeColor;
         this.lineColor = lineColor;
         this.flashedNodeColor = flashedNodeColor;
         this.inactiveInputNodeColor = inactiveInputNodeColor;
-        this.positiveAccentNodeColor = positiveAccentNodeColor;
-        this.negativeAccentNodeColor = negativeAccentNodeColor;
-        this.positiveAccentWeightColor = positiveAccentWeightColor;
-        this.negativeAccentWeightColor = negativeAccentWeightColor;
+        this.upperAccentNodeColor = upperAccentNodeColor;
+        this.lowerAccentNodeColor = lowerAccentNodeColor;
+        this.upperAccentWeightColor = upperAccentWeightColor;
+        this.lowerAccentWeightColor = lowerAccentWeightColor;
     }
 
     Color getBackgroundColor() {
@@ -63,20 +63,20 @@ public class NNColorPalette {
         return inactiveInputNodeColor;
     }
 
-    Color getPositiveAccentNodeColor() {
-        return positiveAccentNodeColor;
+    Color getUpperAccentNodeColor() {
+        return upperAccentNodeColor;
     }
 
-    Color getNegativeAccentNodeColor() {
-        return negativeAccentNodeColor;
+    Color getLowerAccentNodeColor() {
+        return lowerAccentNodeColor;
     }
 
-    Color getPositiveAccentWeightColor() {
-        return positiveAccentWeightColor;
+    Color getUpperAccentWeightColor() {
+        return upperAccentWeightColor;
     }
 
-    Color getNegativeAccentWeightColor() {
-        return negativeAccentWeightColor;
+    Color getLowerAccentWeightColor() {
+        return lowerAccentWeightColor;
     }
 
 }

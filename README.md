@@ -282,20 +282,20 @@ If you like to change the colors, you can do so by setting a custom color palett
         BLACK,                                      // line color
         ROYALBLUE.brighter(),                       // flashed node color (max. output value)
         GAINSBORO,                                  // inactive input node color
-        STEELBLUE,                                  // positive accent node color
-        INDIANRED,                                  // negative accent node color
-        STEELBLUE.darker(),                         // positive accent weight color
-        INDIANRED.darker());                        // negative accent weight color
+        STEELBLUE,                                  // upper value node color
+        INDIANRED,                                  // lower value node color
+        STEELBLUE.darker(),                         // upper value weight color
+        INDIANRED.darker());                        // lower value weight color
         
     visualizer.setColorPalette(colors);
 
 The thresholds for the color switch between negative / neutral / positive may be changed individually for nodes and weights.
 
-    double negativeThreshold = 0.3;
-    double positiveThreshold = 0.7;
+    double lowerBound = 0.3;
+    double upperBound = 0.7;
     
-    visualizer.setNodeColorThreshold(negativeThreshold, positiveThreshold);
-    visualizer.setWeightColorThreshold(negativeThreshold, positiveThreshold);
+    visualizer.setNodeColorThreshold(lowerBound, upperBound);
+    visualizer.setWeightColorThreshold(lowerBound, upperBound);
     
 Further parametrization possibilities are listed below:
 

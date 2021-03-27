@@ -34,10 +34,10 @@ public class NNVisualizer {
     private double radius = 16;
     private double lineWidth = 2;
     private double textLineWidth = 0.7;
-    private double negativeNodeThreshold = 0.3;
-    private double positiveNodeThreshold = 0.7;
-    private double negativeWeightThreshold = -0.2;
-    private double positiveWeightThreshold = 0.2;
+    private double lowerNodeThreshold = 0.3;
+    private double uppweNodeThreshold = 0.7;
+    private double lowerWeightThreshold = -0.2;
+    private double upperWeightThreshold = 0.2;
     private NeuralNetwork neuralNetwork;
     private int[] activeInputNodes;
     private String[] inputNodeLabels;
@@ -133,7 +133,7 @@ public class NNVisualizer {
 
                 if (node.active) {
                     if (!nodeValues.isEmpty()) {
-                        color = evaluateColor(nodeValues.get(i).get(j-skippedNodes), negativeNodeThreshold, positiveNodeThreshold, color, true);
+                        color = evaluateColor(nodeValues.get(i).get(j-skippedNodes), lowerNodeThreshold, uppweNodeThreshold, color, true);
                     }
 
                     if (i == graph.size() - 1) {
@@ -161,7 +161,7 @@ public class NNVisualizer {
     }
 
     private void paintLine(GraphNode a, GraphNode b, double value) {
-        Color color = evaluateColor(value, negativeWeightThreshold, positiveWeightThreshold, colors.getLineColor(), false);
+        Color color = evaluateColor(value, lowerWeightThreshold, upperWeightThreshold, colors.getLineColor(), false);
         context.setStroke(color);
         context.setLineWidth(lineWidth);
         context.strokeLine(a.x + (radius / 2), a.y + (radius / 2), b.x + (radius / 2), b.y + (radius / 2));
@@ -175,9 +175,9 @@ public class NNVisualizer {
 
     private Color evaluateColor(double value, double negativeThreshold, double positiveThreshold, Color color, boolean isNode) {
         if (value < negativeThreshold) {
-            color = isNode ? colors.getNegativeAccentNodeColor() : colors.getNegativeAccentWeightColor();
+            color = isNode ? colors.getLowerAccentNodeColor() : colors.getLowerAccentWeightColor();
         } else if (value >= positiveThreshold) {
-            color = isNode ? colors.getPositiveAccentNodeColor() : colors.getPositiveAccentWeightColor();
+            color = isNode ? colors.getUpperAccentNodeColor() : colors.getUpperAccentWeightColor();
         }
         return color;
     }
@@ -240,13 +240,16 @@ public class NNVisualizer {
     /**
      * With this method, the threshold for the node color switch can be set. It will have effect on which colors
      * from the color palette are chosen to display the nodes depending on their value.
-     * @param negativeThreshold the negative threshold value.
-     * @param positiveThreshold the positive threshold value.
+     * @param lowerBound the lower threshold value.
+     * @param upperBound the upper threshold value.
      * @return this NNVisualizer (for chaining).
      */
-    public NNVisualizer setNodeColorThreshold(double negativeThreshold, double positiveThreshold) {
-        this.negativeNodeThreshold = negativeThreshold;
-        this.positiveNodeThreshold = positiveThreshold;
+    public NNVisualizer setNodeColorThreshold(double lowerBound, double upperBound) {
+        if (lowerBound >= upperBound) {
+            throw new IllegalArgumentException("Lower bound must not be larger than upper bound!");
+        }
+        this.lowerNodeThreshold = lowerBound;
+        this.uppweNodeThreshold = upperBound;
         paintNetwork();
         return this;
     }
@@ -254,13 +257,16 @@ public class NNVisualizer {
     /**
      * With this method, the threshold for the line color switch can be set. It will have effect on which colors
      * from the color palette are chosen to display the lines depending on their value.
-     * @param negativeThreshold the negative threshold value.
-     * @param positiveThreshold the positive threshold value.
+     * @param lowerBound the lower threshold value.
+     * @param upperBound the upper threshold value.
      * @return this NNVisualizer (for chaining).
      */
-    public NNVisualizer setWeightColorThreshold(double negativeThreshold, double positiveThreshold) {
-        this.negativeWeightThreshold = negativeThreshold;
-        this.positiveWeightThreshold = positiveThreshold;
+    public NNVisualizer setWeightColorThreshold(double lowerBound, double upperBound) {
+        if (lowerBound >= upperBound) {
+            throw new IllegalArgumentException("Lower bound must not be larger than upper bound!");
+        }
+        this.lowerWeightThreshold = lowerBound;
+        this.upperWeightThreshold = upperBound;
         paintNetwork();
         return this;
     }
