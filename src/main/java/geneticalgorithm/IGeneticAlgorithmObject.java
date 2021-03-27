@@ -48,7 +48,7 @@ public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObj
 
     /**
      * This method indicates if this instance is in an immature state yet. In mature statues only, the genetic
-     * algorithm will perform a roulette selction for the next generation.
+     * algorithm will perform a roulette selection for the next generation.
      * @return true if the state of the instance is yet immature.
      */
     boolean isImmature();
@@ -65,6 +65,6 @@ public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObj
      * messages, so the progress of the genetic algorithm can be supervised more easily.
      * @return true if the best possible state is reached.
      */
-    boolean isPerfectScore();
+    boolean hasReachedGoal();
 
 }

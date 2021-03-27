@@ -23,11 +23,11 @@ public class RectifierSpeedTest {
     void testXOr(Rectifier rectifier, double[][] in, double[][] out) {
         // testing xor function
 
-        NeuralNetwork net = new NeuralNetwork(2, 4, 1);
+        NeuralNetwork net = new NeuralNetwork(2, 64, 64, 64, 1);
         net.setRectifier(rectifier);
 
         long startTime = System.currentTimeMillis();
-        net.fit(in, out, 100000);
+        net.fit(in, out, 100);
         long duration = System.currentTimeMillis() - startTime;
 
         System.out.println("rectifier: " + rectifier.getDescription());

@@ -63,11 +63,27 @@ public enum Rectifier {
     SILU("Sigmoid Linear Unit") {
         @Override
         public double activate(double value) {
-            return value/(1 + Math.exp(-value));
+            double step0 = value;
+            double step1 = (1 + Math.exp(-value));
+            double activation = step0 / step1;
+            if (Double.isInfinite(activation)) {
+                System.out.println(step0 + " " + step1);
+            }
+            return activation;
         }
         @Override
         public double derive(double value) {
-            return value * (1 - value);
+            double step0 = value;
+            double step1 = (1 - value);
+            double derivation = step0 * step1;
+            if (Double.isInfinite(derivation)) {
+                if (derivation < 0) {
+                    derivation = Double.MIN_VALUE;
+                } else {
+                    derivation = Double.MAX_VALUE;
+                }
+            }
+            return derivation;
         }
     },
     /**
@@ -84,12 +100,23 @@ public enum Rectifier {
         }
         @Override
         public double derive(double value) {
-            return (Math.exp(value) * (value + Math.exp(value) + 1)) / Math.pow(Math.exp(value) + 1, 2);
+            double step0 = (Math.exp(value) * (value + Math.exp(value) + 1));
+            double step1 = Math.pow(Math.exp(value) + 1, 2);
+            double derivation = step0 / step1;
+            if (Double.isInfinite(step0) && Double.isInfinite(step1)) {
+                if ((step0 >= 0 && step1 < 0) || (step0 < 0 && step1 >= 0)) {
+                    derivation = -1;
+                } else {
+                    derivation = 1;
+                }
+            }
+            return derivation;
         }
     },
     /**
      * The rectified linear unit is linear growth for values above 0 and 0 for values less or equal to 0.
-     * This is a quite common activation function for neural networks.
+     * This is a quite common activation function for neural networks. It is quite fragile, as neurons can die during
+     * the training. Works best with normalized initialization.
      * formula:    f(x)  = x        if x greater than 0, else 0
      * derivation: f(x)' = 1        if x greater than 0, else 0
      */
@@ -133,7 +160,16 @@ public enum Rectifier {
         }
         @Override
         public double derive(double value) {
-            return 0.5 * Math.tanh(0.0356774 * Math.pow(value, 3) + 0.797885 * value) + (0.0535161 * Math.pow(value, 3)+ 0.398942 * value) * Math.pow((1/Math.cosh(0.0356774 * Math.pow(value, 3) + 0.797885 * value)), 2) + 0.5;
+            double step0 =  0.5 * Math.tanh(0.0356774 * Math.pow(value, 3) + 0.797885 * value);
+            double step1a = (0.0535161 * Math.pow(value, 3) + 0.398942 * value);
+            double step1b = Math.pow((1/Math.cosh(0.0356774 * Math.pow(value, 3) + 0.797885 * value)), 2);
+            double step1 = step1a * step1b;
+            if (step1b == 0) {
+                step1 = 0;
+            }
+            double step2 = 0.5;
+            double derivation = step0 + step1 + step2;
+            return derivation;
         }
     },
     /**
@@ -144,11 +180,29 @@ public enum Rectifier {
     SOFTPLUS("Softplus") {
         @Override
         public double activate(double value) {
-            return Math.log(1 + Math.exp(value));
+            double activation = Math.log(1 + Math.exp(value));
+            if (Double.isInfinite(activation)) {
+                if (activation < 0) {
+                    activation = Double.MIN_VALUE;
+                } else {
+                    activation = Double.MAX_VALUE;
+                }
+            }
+            return activation;
         }
         @Override
         public double derive(double value) {
-            return Math.exp(value) / (1 + Math.exp(value));
+            double step0 = Math.exp(value);
+            double step1 = 1 + Math.exp(value);
+            double derivation = step0 / step1;
+            if (Double.isInfinite(step0) && Double.isInfinite(step1)) {
+                if ((step0 >= 0 && step1 < 0) || (step0 < 0 && step1 >= 0)) {
+                    derivation = -1;
+                } else {
+                    derivation = 1;
+                }
+            }
+            return derivation;
         }
     };
 

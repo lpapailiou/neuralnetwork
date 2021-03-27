@@ -10,20 +10,22 @@ import java.io.Serializable;
 class Layer implements Serializable {
 
     private static final long serialVersionUID = 2L;
+    private double initialRandomization;
     Matrix weight;
     Matrix bias;
 
-    Layer(int m, int n) {
-        weight = new Matrix(Rectifier.SIGMOID, m, n);
-        bias = new Matrix(Rectifier.SIGMOID, n, 1);
+    Layer(int m, int n, double initialRandomization) {
+        this.initialRandomization = initialRandomization;
+        weight = new Matrix(m, n);
+        bias = new Matrix(n, 1);
 
         // randomize matrices for initial setup
-        weight.randomize();
-        bias.randomize();
+        weight.randomize(initialRandomization);
+        bias.randomize(initialRandomization);
     }
 
     Layer copy() {
-        Layer layer = new Layer(this.weight.getRows(), this.weight.getCols());
+        Layer layer = new Layer(this.weight.getRows(), this.weight.getCols(), this.initialRandomization);
         layer.weight = this.weight.copy();
         layer.bias = this.bias.copy();
         return layer;

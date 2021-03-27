@@ -299,7 +299,7 @@ public class NNVisualizer {
      * @param outputNodeLabels the output node labels.
      * @return this NNVisualizer (for chaining).
      */
-    public NNVisualizer setOutputLabels(String[] outputNodeLabels) {
+    public NNVisualizer setOutputNodeLabels(String[] outputNodeLabels) {
         int[] configuration = neuralNetwork.getConfiguration();
         if (outputNodeLabels == null || outputNodeLabels.length == configuration[configuration.length-1]) {
             this.outputNodeLabels = outputNodeLabels;

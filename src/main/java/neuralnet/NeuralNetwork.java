@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-
+// TODO: L1 and L2 regularization?
 /**
  * This is the central class of this library, allowing to create a freely configurable neural network.
  * The architecture can be set by parameters. Input and output values are designed to be double arrays.
@@ -35,6 +35,8 @@ public class NeuralNetwork implements Serializable {
     private List<Layer> layers = new ArrayList<>();
     private List<List<Double>> cachedNodeValues = new ArrayList<>();
 
+    private double initialRandomization;
+    private boolean normalize;
     private Rectifier rectifier;
     private Descent learningRateDescent;
     private double initialLearningRate;
@@ -73,9 +75,7 @@ public class NeuralNetwork implements Serializable {
         }
 
         this.configuration = layerParams;
-        for (int i = 1; i < layerParams.length; i++) {
-            layers.add(new Layer(layerParams[i], layerParams[i-1]));
-        }
+        this.normalize = Boolean.parseBoolean(PROPERTIES.getProperty("normalize_matrices"));
 
         try {
             this.rectifier = Rectifier.valueOf(PROPERTIES.getProperty("rectifier").toUpperCase());
@@ -86,9 +86,13 @@ public class NeuralNetwork implements Serializable {
         }
 
         try {
+            this.initialRandomization = Double.parseDouble(PROPERTIES.getProperty("initial_randomization"));
             this.initialLearningRate = Double.parseDouble(PROPERTIES.getProperty("learning_rate"));
             this.learningRate = initialLearningRate;
             this.mutationRate = Double.parseDouble(PROPERTIES.getProperty("genetic_mutation_rate"));
+            if (initialRandomization < 0 || initialRandomization > 1) {
+                throw new IllegalArgumentException("Initial randomization must be set between 0.0 and 1.0!");
+            }
             if (learningRate < 0 || learningRate > 1) {
                 throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
             }
@@ -108,9 +112,34 @@ public class NeuralNetwork implements Serializable {
         } catch (NumberFormatException e) {
             throw new NumberFormatException("Please set a double value for this property!");
         }
+
+        for (int i = 1; i < layerParams.length; i++) {
+            layers.add(new Layer(layerParams[i], layerParams[i-1], initialRandomization));
+        }
     }
 
-    private NeuralNetwork(List<Layer> layers) {
+    /**
+     * A constructor of the neural network.
+     * The varag parameters will define the architecture of the neural network. You need to enter at least two parameters.
+     * For hyperparameters and additional default settings, please use the neuralnetwork.properties files or
+     * the according setters (builder pattern available).
+     * @param initialRandomization the initial randomization of the layer matrices.
+     * @param layerParams the architecture of the neural network. First argument = node count of input layer; last argument = node count of output layer; arguments between = node count per hidden layer.
+     */
+    public NeuralNetwork(double initialRandomization, int... layerParams) {
+        this(layerParams);
+        if (initialRandomization < 0 || initialRandomization > 1) {
+            throw new IllegalArgumentException("Initial randomization must be between 0.0 and 1.0!");
+        }
+        this.initialRandomization = initialRandomization;
+        layers.clear();
+        for (int i = 1; i < layerParams.length; i++) {
+            layers.add(new Layer(layerParams[i], layerParams[i-1], initialRandomization));
+        }
+    }
+
+    private NeuralNetwork(double initialRandomization, List<Layer> layers) {
+        this.initialRandomization = initialRandomization;
         List<Layer> newLayerSet = new ArrayList<>();
         for (Layer layer : layers) {
             newLayerSet.add(layer.copy());
@@ -133,18 +162,16 @@ public class NeuralNetwork implements Serializable {
         }
 
         cachedNodeValues.clear();
-        Matrix tmp = Matrix.fromArray(rectifier, inputNodes);
-
+        Matrix tmp = Matrix.fromArray(inputNodes, normalize);
         for (Layer layer : layers) {
             cachedNodeValues.add(Matrix.asList(tmp));
             tmp = Matrix.multiply(layer.weight, tmp);
-            tmp.addBias(layer.bias);
-            tmp.activate();
+            tmp.addBias(layer.bias, false);
+            tmp.activate(rectifier);
         }
 
         cachedNodeValues.add(Matrix.asList(tmp));
         pcs.firePropertyChange("predict", false, true);
-
         return Matrix.asList(tmp);
     }
 
@@ -162,19 +189,19 @@ public class NeuralNetwork implements Serializable {
             throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + configuration[0] + " input nodes.");
         }
 
-        Matrix input = Matrix.fromArray(rectifier, inputNodes);
+        Matrix input = Matrix.fromArray(inputNodes, normalize);
 
         // forward propagate and prepare output
         List<Matrix> steps = new ArrayList<>();
         Matrix tmp = input;
         for (Layer layer : layers) {
             tmp = Matrix.multiply(layer.weight, tmp);
-            tmp.addBias(layer.bias);
-            tmp.activate();
+            tmp.addBias(layer.bias, false);
+            tmp.activate(rectifier);
             steps.add(tmp);
         }
 
-        Matrix target = Matrix.fromArray(rectifier, expectedOutputNodes);
+        Matrix target = Matrix.fromArray(expectedOutputNodes, normalize);
 
         // backward propagate to adjust weights in layers
         iterationCount++;
@@ -185,12 +212,12 @@ public class NeuralNetwork implements Serializable {
             } else {
                 error = Matrix.multiply(Matrix.transpose(layers.get(i+1).weight), error);
             }
-            Matrix gradient = steps.get(i).derive();
+            Matrix gradient = steps.get(i).derive(rectifier);
             gradient.multiplyElementwise(error);
             gradient.multiply(learningRate);
             Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : steps.get(i-1)));
-            layers.get(i).weight.add(delta);
-            layers.get(i).bias.addBias(gradient);
+            layers.get(i).weight.add(delta, normalize);
+            layers.get(i).bias.addBias(gradient, normalize);
         }
         decreaseRate();
         return Matrix.asList(tmp);
@@ -236,7 +263,7 @@ public class NeuralNetwork implements Serializable {
      */
     public NeuralNetwork mutate() {
         NeuralNetwork neuralNetwork = this.copy();
-        neuralNetwork.randomize(learningRate, mutationRate);
+        neuralNetwork.randomize();
         return neuralNetwork;
     }
 
@@ -245,8 +272,9 @@ public class NeuralNetwork implements Serializable {
      * @return an identical copy of this instance
      */
     public NeuralNetwork copy() {
-        NeuralNetwork neuralNetwork = new NeuralNetwork(layers);
+        NeuralNetwork neuralNetwork = new NeuralNetwork(initialRandomization, layers);
         neuralNetwork.configuration = this.configuration;
+        neuralNetwork.normalize = this.normalize;
         neuralNetwork.rectifier = this.rectifier;
         neuralNetwork.learningRateDescent = this.learningRateDescent;
         neuralNetwork.learningRateMomentum = this.learningRateMomentum;
@@ -260,11 +288,38 @@ public class NeuralNetwork implements Serializable {
         return neuralNetwork;
     }
 
-    private void randomize(double factor, double grade) {
+    private void randomize() {
         for (Layer layer : layers) {
-            layer.weight.randomize(factor, grade);
-            layer.bias.randomize(factor, grade);
+            layer.weight.randomize(learningRate, mutationRate, normalize);
+            layer.bias.randomize(learningRate, mutationRate, normalize);
         }
+    }
+
+    /**
+     * Getter for the initial randomization.
+     * @return the initial randomization degree.
+     */
+    public double getInitialRandomization() {
+        return initialRandomization;
+    }
+
+    /**
+     * With this method, normalization of matrices can switched on or off.
+     * If true, layer matrix components will be bound to values between -1 and 1.
+     * @param normalize the normalization indicator.
+     * @return the NeuralNetwork.
+     */
+    public NeuralNetwork setNormalized(boolean normalize) {
+        this.normalize = normalize;
+        return this;
+    }
+
+    /**
+     * Getter for the normalization indicator.
+     * @return normalization indicator of layer matrix components.
+     */
+    public boolean getNormalized() {
+        return normalize;
     }
 
     /**
@@ -274,6 +329,9 @@ public class NeuralNetwork implements Serializable {
      * @return the NeuralNetwork.
      */
     public NeuralNetwork setRectifier(Rectifier rectifier) {
+        if (rectifier == null) {
+            throw new NullPointerException("Rectifier must not be null!");
+        }
         this.rectifier = rectifier;
         return this;
     }
@@ -292,6 +350,9 @@ public class NeuralNetwork implements Serializable {
      * @return the NeuralNetwork.
      */
     public NeuralNetwork setLearningRateDescent(Descent learningRateDescent) {
+        if (learningRateDescent == null) {
+            throw new NullPointerException("Learning rate descent must not be null!");
+        }
         this.learningRateDescent = learningRateDescent;
         return this;
     }
@@ -349,10 +410,10 @@ public class NeuralNetwork implements Serializable {
      * @return the NeuralNetwork.
      */
     public NeuralNetwork setLearningRateMomentum(double learningRateMomentum) {
-        this.learningRateMomentum = learningRateMomentum;
         if (learningRateMomentum < 0 || learningRateMomentum > 1) {
             throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
         }
+        this.learningRateMomentum = learningRateMomentum;
         return this;
     }
 
@@ -371,6 +432,9 @@ public class NeuralNetwork implements Serializable {
      * @return the NeuralNetwork.
      */
     public NeuralNetwork setMutationRateDescent(Descent mutationRateDescent) {
+        if (mutationRateDescent == null) {
+            throw new NullPointerException("Mutation rate descent must not be null!");
+        }
         this.mutationRateDescent = mutationRateDescent;
         return this;
     }
@@ -389,11 +453,11 @@ public class NeuralNetwork implements Serializable {
      * @return the NeuralNetwork.
      */
     public NeuralNetwork setMutationRate(double mutationRate) {
-        this.initialMutationRate = mutationRate;
-        this.mutationRate = mutationRate;
         if (mutationRate < 0 || mutationRate > 1) {
             throw new IllegalArgumentException("Mutation rate rate must be set between 0.0 and 1.0!");
         }
+        this.initialMutationRate = mutationRate;
+        this.mutationRate = mutationRate;
         return this;
     }
 
@@ -418,10 +482,10 @@ public class NeuralNetwork implements Serializable {
      * @return the NeuralNetwork.
      */
     public NeuralNetwork setMutationRateMomentum(double mutationRateMomentum) {
-        this.mutationRateMomentum = mutationRateMomentum;
         if (mutationRateMomentum < 0 || mutationRateMomentum > 1) {
             throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
         }
+        this.mutationRateMomentum = mutationRateMomentum;
         return this;
     }
 
@@ -441,7 +505,7 @@ public class NeuralNetwork implements Serializable {
      * @param value the value of the property.
      */
     public static void setProperty(String key, String value) {
-        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_descent") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size") && !key.equals("genetic_mutation_rate") && !key.equals("mutation_rate_descent") && !key.equals("mutation_decay_momentum")) {
+        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_descent") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size") && !key.equals("genetic_mutation_rate") && !key.equals("mutation_rate_descent") && !key.equals("mutation_decay_momentum") && !key.equals("initial_randomization") && !key.equals("normalize_matrices")) {
             throw new IllegalArgumentException("Property with key " + key + "is not valid in this context!");
         } else if (key.equals("learning_rate")) {
             if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
@@ -455,10 +519,16 @@ public class NeuralNetwork implements Serializable {
             if (Double.parseDouble(value) < 2) {
                 throw new IllegalArgumentException("Reproduction pool size must be set above 2!");
             }
+        } else if (key.equals("initial_randomization")) {
+            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
+                throw new IllegalArgumentException("Initial randomization must be set between 0.0 and 1.0!");
+            }
         } else if (key.equals("genetic_mutation_rate")) {
             if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
                 throw new IllegalArgumentException("Mutation rate must be set between 0.0 and 1.0!");
             }
+        } else if (key.equals("normalize_matrices")) {
+            Boolean.parseBoolean(value);
         }
         PROPERTIES.setProperty(key, value);
     }
@@ -510,6 +580,12 @@ public class NeuralNetwork implements Serializable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("initial normalization: ");
+        sb.append(initialRandomization);
+        sb.append(", ");
+        sb.append("normalized: ");
+        sb.append(normalize);
+        sb.append(", ");
         sb.append("rectifier: ");
         sb.append(rectifier.getDescription());
         sb.append(", ");

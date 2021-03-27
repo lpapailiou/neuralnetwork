@@ -63,7 +63,7 @@ public abstract class GeneticAlgorithmObject implements IGeneticAlgorithmObject 
 
     /**
      * This method indicates if this instance is in an immature state yet. In mature statues only, the genetic
-     * algorithm will perform a roulette selction for the next generation.
+     * algorithm will perform a roulette selection for the next generation.
      * @return true if the state of the instance is yet immature.
      */
     @Override
@@ -85,7 +85,7 @@ public abstract class GeneticAlgorithmObject implements IGeneticAlgorithmObject 
      * @return true if the best possible state is reached.
      */
     @Override
-    public abstract boolean isPerfectScore();
+    public abstract boolean hasReachedGoal();
 
     /**
      * This methods will compare this instance with other instances from the same generation. With the according output

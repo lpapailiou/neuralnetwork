@@ -12,18 +12,16 @@ import java.util.List;
 public class Matrix implements Serializable {
 
     private static final long serialVersionUID = 2L;
-    private final Rectifier rectifier;
     private double[][] data;
     private int rows;
     private int cols;
 
     /**
      * The constructor to create a randomized matrix for given type.
-     * @param rows the row count of the matrix
-     * @param cols the column count of the matrix
+     * @param rows the row count of the matrix.
+     * @param cols the column count of the matrix.
      */
-    Matrix(Rectifier rectifier, int rows, int cols) {
-        this.rectifier = rectifier;
+    Matrix(int rows, int cols) {
         data = new double[rows][cols];
         this.rows = rows;
         this.cols = cols;
@@ -31,33 +29,60 @@ public class Matrix implements Serializable {
 
     /**
      * Constructor used for testing
-     * @param input the input 2d array to be converted to a matrix
+     * @param input the input 2d array to be converted to a matrix.
      */
-    Matrix(Rectifier rectifier, double[][] input) {
-        this.rectifier = rectifier;
+    Matrix(double[][] input) {
         data = input;
         rows = input.length;
         cols = input[0].length;
     }
 
-    void add(Matrix m) {
+    void add(Matrix m, boolean normalize) {
         if (cols != m.cols || rows != m.rows) {
             throw new IllegalArgumentException("wrong input matrix dimensions for addition!");
         }
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                data[i][j] += m.data[i][j];
+                double sideA = data[i][j];
+                double sideB = m.data[i][j];
+                double value = sideA + sideB;
+                if (normalize) {
+                    if (value < -1) {
+                        value = -1;
+                    } else if (value > 1) {
+                        value = 1;
+                    }
+                }
+                if (Double.isInfinite(value)) {
+                    value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                } else if (Double.isNaN(value)) {
+                    throw new ArithmeticException("Addition operation evaluated to NaN");
+                }
+                data[i][j] = value;
             }
         }
     }
 
-    void addBias(Matrix m) {
+    void addBias(Matrix m, boolean normalize) {
         if (cols != m.cols) {
             throw new IllegalArgumentException("wrong input matrix dimensions!");
         }
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                data[i][j] += m.data[0][j];
+                double value = data[i][j] + m.data[0][j];
+                if (normalize) {
+                    if (value < -1) {
+                        value = -1;
+                    } else if (value > 1) {
+                        value = 1;
+                    }
+                }
+                if (Double.isInfinite(value)) {
+                    value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                } else if (Double.isNaN(value)) {
+                    throw new ArithmeticException("Bias addition evaluated to NaN");
+                }
+                data[i][j] = value;
             }
         }
     }
@@ -109,12 +134,23 @@ public class Matrix implements Serializable {
         if (a.cols != b.rows) {
             throw new IllegalArgumentException("wrong input matrix dimensions for multiplication! " + a.getType() + " " + b.getType());
         }
-        Matrix tmp = new Matrix(a.rectifier, a.rows, b.cols);
+        Matrix tmp = new Matrix(a.rows, b.cols);
         for (int i = 0; i < tmp.rows; i++) {
             for (int j = 0; j < tmp.cols; j++) {
                 double sum = 0;
                 for (int k = 0; k < a.cols; k++) {
-                    sum += a.data[i][k] * b.data[k][j];
+                    double sideA = a.data[i][k];
+                    double sideB = b.data[k][j];
+                    if ((Double.isInfinite(sideA) && sideB == 0) || (Double.isInfinite(sideB) && sideA == 0)) {
+                        sum = 0;
+                    } else {
+                        sum += sideA * sideB;
+                    }
+                    if (Double.isInfinite(sum)) {
+                        sum = sum < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                    } else if (Double.isNaN(sum)) {
+                        throw new ArithmeticException("Multiply operation evaluated to NaN!");
+                    }
                 }
                 tmp.data[i][j] = sum;
             }
@@ -123,7 +159,7 @@ public class Matrix implements Serializable {
     }
 
     static Matrix transpose(Matrix m) {
-        Matrix tmp = new Matrix(m.rectifier, m.cols, m.rows);
+        Matrix tmp = new Matrix(m.cols, m.rows);
         for (int i = 0; i < m.rows; i++) {
             for (int j = 0; j < m.cols; j++) {
                 tmp.data[j][i] = m.data[i][j];
@@ -132,19 +168,31 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
-    void activate() {
+    void activate(Rectifier rectifier) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                data[i][j] = rectifier.activate(data[i][j]);
+                double activation = rectifier.activate(data[i][j]);
+                if (Double.isNaN(activation)) {
+                    throw new ArithmeticException("Activation operation evaluated to NaN!");
+                } else if (Double.isInfinite(activation)) {
+                    throw new ArithmeticException("Activation operation evaluated to Infinity!");
+                }
+                data[i][j] = activation;
             }
         }
     }
 
-    Matrix derive() {
-        Matrix tmp = new Matrix(rectifier, rows, cols);
+    Matrix derive(Rectifier rectifier) {
+        Matrix tmp = new Matrix(rows, cols);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                tmp.data[i][j] = rectifier.derive(data[i][j]);
+                double derivation = rectifier.derive(data[i][j]);
+                if (Double.isNaN(derivation)) {
+                    throw new ArithmeticException("Derivation operation evaluated to NaN!");
+                } else if (Double.isInfinite(derivation)) {
+                    throw new ArithmeticException("Derivation operation evaluated to Infinity!");
+                }
+                tmp.data[i][j] = derivation;
             }
         }
         return tmp;
@@ -162,8 +210,8 @@ public class Matrix implements Serializable {
         return cols;
     }
 
-    static Matrix fromArray(Rectifier rectifier, double[] arr) {
-        Matrix tmp = new Matrix(rectifier, arr.length, 1);
+    static Matrix fromArray(double[] arr, boolean normalize) {
+        Matrix tmp = new Matrix(arr.length, 1);
         for (int i = 0; i < arr.length; i++) {
             tmp.data[i][0] = arr[i];
         }
@@ -180,19 +228,27 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
-    void randomize() {
+    void randomize(double initialRandomization) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                data[i][j] = Math.random() * 2 - 1;
+                data[i][j] = (Math.random() * 2 - 1) * initialRandomization;
             }
         }
     }
 
-    void randomize(double factor, double mutationRate) {
+    void randomize(double factor, double mutationRate, boolean normalize) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (Math.random() < mutationRate) {
-                    data[i][j] = data[i][j] + (Math.random() * 2 - 1) * factor;;
+                    double value = data[i][j] + (Math.random() * 2 - 1) * factor;
+                    if (normalize) {
+                        if (value > 1) {
+                            value = 1;
+                        } else if (value < -1) {
+                            value = -1;
+                        }
+                    }
+                    data[i][j] = value;
                 }
             }
         }
@@ -207,7 +263,7 @@ public class Matrix implements Serializable {
     }
 
     Matrix copy() {
-        Matrix m = new Matrix(rectifier, rows, cols);
+        Matrix m = new Matrix(rows, cols);
         for (int i = 0; i < m.rows; i++) {
             if (m.cols >= 0) System.arraycopy(this.data[i], 0, m.data[i], 0, m.cols);
         }

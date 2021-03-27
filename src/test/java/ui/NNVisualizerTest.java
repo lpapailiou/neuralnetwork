@@ -96,7 +96,7 @@ public class NNVisualizerTest extends Application {
     private void drawNeuralNetwork(GraphicsContext context, NeuralNetwork neuralNetwork) {
         visualizer = new NNVisualizer(context).setNeuralNetwork(neuralNetwork);
         visualizer.setGraphInputNodeCount(3, 0);
-        visualizer.setOutputLabels(new String[] {"0", "1"});
+        visualizer.setOutputNodeLabels(new String[] {"0", "1"});
         visualizer.setInputNodeLabels(new String[] {"(this node is not in use)", "a", "b"});
         visualizer.setWidthOffset(120);
     }

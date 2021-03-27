@@ -8,13 +8,14 @@ This is a maven library for neural networks in java 8.
     1.3 [Rectifiers](#rectifiers)  
     1.4 [Learning rate descent](#learning-and-mutation-rate-descent)  
     1.5 [Parametrization](#parametrization)  
-    1.6 [Persistance](#persistance)  
+    1.6 [Persistence](#persistence)  
     1.7 [UI](#ui)  
 2. [Examples](#examples)  
     2.1 [Constructor of NeuralNetwork](#constructor-of-neuralnetwork)   
     2.2 [Methods of NeuralNetwork](#methods-of-neuralnetwork)   
     2.3 [Supervised learning](#supervised-learning)   
     2.4 [Genetic algorithm](#genetic-algorithm)   
+    2.5 [Graphic representation](#graphic representation)   
 3. [Implementation](#implementation)  
     3.1 [From a Jar file](#from-a-jar-file)  
     3.2 [From a Maven dependency](#from-a-maven-dependency)  
@@ -30,16 +31,8 @@ This is a maven library for neural networks in java 8.
 - Supervised learning
 - Genetic algorithm
 
-#### Genetic algorithm
-The package `geneticalgorithm` offers a convenient base for implementing the genetic algorithm easily.  
-There are two interfaces to be taken care of: 
-- `GeneticAlgorithmObject`: may be extended from the abstract class `GeneticAlgorithmObject` or implemented from the interface `IGeneticAlgorithmObject`. This will be the implementation
-for the instance being capable of acting according to NeuralNetwork inputs.
-- `GeneticAlgorithmBatch`: with this class, the genetic algorithm is implemented and executed from.
-The 'actual machine learning part' is processed within the library, and does not have to be taken care of.
-
 ### Rectifiers
-Implemented are following activation functions:
+Implemented are following rectifiers:
 - Identity
 - Sigmoid
 - Sigmoid (accurate)
@@ -50,21 +43,23 @@ Implemented are following activation functions:
 - GELU
 - Softplus
 
+Rectifiers can be quite sensitive to hyperparameters (e.g. normalization, learning rate). 
+
 ### Learning and mutation rate descent
 - none (static learning rate)
 - stochastic gradient descent
 
 ### Parametrization
-The configuration of the neural network can be done as following:
+The parametrization of the neural network can be done as following:
 - during initialization (vararg for architecture + builder pattern)
 - during runtime (according setters)
 - by `neuralnetwork.properties` in case default values are used constantly
 
-### Persistance
+### Persistence
 - neural network instances are fully serializable
 
 ### UI
-- with the additional ui package, you may be able to visualize the neural network interactively with a javafx framework.
+With the additional ui package, you may be able to visualize the neural network interactively with a javafx framework.
   
 ## Examples
 ### Constructor of NeuralNetwork
@@ -78,7 +73,8 @@ Create a neural network with two input nodes, two hidden layers (4 and 5 nodes) 
   
 Create a neural network adding parameters (builder pattern may be used as well).
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 2);
+    NeuralNetwork neuralNetwork = new NeuralNetwork(0.7, 2, 2);    // first parameter is initial randomziation rate
+    neuralNetwork.setNormalized(false);
     neuralNetwork.setRectifier(Rectifier.SIGMOID);
     neuralNetwork.setLearningRateDescent(Descent.SGD);
     neuralNetwork.setLearningRate(0.8);
@@ -95,8 +91,33 @@ Use the neural network to predict a value from a given input array.
     NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 1);
     List<Double> out = neuralNetwork.predict(in);               // prediction
 
-Get a full overview of the actual contents of a neural network by calling the `toString()` method.
+Get a full overview of the actual contents of a neural network by calling the `toString()` method.  
+The output will show all matrix components (weights + biases) as well as the neural network metadata.  
+  
+To access the weights, following method can be used:  
 
+    double[][] weights = neuralNetwork.getWeights(layerIndex);
+    
+Every time a prediction is made, the node values (including input and output nodes) will be cached.
+It can be accessed with following method: 
+  
+    List<List<Double>> nodeValues = neuralNetwork.getCachedNodeValues();
+    
+Every time a prediction is made, it will emit a property change event. Here an example to set up an
+according PropertyChangeListener:
+  
+    neuralNetwork.addListener(e -> {
+        List<List<Double>> nodeValues = neuralNetwork.getCachedNodeValues();
+        // do something...
+    });
+    
+Properties can be set by editing the properties file (see details in section [Properties](#properties)). They
+can be also set programmatically. An instance of the neural network will load the properties during initialization.
+
+    String learningRatePropertyValue = NeuralNetwork.getProperty("learning_rate");
+    
+    NeuralNetwork.setProperty("rectifier", "sigmoid");
+    
 #### Supervised learning
 Fit the neural network model to given input array and the expected output.
 The neural network will return a prediction and adjust accordingly.
@@ -113,9 +134,13 @@ Fit the neural network model sequentially with according input and expected outp
     NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4); 
     neuralNetwork.fit(in, out, 2000);                           // adjustment of model in 2000 iterations
 
-#### Genetic algorithm
-Merge two instances of NeuralNetwork, where as the first instance will be returned modified.
-This will work only, if both neural networks are of the same architecture.
+#### Genetic algorithm 
+There are two ways to implement this algorithm. You can either rely on the `geneticalgorithm` package 
+(see [Genetic algorithm implementation](#genetic-algorithm-implementation)) or do the implementation manually.  
+For manual implementation, the required methods are listed below.
+  
+Merge two instances of NeuralNetwork. This will work only, if both neural networks are of the same architecture. 
+Properties / metadata will be copied from the first instance.
 
     NeuralNetwork neuralNetworkA = new NeuralNetwork(2, 4, 2);
     NeuralNetwork neuralNetworkB = new NeuralNetwork(2, 4, 2);
@@ -166,13 +191,22 @@ See below a full xor test of the neural network with supervised learning:
     System.out.println("combo 4: " + neuralNetwork.predict(in[3]));
 
 Output:  
-
+    
+    test with recitifier: Sigmoid (SIGMOID)
     combo 1: [0.05062227783220413]          // close to 0
     combo 2: [0.9461083391423777]           // close to 1
     combo 3: [0.9425030935131657]           // close to 1
     combo 4: [0.07157249157075309]          // close to 0
 
 ### Genetic algorithm implementation
+The package `geneticalgorithm` offers a convenient base for implementing the genetic algorithm easily.  
+There are two implementations to be taken care of: 
+- `GeneticAlgorithmObject`: may be extended from the abstract class `GeneticAlgorithmObject` or implemented from 
+the interface `IGeneticAlgorithmObject`. It will hold a NeuralNetwork instance, feed its input nodes and react
+to the according outputs. Additionally, it should be able to indicate if the action taken was leading to success or not.
+- `GeneticAlgorithmBatch`: with this class, the genetic algorithm is implemented and executed from.
+The 'actual machine learning part' is processed within the library, and does not have to be taken care of.
+
 Step one is to create an own class which extends or implements the required functionality:
 
     public class GeneticObjectExample extends GeneticAlgorithmObject {
@@ -183,25 +217,28 @@ Step one is to create an own class which extends or implements the required func
     
         @Override
         public boolean perform() {
-            return false;       // implement action to be taken
+            return false;       // implement action to be taken on one 'step'
         }
     
         @Override
         public long getFitness() {
-            return 0;           // decides how well this instance performed
+            return 0;           // metric of how well this instance performed
         }
     
         @Override
         public boolean isImmature() {
-            return false;       // semi-important for reproduction
+            return false;       // if true, the reproduction process will take a shortcut (no roulette selection)
         }
     
         @Override
-        public boolean isPerfectScore() {
-            return false;       // not important - used to print pretty console log messages
+        public boolean hasReachedGoal() {
+            return false;       // if true, customizable log messages will be printed to the console
         }
+        
     }
 
+For more details, see javadoc.  
+  
 Then create an according batch to start doing what you want to do:  
 
     NeuralNetwork seed = new NeuralNetwork(4, 8, 4);
@@ -215,6 +252,16 @@ Then create an according batch to start doing what you want to do:
     }
 
 ... and then do whatever you like to do with it.
+
+### Graphic representation
+With the package `ui` you will get access to the neural network visualizer. It uses the javafx framework.
+  
+It will build a graph of a specific neural network and is able to visualize its architecture, weight distribution and current
+node values. See here an example (code is available in the `test/java/ui` directory):
+
+![graph of neural network](https://github.com/lpapailiou/neuralnetwork/blob/master/src/main/resources/img/neural_network_visualizer.png)
+
+
 
 ## Implementation
 ### From a Jar file
@@ -300,9 +347,17 @@ and run `mvn compile` to complete the import of the properties file.
 ### Properties
 Below an overview of the `neuralnetwork.properties` file.
 
-    # **************************************************************************************************** #
-    # ***********                              COMMON PROPERTIES                               *********** #
-    # **************************************************************************************************** #
+    # ************************************************************************************************************ #
+    # ***********                                  COMMON PROPERTIES                                   *********** #
+    # ************************************************************************************************************ #
+    
+    # the randomization percentage at the initialization of the neural network matrices.
+    # must have a value between 0.0 and 1.0.
+    initial_randomization=1.0
+    
+    # if normalized, matrix components are bound to values between -1 and 1.
+    # available values: true|false
+    normalize_matrices=false
     
     # the learning rate must have a value between 0.0 and 1.0.
     learning_rate=0.8
@@ -318,11 +373,11 @@ Below an overview of the `neuralnetwork.properties` file.
     # the learning rate decay as momentum.
     # if learning_rate_descent is set to 'none', this value will have no effect.
     # must have a value between 0.0 and 1.0.
-    learning_decay_momentum=0.005
+    learning_decay_momentum=0.01
     
-    # **************************************************************************************************** #
-    # ***********                            GENETIC ALGORITHM ONLY                            *********** #
-    # **************************************************************************************************** #
+    # ************************************************************************************************************ #
+    # ***********                                GENETIC ALGORITHM ONLY                                *********** #
+    # ************************************************************************************************************ #
     
     # the reproduction pool is the count of NeuralNetworks chosen for reproduction to be seeded to
     # the new generation to come. value must not be below 2.
@@ -331,3 +386,12 @@ Below an overview of the `neuralnetwork.properties` file.
     # the mutation rate is the percentage of the mutated components of the neural network matrices.
     # must have a value between 0.0 and 1.0
     genetic_mutation_rate=0.5
+    
+    # the descent of the mutation rate between iterations.
+    # available values: none|sgd
+    mutation_rate_descent=sgd
+    
+    # the mutation rate decay as momentum.
+    # if mutation_rate_descent is set to 'none', this value will have no effect.
+    # must have a value between 0.0 and 1.0.
+    mutation_decay_momentum=0.01

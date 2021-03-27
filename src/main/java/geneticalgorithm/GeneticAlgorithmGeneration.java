@@ -68,8 +68,8 @@ class GeneticAlgorithmGeneration<T> {
 
         LOG.log(Level.INFO, () -> String.format("generation #%d: \t %s", id, populationList.get(0).getLogMessage()));
 
-        if (populationList.get(0).isPerfectScore()) {
-            long calc = populationList.stream().filter(IGeneticAlgorithmObject::isPerfectScore).count();
+        if (populationList.get(0).hasReachedGoal()) {
+            long calc = populationList.stream().filter(IGeneticAlgorithmObject::hasReachedGoal).count();
             double scorePercent = 100.0 / populationSize * (double) calc ;
             LOG.log(Level.INFO, () -> String.format("****************** PERFECT SCORE ACHIEVED! ****************** \nat generation #%d, %.2f%s units (%d of %d) reached a perfect score.", id, scorePercent, "%", calc, populationSize));
         }
