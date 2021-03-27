@@ -52,6 +52,9 @@ public class NNVisualizer {
      * @param context the javafx GraphicsContext of a Canvas instance.
      */
     public NNVisualizer(GraphicsContext context) {
+        if (context == null) {
+            throw new IllegalArgumentException("The context must not be null!");
+        }
         this.context = context;
         initialWidth = context.getCanvas().getWidth();
         width = initialWidth;

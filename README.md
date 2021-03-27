@@ -15,7 +15,7 @@ This is a maven library for neural networks in java 8.
     2.2 [Methods of NeuralNetwork](#methods-of-neuralnetwork)   
     2.3 [Supervised learning](#supervised-learning)   
     2.4 [Genetic algorithm](#genetic-algorithm)   
-    2.5 [Graphic representation](#graphic representation)   
+    2.5 [Graphic representation](#graphic-representation)   
 3. [Implementation](#implementation)  
     3.1 [From a Jar file](#from-a-jar-file)  
     3.2 [From a Maven dependency](#from-a-maven-dependency)  
@@ -261,7 +261,59 @@ node values. See here an example (code is available in the `test/java/ui` direct
 
 ![graph of neural network](https://github.com/lpapailiou/neuralnetwork/blob/master/src/main/resources/img/neural_network_visualizer.png)
 
+The visualizer can be initialized with an available GraphicsContext object only. At this point, no neural network is available yet
+for display, so no graph will appear so far.
 
+    NNVisualizer visualizer = new NNVisualizer(context);
+    
+As soon as the object is created, the neural network can be set. As the visualizer sets a property change listener to the neural
+network, it will react automatically as soon as a prediction was made.
+
+    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 3, 2);
+    visualizer.setNeuralNetwork(neuralNetwork);
+    
+    neuralNetwork.predict(new double[]{1, 0});               // at this point, the visualizer will react
+
+If you like to change the colors, you can do so by setting a custom color palette.
+
+    NNColorPalette colors = new NNColorPalette(    
+        WHITESMOKE,                                 // background color
+        BLACK,                                      // node color
+        BLACK,                                      // line color
+        ROYALBLUE.brighter(),                       // flashed node color (max. output value)
+        GAINSBORO,                                  // inactive input node color
+        STEELBLUE,                                  // positive accent node color
+        INDIANRED,                                  // negative accent node color
+        STEELBLUE.darker(),                         // positive accent weight color
+        INDIANRED.darker());                        // negative accent weight color
+        
+    visualizer.setColorPalette(colors);
+
+The thresholds for the color switch between negative / neutral / positive may be changed individually for nodes and weights.
+
+    double negativeThreshold = 0.3;
+    double positiveThreshold = 0.7;
+    
+    visualizer.setNodeColorThreshold(negativeThreshold, positiveThreshold);
+    visualizer.setWeightColorThreshold(negativeThreshold, positiveThreshold);
+    
+Further parametrization possibilities are listed below:
+
+    visualizer.setWidthOffset(20.0);
+    visualizer.setInputNodeLabels(new String[]{"a", "b"});
+    visualizer.setOutputNodeLabels(new String[]{"0", "1"});
+    visualizer.setRadius(7.0);
+    visualizer.setLineWidth(2.0);
+    visualizer.setTextLineWidth(2.0);
+    visualizer.setFontSize(12.0);
+    
+There is also the edge case covered where your neural network has less input nodes than you want to display.
+Now, you can pretend there would be more input nodes and just add them graphically. You need to set the 
+total count of input nodes the graph should have and list the indexes of the input nodes which should appear as inactive. 
+
+    int totalNodes = 3;
+    int[] inactiveIndexes = new int[]{1};
+    visualizer.setGraphInputNodeCount(totalNodes, inactiveIndexes);
 
 ## Implementation
 ### From a Jar file
