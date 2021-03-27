@@ -302,7 +302,7 @@ Further parametrization possibilities are listed below:
     visualizer.setWidthOffset(20.0);
     visualizer.setInputNodeLabels(new String[]{"a", "b"});
     visualizer.setOutputNodeLabels(new String[]{"0", "1"});
-    visualizer.setRadius(7.0);
+    visualizer.setNodeRadius(7.0);
     visualizer.setLineWidth(2.0);
     visualizer.setTextLineWidth(2.0);
     visualizer.setFontSize(12.0);

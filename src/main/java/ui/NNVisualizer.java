@@ -318,7 +318,7 @@ public class NNVisualizer {
      * @param radius the node/vertex radius.
      * @return this NNVisualizer (for chaining).
      */
-    public NNVisualizer setRadius(double radius) {
+    public NNVisualizer setNodeRadius(double radius) {
         if (radius < 0) {
             throw new IllegalArgumentException("Radius must be greater than 0!");
         }
