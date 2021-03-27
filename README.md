@@ -270,7 +270,7 @@ As soon as the object is created, the neural network can be set. As the visualiz
 network, it will react automatically as soon as a prediction was made.
 
     NeuralNetwork neuralNetwork = new NeuralNetwork(2, 3, 2);
-    visualizer.setNeuralNetwork(neuralNetwork);
+    visualizer.setNeuralNetwork(neuralNetwork);              // at this point, the graph becomes visible
     
     neuralNetwork.predict(new double[]{1, 0});               // at this point, the visualizer will react
 
