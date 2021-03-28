@@ -105,6 +105,19 @@ public class NNVisualizerTest extends Application {
         visualizer.setOutputNodeLabels(new String[] {"0", "1"});
         visualizer.setInputNodeLabels(new String[] {"(this node is not in use)", "a", "b"});
         visualizer.setWidthOffset(120);
+        /*
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e){}
+        neuralNetwork.predict(new double[]{1,1});
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e){}
+        neuralNetwork.predict(new double[]{0,0});
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e){}
+        neuralNetwork.predict(new double[]{1,0});*/
     }
 
     private NNColorPalette randomPalette() {

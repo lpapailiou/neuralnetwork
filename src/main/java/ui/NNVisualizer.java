@@ -128,7 +128,7 @@ public class NNVisualizer {
 
                 if (i == 0) {
                     context.setTextAlign(TextAlignment.RIGHT);
-                    context.strokeText(inputNodeLabels[j-skippedNodes], node.x + radius * 0.5,node.y - radius * 0.5);
+                    context.strokeText(inputNodeLabels[j], node.x + radius * 0.5,node.y - radius * 0.5);
                 }
 
                 if (node.active) {
@@ -212,7 +212,7 @@ public class NNVisualizer {
         }
 
         int outNodes = configuration[configuration.length-1];
-        if (inputNodeLabels == null || inNodes.length != inputNodeLabels.length) {
+        if (inputNodeLabels == null || (!graph.isEmpty() && (int) graph.get(0).stream().filter(n -> n.active).count() != inNodes.length)) {
             inputNodeLabels = new String[inNodes.length];
         }
         if (outputNodeLabels == null || outNodes != outputNodeLabels.length) {
