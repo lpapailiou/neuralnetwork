@@ -35,7 +35,7 @@ public class RectifierAccuracyTest {
     void testXOr(Rectifier rectifier, double[][] in, double[][] out, boolean normalizeed) {
         // testing xor function
 
-        NeuralNetwork net = new NeuralNetwork(0.0,2, 2,1).setLearningRate(0.05).setLearningRateDescent(Descent.NONE).setNormalized(normalizeed);
+        NeuralNetwork net = new NeuralNetwork(Initializer.RANDOM, 0.0,2, 2,1).setLearningRate(0.05).setLearningRateDescent(Descent.NONE).setNormalized(normalizeed);
         net.setRectifier(rectifier);
         net.fit(in, out, 50000);
 

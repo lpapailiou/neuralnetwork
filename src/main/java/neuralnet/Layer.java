@@ -1,5 +1,6 @@
 package neuralnet;
 
+import util.Initializer;
 import util.Rectifier;
 
 import java.io.Serializable;
@@ -10,22 +11,21 @@ import java.io.Serializable;
 class Layer implements Serializable {
 
     private static final long serialVersionUID = 2L;
-    private double initialRandomization;
     Matrix weight;
     Matrix bias;
 
-    Layer(int m, int n, double initialRandomization) {
-        this.initialRandomization = initialRandomization;
+    Layer(int m, int n) {
         weight = new Matrix(m, n);
         bias = new Matrix(n, 1);
+    }
 
-        // randomize matrices for initial setup
-        weight.randomize(initialRandomization);
-        bias.randomize(initialRandomization);
+    void initialize(Initializer initializer, int fanIn, int fanOut, double value) {
+        weight.initialize(initializer.getValue(value, fanIn, fanOut, false));
+        bias.initialize(initializer.getValue(value, fanIn, fanOut, true));
     }
 
     Layer copy() {
-        Layer layer = new Layer(this.weight.getRows(), this.weight.getCols(), this.initialRandomization);
+        Layer layer = new Layer(this.weight.getRows(), this.weight.getCols());
         layer.weight = this.weight.copy();
         layer.bias = this.bias.copy();
         return layer;

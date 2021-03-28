@@ -73,7 +73,7 @@ Create a neural network with two input nodes, two hidden layers (4 and 5 nodes) 
   
 Create a neural network adding parameters (builder pattern may be used as well).
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(0.7, 2, 2);    // first parameter is initial randomziation rate
+    NeuralNetwork neuralNetwork = new NeuralNetwork(Initializer.RANDOM, 0.7, 2, 2);    // first parameters are for initialization
     neuralNetwork.setNormalized(false);
     neuralNetwork.setRectifier(Rectifier.SIGMOID);
     neuralNetwork.setLearningRateDescent(Descent.SGD);
@@ -334,7 +334,7 @@ Add following snippets to your ``pom.xml`` file to import the library:
         <dependency>    
             <groupId>neuralnetwork</groupId>    
             <artifactId>neural-network-repo</artifactId>    
-            <version>2.5</version>    
+            <version>3.0</version>    
         </dependency>    
     </dependencies>    
     
@@ -403,9 +403,13 @@ Below an overview of the `neuralnetwork.properties` file.
     # ***********                                  COMMON PROPERTIES                                   *********** #
     # ************************************************************************************************************ #
     
-    # the randomization percentage at the initialization of the neural network matrices.
-    # must have a value between 0.0 and 1.0.
-    initial_randomization=1.0
+    # the initializer function to initialize neural network matrices.
+    # available values: static|random|xavier|kaiming
+    initializer=random
+    
+    # a parameter for initializing neural network matrices. depending on the function, it may be
+    # used as constant or scalar.
+    initializer_param=1.0
     
     # if normalized, matrix components are bound to values between -1 and 1.
     # available values: true|false

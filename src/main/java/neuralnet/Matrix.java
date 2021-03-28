@@ -228,10 +228,10 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
-    void randomize(double initialRandomization) {
+    void initialize(double value) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                data[i][j] = (Math.random() * 2 - 1) * initialRandomization;
+                data[i][j] = value;
             }
         }
     }
@@ -256,6 +256,16 @@ public class Matrix implements Serializable {
 
     double[][] getData() {
         return data.clone();
+    }
+
+    double getSum() {
+        double sum = 0;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                sum += data[i][j];
+            }
+        }
+        return sum;
     }
 
     void print() {

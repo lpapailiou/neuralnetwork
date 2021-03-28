@@ -3,6 +3,7 @@ package neuralnet;
 import org.junit.Assert;
 import org.junit.Test;
 import util.Descent;
+import util.Initializer;
 import util.Rectifier;
 
 import java.util.ArrayList;
@@ -46,15 +47,15 @@ public class PropertiesTest {
 
     @Test
     public void initialRandomizationTest() {
-        double initialRand = Double.parseDouble(NeuralNetwork.getProperty("initial_randomization"));
-        NeuralNetwork neuralNetwork = new NeuralNetwork(0.5, 2,3,2);
-        assertTrue(neuralNetwork.getInitialRandomization() == 0.5);
-        assertTrue(new NeuralNetwork(2,3,2).getInitialRandomization() == 1);
-        assertEquals(0.5, neuralNetwork.copy().getInitialRandomization(), 0.0);
-        NeuralNetwork.setProperty("initial_randomization", "0.3");
-        assertTrue(neuralNetwork.copy().getInitialRandomization() == 0.5);
-        assertTrue(new NeuralNetwork(2,3,2).getInitialRandomization() == 0.3);
-        NeuralNetwork.setProperty("initial_randomization", String.valueOf(initialRand));
+        double initialRand = Double.parseDouble(NeuralNetwork.getProperty("initializer_param"));
+        NeuralNetwork neuralNetwork = new NeuralNetwork(Initializer.RANDOM, 0.5, 2,3,2);
+        assertTrue(neuralNetwork.getInitializerParameter() == 0.5);
+        assertTrue(new NeuralNetwork(2,3,2).getInitializerParameter() == 1);
+        assertEquals(0.5, neuralNetwork.copy().getInitializerParameter(), 0.0);
+        NeuralNetwork.setProperty("initializer_param", "0.3");
+        assertTrue(neuralNetwork.copy().getInitializerParameter() == 0.5);
+        assertTrue(new NeuralNetwork(2,3,2).getInitializerParameter() == 0.3);
+        NeuralNetwork.setProperty("initializer_param", String.valueOf(initialRand));
     }
 
     @Test

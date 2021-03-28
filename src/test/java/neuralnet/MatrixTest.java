@@ -166,7 +166,7 @@ public class MatrixTest {
         b.randomize(0.9, 0.5, false);
         b.print();
         assertNotEquals(a, b);
-        c.randomize(1);
+        c.initialize(2);
         assertNotEquals(a, c);
     }
 }
