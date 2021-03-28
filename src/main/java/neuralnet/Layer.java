@@ -20,8 +20,8 @@ class Layer implements Serializable {
     }
 
     void initialize(Initializer initializer, int fanIn, int fanOut, double value) {
-        weight.initialize(initializer.getValue(value, fanIn, fanOut, false));
-        bias.initialize(initializer.getValue(value, fanIn, fanOut, true));
+        weight.initialize(initializer, fanIn, fanOut, value, false);
+        bias.initialize(initializer, fanIn, fanOut, value, true);
     }
 
     Layer copy() {

@@ -1,5 +1,6 @@
 package neuralnet;
 
+import util.Initializer;
 import util.Rectifier;
 
 import java.io.Serializable;
@@ -228,10 +229,10 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
-    void initialize(double value) {
+    void initialize(Initializer initializer, int fanIn, int fanOut, double value, boolean isBias) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                data[i][j] = value;
+                data[i][j] = initializer.getValue(value, fanIn, fanOut, isBias);
             }
         }
     }

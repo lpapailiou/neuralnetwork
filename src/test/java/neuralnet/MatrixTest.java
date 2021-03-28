@@ -1,6 +1,7 @@
 package neuralnet;
 
 import org.junit.Test;
+import util.Initializer;
 import util.Rectifier;
 
 import java.util.ArrayList;
@@ -166,7 +167,7 @@ public class MatrixTest {
         b.randomize(0.9, 0.5, false);
         b.print();
         assertNotEquals(a, b);
-        c.initialize(2);
+        c.initialize(Initializer.RANDOM, 0, 0, 2, true);
         assertNotEquals(a, c);
     }
 }
