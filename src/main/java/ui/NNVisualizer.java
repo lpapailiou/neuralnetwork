@@ -128,7 +128,7 @@ public class NNVisualizer {
 
                 if (i == 0) {
                     context.setTextAlign(TextAlignment.RIGHT);
-                    context.strokeText(inputNodeLabels[j], node.x + radius * 0.5,node.y - radius * 0.5);
+                    context.strokeText(inputNodeLabels[j-skippedNodes], node.x + radius * 0.5,node.y - radius * 0.5);
                 }
 
                 if (node.active) {
@@ -206,7 +206,11 @@ public class NNVisualizer {
         int[] configuration = neuralNetwork.getConfiguration();
         int[] inNodes = new int[configuration[0]];
         Arrays.fill(inNodes, 1);
-        this.activeInputNodes = inNodes;
+        int activeNodes = (!graph.isEmpty()) ? (int) graph.get(0).stream().filter(n -> (n.active)).count() : 0;
+        if (activeInputNodes == null || activeNodes != inNodes.length) {
+            this.activeInputNodes = inNodes;
+        }
+
         int outNodes = configuration[configuration.length-1];
         if (inputNodeLabels == null || inNodes.length != inputNodeLabels.length) {
             inputNodeLabels = new String[inNodes.length];
@@ -388,13 +392,15 @@ public class NNVisualizer {
     public NNVisualizer setGraphInputNodeCount(int nodeCount, int... inactiveNodeIndexes) {
         if (nodeCount < neuralNetwork.getConfiguration()[0]) {
             throw new IllegalArgumentException("Node count must be greater or equal to the actual input node count of the neural network!");
-        } else if (nodeCount != neuralNetwork.getConfiguration()[0]+inactiveNodeIndexes.length) {
+        } else if (nodeCount != neuralNetwork.getConfiguration()[0] + ((inactiveNodeIndexes == null) ? 0 : inactiveNodeIndexes.length)) {
             throw new IllegalArgumentException("Node count and inactive node indexes do not match the current neural network!");
         }
         int[] inNodes = new int[nodeCount];
         Arrays.fill(inNodes, 1);
-        for (int i = 0; i < inactiveNodeIndexes.length; i++) {
-            inNodes[inactiveNodeIndexes[i]] = 0;
+        if (inactiveNodeIndexes != null) {
+            for (int i = 0; i < inactiveNodeIndexes.length; i++) {
+                inNodes[inactiveNodeIndexes[i]] = 0;
+            }
         }
         if (inputNodeLabels == null || nodeCount != inputNodeLabels.length) {
             inputNodeLabels = new String[nodeCount];
