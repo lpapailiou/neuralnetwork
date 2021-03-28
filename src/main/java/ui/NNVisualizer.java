@@ -220,6 +220,7 @@ public class NNVisualizer {
         }
         neuralNetwork.addListener(e -> {
             nodeValues = neuralNetwork.getCachedNodeValues();
+            System.out.println("property change fired");
             paintNetwork();
         });
 
