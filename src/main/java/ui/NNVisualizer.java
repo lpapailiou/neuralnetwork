@@ -298,8 +298,15 @@ public class NNVisualizer {
      * @return this NNVisualizer (for chaining).
      */
     public NNVisualizer setInputNodeLabels(String[] inputNodeLabels) {
-        if (inputNodeLabels == null || inputNodeLabels.length == graph.get(0).size()) {
-            this.inputNodeLabels = inputNodeLabels;
+        int inputLayerSize = graph.get(0).size();
+        if (inputNodeLabels == null || inputNodeLabels.length == inputLayerSize) {
+            if (inputNodeLabels == null) {
+                String[] labels = new String[inputLayerSize];
+                Arrays.fill(labels, "");
+                this.inputNodeLabels = labels;
+            } else {
+                this.inputNodeLabels = inputNodeLabels;
+            }
             paintNetwork();
         } else {
             throw new IllegalArgumentException("Label count does not match input node count of neural network graph!");
@@ -314,8 +321,15 @@ public class NNVisualizer {
      */
     public NNVisualizer setOutputNodeLabels(String[] outputNodeLabels) {
         int[] configuration = neuralNetwork.getConfiguration();
-        if (outputNodeLabels == null || outputNodeLabels.length == configuration[configuration.length-1]) {
-            this.outputNodeLabels = outputNodeLabels;
+        int outputLayerSize = configuration[configuration.length-1];
+        if (outputNodeLabels == null || outputNodeLabels.length == outputLayerSize) {
+            if (outputNodeLabels == null) {
+                String[] labels = new String[outputLayerSize];
+                Arrays.fill(labels, "");
+                this.outputNodeLabels = labels;
+            } else {
+                this.outputNodeLabels = outputNodeLabels;
+            }
             paintNetwork();
         } else {
             throw new IllegalArgumentException("Label count does not match output node count of neural network!");

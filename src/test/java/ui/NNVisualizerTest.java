@@ -76,8 +76,9 @@ public class NNVisualizerTest extends Application {
                 int[][] config = new int[][]{{2, 5, 8, 5, 2}, {2, 2}, {2, 10, 10, 10, 10, 2}, {2, 3, 4, 5, 4, 3, 2}, {2, 4, 2}, {2, 2, 1, 2, 2}, {2, 4, 8, 16, 8, 4, 2}, {2, 4, 12, 7, 2}, {2, 12, 3, 2}};
                 neuralNetwork[0] = new NeuralNetwork(config[new Random().nextInt(config.length)]);
                 visualizer.setNeuralNetwork(neuralNetwork[0]);
-                visualizer.setGraphInputNodeCount(2, null);
+                visualizer.setGraphInputNodeCount(2);
                 visualizer.setInputNodeLabels(new String[]{"a", "b"});
+                visualizer.setOutputNodeLabels(null);
             });
             btnBox.getChildren().add(btnr);
 
