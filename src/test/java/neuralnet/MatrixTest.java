@@ -18,7 +18,7 @@ public class MatrixTest {
         double[][] da = new double[][] {{0,2},{4,6},{8,10}};
         Matrix m = new Matrix(d);
         m.print();
-        m.add(m, false);
+        m.add(m);
         m.print();
         Matrix ma = new Matrix(da);
         assertEquals(m, ma);
@@ -32,7 +32,7 @@ public class MatrixTest {
         Matrix b = new Matrix(db);
         double[][] de = new double[][] {{1,3},{2,3},{2,3}};
         Matrix e = new Matrix(de);
-        a.addBias(b, false);
+        a.addBias(b);
         a.print();
         assertEquals(a, e);
     }
@@ -85,7 +85,7 @@ public class MatrixTest {
         Matrix b = new Matrix(dm);
         Matrix e = new Matrix(de);
         a.print();
-        a.multiplyElementwise(b);
+        a.scalarProduct(b);
         a.print();
         assertEquals(a, e);
     }
@@ -146,7 +146,7 @@ public class MatrixTest {
     @Test
     public void utilitiesTest() {
         double[] d = new double[] {0.25,5};
-        Matrix m = Matrix.fromArray(d, false);
+        Matrix m = Matrix.fromArray(d);
         List<Double> newList = Matrix.asList(m);
         List<Double> oldList = new ArrayList<>();
         for (double dbl : d) {
@@ -164,10 +164,10 @@ public class MatrixTest {
         Matrix c = a.copy();
         b.print();
         assertEquals(a, b);
-        b.randomize(0.9, 0.5, false);
+        b.randomize(0.9, 0.5);
         b.print();
         assertNotEquals(a, b);
-        c.initialize(Initializer.RANDOM, 0, 0, 2, true);
+        c.initialize(Initializer.RANDOM, 1, 2, true);
         assertNotEquals(a, c);
     }
 }

@@ -43,7 +43,7 @@ Implemented are following rectifiers:
 - GELU
 - Softplus
 
-Rectifiers can be quite sensitive to hyperparameters (e.g. normalization, learning rate). 
+Rectifiers can be quite sensitive to hyperparameters (e.g. learning rate). 
 
 ### Learning and mutation rate descent
 - none (static learning rate)
@@ -73,8 +73,7 @@ Create a neural network with two input nodes, two hidden layers (4 and 5 nodes) 
   
 Create a neural network adding parameters (builder pattern may be used as well).
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(Initializer.RANDOM, 0.7, 2, 2);    // first parameters are for initialization
-    neuralNetwork.setNormalized(false);
+    NeuralNetwork neuralNetwork = new NeuralNetwork(Initializer.RANDOM, 2, 2);    // first parameter is for initialization
     neuralNetwork.setRectifier(Rectifier.SIGMOID);
     neuralNetwork.setLearningRateDescent(Descent.SGD);
     neuralNetwork.setLearningRate(0.8);
@@ -407,19 +406,11 @@ Below an overview of the `neuralnetwork.properties` file.
     # available values: static|random|xavier|kaiming
     initializer=random
     
-    # a parameter for initializing neural network matrices. depending on the function, it may be
-    # used as constant or scalar.
-    initializer_param=1.0
-    
-    # if normalized, matrix components are bound to values between -1 and 1.
-    # available values: true|false
-    normalize_matrices=false
-    
     # the learning rate must have a value between 0.0 and 1.0.
     learning_rate=0.8
     
     # the default rectifier as activation function for the neural network.
-    # available values: gelu|identity|relu|sigmoid|sigmoid_accurate|silu|silu_accurate|softplus|tanh.
+    # available values: gelu|identity|relu|leaky_relu|sigmoid|sigmoid_accurate|silu|silu_accurate|softplus|tanh.
     rectifier=sigmoid
     
     # the descent of the learning rate between iterations.

@@ -28,29 +28,24 @@ public class RectifierAccuracyTest {
     }
 
     void testXOr(Rectifier rectifier, double[][] in, double[][] out) {
-        testXOr(rectifier, in, out, true);
-        testXOr(rectifier, in, out, false);
-    }
-
-    void testXOr(Rectifier rectifier, double[][] in, double[][] out, boolean normalizeed) {
         // testing xor function
 
-        NeuralNetwork net = new NeuralNetwork(Initializer.RANDOM, 0.0,2, 2,1).setLearningRate(0.05).setLearningRateDescent(Descent.NONE).setNormalized(normalizeed);
+        NeuralNetwork net = new NeuralNetwork(Initializer.RANDOM, 2, 2,1).setLearningRate(0.5).setLearningRateDescent(Descent.NONE);
         net.setRectifier(rectifier);
         net.fit(in, out, 50000);
 
-        System.out.println("rectifier: " + rectifier.getDescription() + (normalizeed ? " (normalized)" : " (not normalized)"));
+        System.out.println("rectifier: " + rectifier.getDescription());
         List<Double> set0 = net.predict(in[0]);
         List<Double> set1 = net.predict(in[1]);
         List<Double> set2 = net.predict(in[2]);
         List<Double> set3 = net.predict(in[3]);
         System.out.println(evaluate(set0.get(0), set1.get(0), set2.get(0), set3.get(0)));
         //System.out.println(" - error: " + (set0.get(0) + (1.0-set1.get(0)) + (1.0-set2.get(0)) + set3.get(0))/4.0);
-/*
+
         System.out.println("  combo 1: " + set0.get(0));
         System.out.println("  combo 2: " + set1.get(0));
         System.out.println("  combo 3: " + set2.get(0));
-       System.out.println("  combo 4: " + set3.get(0));*/
+        System.out.println("  combo 4: " + set3.get(0));
     }
 
     String evaluate(double set0, double set1, double set2, double set3) {

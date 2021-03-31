@@ -116,7 +116,7 @@ public enum Rectifier {
     /**
      * The rectified linear unit is linear growth for values above 0 and 0 for values less or equal to 0.
      * This is a quite common activation function for neural networks. It is quite fragile, as neurons can die during
-     * the training. Works best with normalized initialization.
+     * the training.
      * formula:    f(x)  = x        if x greater than 0, else 0
      * derivation: f(x)' = 1        if x greater than 0, else 0
      */
@@ -128,6 +128,23 @@ public enum Rectifier {
         @Override
         public double derive(double value) {
             return value > 0 ? 1 : 0;
+        }
+    },
+    /**
+     * The leaky rectified linear unit is linear growth for values above 0 and alpha=0.2 for values less or equal to 0.
+     * This is a quite common activation function for neural networks. It solves the dead relu problem as
+     * gradients will not get suck at 0.
+     * formula:    f(x)  = x        if x greater than 0, else 0.2
+     * derivation: f(x)' = 1        if x greater than 0, else 0.2
+     */
+    LEAKY_RELU("Leaky Rectified Linear Unit") {
+        @Override
+        public double activate(double value) {
+            return value > 0 ? value : value * 0.2;
+        }
+        @Override
+        public double derive(double value) {
+            return value > 0 ? 1 : 0.2;
         }
     },
     /**

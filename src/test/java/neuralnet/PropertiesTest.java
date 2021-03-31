@@ -15,8 +15,6 @@ import static org.junit.Assert.assertTrue;
 
 public class PropertiesTest {
 
-
-    private boolean normalize;
     private Rectifier rectifier;
     private Descent learningRateDescent;
     private double initialLearningRate;
@@ -33,29 +31,8 @@ public class PropertiesTest {
 
 
     @Test
-    public void normlizationTest() {
-        NeuralNetwork neuralNetwork = new NeuralNetwork(2,3,2);
-        neuralNetwork.setNormalized(true);
-        neuralNetwork.fit(in, out, 5000);
-        double[][] data = neuralNetwork.getWeights(0);
-        for (double[] a : data) {
-            for (double b : a) {
-                assertTrue(b >= -1 && b <= 1);
-            }
-        }
-    }
-
-    @Test
     public void initialRandomizationTest() {
-        double initialRand = Double.parseDouble(NeuralNetwork.getProperty("initializer_param"));
-        NeuralNetwork neuralNetwork = new NeuralNetwork(Initializer.RANDOM, 0.5, 2,3,2);
-        assertTrue(neuralNetwork.getInitializerParameter() == 0.5);
-        assertTrue(new NeuralNetwork(2,3,2).getInitializerParameter() == 1);
-        assertEquals(0.5, neuralNetwork.copy().getInitializerParameter(), 0.0);
-        NeuralNetwork.setProperty("initializer_param", "0.3");
-        assertTrue(neuralNetwork.copy().getInitializerParameter() == 0.5);
-        assertTrue(new NeuralNetwork(2,3,2).getInitializerParameter() == 0.3);
-        NeuralNetwork.setProperty("initializer_param", String.valueOf(initialRand));
+
     }
 
     @Test

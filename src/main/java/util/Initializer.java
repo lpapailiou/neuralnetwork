@@ -6,21 +6,21 @@ package util;
 public enum Initializer {
 
     /**
-     * The static initializer will return the parameter value without further modifications.
+     * The scaled random initializer will return a random value between 0 and 1, scaled by the parameter value.
      */
-    STATIC("Static initialization (scalable)") {
+    STATIC("Static initialization (scaled from 0 to 1)") {
         @Override
-        public double getValue(double value, int fanIn, int fanOut, boolean isBias) {
-            return value;
+        public double getValue(int fanIn, int fanOut, boolean isBias) {
+            return Math.random();
         }
     },
     /**
-     * The random initializer will return a random value between -1 and 1, scaled by the parameter value.
+     * The random initializer will return a random value between -1 and 1.
      */
-    RANDOM("Random initialization (scalable)") {
+    RANDOM("Random initialization (between -1 and 1)") {
         @Override
-        public double getValue(double value, int fanIn, int fanOut, boolean isBias) {
-            return ((Math.random() * 2) - 1) * value;
+        public double getValue(int fanIn, int fanOut, boolean isBias) {
+            return ((Math.random() * 2) - 1);
         }
     },
     /**
@@ -29,7 +29,7 @@ public enum Initializer {
      */
     XAVIER("Xavier initialization") {
         @Override
-        public double getValue(double value, int fanIn, int fanOut, boolean isBias) {
+        public double getValue(int fanIn, int fanOut, boolean isBias) {
             if (isBias) {
                 return 0;
             }
@@ -42,7 +42,7 @@ public enum Initializer {
      */
     KAIMING("Kaimin initialization") {
         @Override
-        public double getValue(double value, int fanIn, int fanOut, boolean isBias) {
+        public double getValue(int fanIn, int fanOut, boolean isBias) {
             if (isBias) {
                 return 0;
             }
@@ -67,13 +67,12 @@ public enum Initializer {
     /**
      * Returns initial value for a weight or bias matrix component.
      * Depending on the chosen enum, not all parameters will be read.
-     * @param value the value is either used as constant or scalar.
      * @param fanIn the fan in is the count of incoming values.
      * @param fanOut the fan out is the count of outgoing values.
      * @param isBias this boolean indicates if the value is used to initialize a bias or a weight.
      * @return the initialization value for a matrix component.
      */
-    public double getValue(double value, int fanIn, int fanOut, boolean isBias) {
+    public double getValue(int fanIn, int fanOut, boolean isBias) {
         return 0;
     }
 

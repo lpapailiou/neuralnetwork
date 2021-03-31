@@ -19,9 +19,9 @@ class Layer implements Serializable {
         bias = new Matrix(n, 1);
     }
 
-    void initialize(Initializer initializer, int fanIn, int fanOut, double value) {
-        weight.initialize(initializer, fanIn, fanOut, value, false);
-        bias.initialize(initializer, fanIn, fanOut, value, true);
+    void initialize(Initializer initializer, int fanIn, int fanOut) {
+        weight.initialize(initializer, fanIn, fanOut, false);
+        bias.initialize(initializer, fanIn, fanOut, true);
     }
 
     Layer copy() {

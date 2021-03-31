@@ -1,5 +1,6 @@
 package neuralnet;
 
+import data.BackPropData;
 import util.Descent;
 import util.Initializer;
 import util.Rectifier;
@@ -14,10 +15,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * This is the central class of this library, allowing to create a freely configurable neural network.
@@ -37,8 +35,6 @@ public class NeuralNetwork implements Serializable {
     private List<List<Double>> cachedNodeValues = new ArrayList<>();
 
     private Initializer initializer;
-    private double initializerParameter;
-    private boolean normalize;
     private Rectifier rectifier;
     private Descent learningRateDescent;
     private double initialLearningRate;
@@ -49,6 +45,13 @@ public class NeuralNetwork implements Serializable {
     private double initialMutationRate;
     private double mutationRate;
     private double mutationRateMomentum;
+
+    public Cost costFunction = Cost.MSE;
+    public Regularizer regularizer = Regularizer.NONE;
+    public double regularizationLambda = 0;
+
+    private SortedMap<Integer, Double> costMap = new TreeMap<>();
+    private BackPropData backPropData = new BackPropData();
 
     static {
         URL path = NeuralNetwork.class.getClassLoader().getResource("neuralnetwork.properties");
@@ -77,7 +80,6 @@ public class NeuralNetwork implements Serializable {
         }
 
         this.configuration = layerParams;
-        this.normalize = Boolean.parseBoolean(PROPERTIES.getProperty("normalize_matrices"));
 
         try {
             this.initializer = Initializer.valueOf(PROPERTIES.getProperty("initializer").toUpperCase());
@@ -89,7 +91,6 @@ public class NeuralNetwork implements Serializable {
         }
 
         try {
-            this.initializerParameter = Double.parseDouble(PROPERTIES.getProperty("initializer_param"));
             this.initialLearningRate = Double.parseDouble(PROPERTIES.getProperty("learning_rate"));
             this.learningRate = initialLearningRate;
             this.mutationRate = Double.parseDouble(PROPERTIES.getProperty("genetic_mutation_rate"));
@@ -117,7 +118,7 @@ public class NeuralNetwork implements Serializable {
             int fanIn = layerParams[i-1];
             int fanOut = (i == layerParams.length - 1) ? 0 : layerParams[i+1];
             Layer layer = new Layer(layerParams[i], layerParams[i-1]);
-            layer.initialize(initializer, fanIn, fanOut, initializerParameter);
+            layer.initialize(initializer, fanIn, fanOut);
             layers.add(layer);
         }
     }
@@ -128,22 +129,20 @@ public class NeuralNetwork implements Serializable {
      * For hyperparameters and additional default settings, please use the neuralnetwork.properties files or
      * the according setters (builder pattern available).
      * @param  initializer the initializer function.
-     * @param initializerParameter the value for initialization parametrization.
      * @param layerParams the architecture of the neural network. First argument = node count of input layer; last argument = node count of output layer; arguments between = node count per hidden layer.
      */
-    public NeuralNetwork(Initializer initializer, double initializerParameter, int... layerParams) {
+    public NeuralNetwork(Initializer initializer, int... layerParams) {
         this(layerParams);
         if (initializer == null) {
             throw new IllegalArgumentException("Initializer must not be null!");
         }
         this.initializer = initializer;
-        this.initializerParameter = initializerParameter;
         layers.clear();
         for (int i = 1; i < layerParams.length; i++) {
             int fanIn = layerParams[i-1];
             int fanOut = (i == layerParams.length - 1) ? 0 : layerParams[i+1];
             Layer layer = new Layer(layerParams[i], layerParams[i-1]);
-            layer.initialize(initializer, fanIn, fanOut, initializerParameter);
+            layer.initialize(initializer, fanIn, fanOut);
             layers.add(layer);
         }
     }
@@ -171,11 +170,11 @@ public class NeuralNetwork implements Serializable {
         }
 
         cachedNodeValues.clear();
-        Matrix tmp = Matrix.fromArray(inputNodes, normalize);
+        Matrix tmp = Matrix.fromArray(inputNodes);
         for (Layer layer : layers) {
             cachedNodeValues.add(Matrix.asList(tmp));
             tmp = Matrix.multiply(layer.weight, tmp);
-            tmp.addBias(layer.bias, false);
+            tmp.addBias(layer.bias);
             tmp.activate(rectifier);
         }
 
@@ -198,35 +197,60 @@ public class NeuralNetwork implements Serializable {
             throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + configuration[0] + " input nodes.");
         }
 
-        Matrix input = Matrix.fromArray(inputNodes, normalize);
+        Matrix input = Matrix.fromArray(inputNodes);
 
         // forward propagate and prepare output
-        List<Matrix> steps = new ArrayList<>();
+        List<Matrix> cachedNodeValueVector = new ArrayList<>();
         Matrix tmp = input;
         for (Layer layer : layers) {
             tmp = Matrix.multiply(layer.weight, tmp);
-            tmp.addBias(layer.bias, false);
+            tmp.addBias(layer.bias);
             tmp.activate(rectifier);
-            steps.add(tmp);
+            cachedNodeValueVector.add(tmp);
         }
 
-        Matrix target = Matrix.fromArray(expectedOutputNodes, normalize);
+        Matrix target = Matrix.fromArray(expectedOutputNodes);
 
         // backward propagate to adjust weights in layers
-        iterationCount++;
+        costFunction = Cost.MSE_NAIVE;
         Matrix error = null;
-        for (int i = steps.size()-1; i >= 0; i--) {
+        for (int i = cachedNodeValueVector.size()-1; i >= 0; i--) {
             if (error == null) {
-                error = Matrix.subtract(target, steps.get(steps.size()-1));
+
+                double cost = costFunction.cost(cachedNodeValueVector.get(cachedNodeValueVector.size()-1), target) + regularizer.get(cachedNodeValueVector.get(cachedNodeValueVector.size()-1), regularizationLambda);
+                costMap.put(iterationCount, cost);
+                backPropData.add(iterationCount, cost, Matrix.asArray(cachedNodeValueVector.get(cachedNodeValueVector.size()-1)), expectedOutputNodes);
+
+
+                error = costFunction.gradient(target, cachedNodeValueVector.get(cachedNodeValueVector.size()-1));
+                error = Matrix.apply(error, regularizer.gradient(error, regularizationLambda), Double::sum);
+                //error = Matrix.subtract(target, cachedNodeValueVector.get(cachedNodeValueVector.size()-1));
+
+
             } else {
                 error = Matrix.multiply(Matrix.transpose(layers.get(i+1).weight), error);
             }
-            Matrix gradient = steps.get(i).derive(rectifier);
-            gradient.multiplyElementwise(error);
+
+            // plus --> distribute
+            // mul --> switch
+           Matrix gradient = cachedNodeValueVector.get(i).derive(rectifier);
+            gradient.scalarProduct(error);
             gradient.multiply(learningRate);
-            Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : steps.get(i-1)));
-            layers.get(i).weight.add(delta, normalize);
-            layers.get(i).bias.addBias(gradient, normalize);
+            Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : cachedNodeValueVector.get(i-1)));
+            layers.get(i).weight.add(delta);     // add ok
+            layers.get(i).bias.addBias(gradient);        // add ok
+
+
+/*
+
+            Matrix gradient = cachedNodeValueVector.get(i).derive(rectifier);
+            gradient.scalarProduct(error);
+            gradient.multiply(learningRate);
+            Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : cachedNodeValueVector.get(i-1)));
+            layers.get(i).weight.add(delta);
+            layers.get(i).bias.addBias(gradient);*/
+
+
         }
         decreaseRate();
         return Matrix.asList(tmp);
@@ -283,9 +307,7 @@ public class NeuralNetwork implements Serializable {
     public NeuralNetwork copy() {
         NeuralNetwork neuralNetwork = new NeuralNetwork(layers);
         neuralNetwork.initializer = this.initializer;
-        neuralNetwork.initializerParameter = this.initializerParameter;
         neuralNetwork.configuration = this.configuration;
-        neuralNetwork.normalize = this.normalize;
         neuralNetwork.rectifier = this.rectifier;
         neuralNetwork.learningRateDescent = this.learningRateDescent;
         neuralNetwork.learningRateMomentum = this.learningRateMomentum;
@@ -301,8 +323,8 @@ public class NeuralNetwork implements Serializable {
 
     private void randomize() {
         for (Layer layer : layers) {
-            layer.weight.randomize(learningRate, mutationRate, normalize);
-            layer.bias.randomize(learningRate, mutationRate, normalize);
+            layer.weight.randomize(learningRate, mutationRate);
+            layer.bias.randomize(learningRate, mutationRate);
         }
     }
 
@@ -312,33 +334,6 @@ public class NeuralNetwork implements Serializable {
      */
     public Initializer getInitializer() {
         return initializer;
-    }
-
-    /**
-     * Getter for the initializer parameter value.
-     * @return the initializer parameter value.
-     */
-    public double getInitializerParameter() {
-        return initializerParameter;
-    }
-
-    /**
-     * With this method, normalization of matrices can switched on or off.
-     * If true, layer matrix components will be bound to values between -1 and 1.
-     * @param normalize the normalization indicator.
-     * @return the NeuralNetwork.
-     */
-    public NeuralNetwork setNormalized(boolean normalize) {
-        this.normalize = normalize;
-        return this;
-    }
-
-    /**
-     * Getter for the normalization indicator.
-     * @return normalization indicator of layer matrix components.
-     */
-    public boolean getNormalized() {
-        return normalize;
     }
 
     /**
@@ -524,7 +519,8 @@ public class NeuralNetwork implements Serializable {
      * @param value the value of the property.
      */
     public static void setProperty(String key, String value) {
-        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_descent") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size") && !key.equals("genetic_mutation_rate") && !key.equals("mutation_rate_descent") && !key.equals("mutation_decay_momentum") && !key.equals("initializer_param") && !key.equals("normalize_matrices") && !key.equals("initializer")) {
+        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_descent") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size") && !key.equals("genetic_mutation_rate") && !key.equals("mutation_rate_descent") && !key.equals("mutation_decay_momentum") &&
+                !key.equals("initializer")) {
             throw new IllegalArgumentException("Property with key " + key + "is not valid in this context!");
         } else if (key.equals("learning_rate")) {
             if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
@@ -590,17 +586,19 @@ public class NeuralNetwork implements Serializable {
         pcs.addPropertyChangeListener("predict", listener);
     }
 
+    public SortedMap<Integer, Double> getCostMap() {
+        return costMap;
+    }
+
+    public BackPropData getBackPropData() {
+        return backPropData;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("initializer: ");
         sb.append(initializer);
-        sb.append(", ");
-        sb.append("initializer parameter: ");
-        sb.append(initializerParameter);
-        sb.append(", ");
-        sb.append("normalized: ");
-        sb.append(normalize);
         sb.append(", ");
         sb.append("rectifier: ");
         sb.append(rectifier.getDescription());

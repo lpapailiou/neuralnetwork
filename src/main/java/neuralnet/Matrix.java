@@ -6,6 +6,8 @@ import util.Rectifier;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * This is a helper class to build the layers of the neural network.
@@ -38,7 +40,7 @@ public class Matrix implements Serializable {
         cols = input[0].length;
     }
 
-    void add(Matrix m, boolean normalize) {
+    void add(Matrix m) {
         if (cols != m.cols || rows != m.rows) {
             throw new IllegalArgumentException("wrong input matrix dimensions for addition!");
         }
@@ -47,13 +49,6 @@ public class Matrix implements Serializable {
                 double sideA = data[i][j];
                 double sideB = m.data[i][j];
                 double value = sideA + sideB;
-                if (normalize) {
-                    if (value < -1) {
-                        value = -1;
-                    } else if (value > 1) {
-                        value = 1;
-                    }
-                }
                 if (Double.isInfinite(value)) {
                     value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
                 } else if (Double.isNaN(value)) {
@@ -64,20 +59,13 @@ public class Matrix implements Serializable {
         }
     }
 
-    void addBias(Matrix m, boolean normalize) {
+    void addBias(Matrix m) {
         if (cols != m.cols) {
             throw new IllegalArgumentException("wrong input matrix dimensions!");
         }
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 double value = data[i][j] + m.data[0][j];
-                if (normalize) {
-                    if (value < -1) {
-                        value = -1;
-                    } else if (value > 1) {
-                        value = 1;
-                    }
-                }
                 if (Double.isInfinite(value)) {
                     value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
                 } else if (Double.isNaN(value)) {
@@ -92,24 +80,26 @@ public class Matrix implements Serializable {
         if (a.cols != b.cols) {
             throw new IllegalArgumentException("wrong input matrix dimensions! " + a.getType() + " vs. " + b.getType());
         }
-        for (int i = 0; i < a.rows; i++) {
-            for (int j = 0; j < a.cols; j++) {
-                a.data[i][j] -= b.data[i][j];
+        Matrix tmp = a.copy();
+        for (int i = 0; i < tmp.rows; i++) {
+            for (int j = 0; j < tmp.cols; j++) {
+                tmp.data[i][j] -= b.data[i][j];
             }
         }
-        return a;
+        return tmp;
     }
 
     static Matrix merge(Matrix a, Matrix b) {
         if (a.rows != b.rows || a.cols != b.cols) {
             throw new IllegalArgumentException("wrong input matrix dimensions! " + a.getType() + " vs. " + b.getType());
         }
-        for (int i = 0; i < a.rows; i++) {
-            for (int j = 0; j < a.cols; j++) {
-                a.data[i][j] = (a.data[i][j] + b.data[i][j]) / 2;
+        Matrix tmp = a.copy();
+        for (int i = 0; i < tmp.rows; i++) {
+            for (int j = 0; j < tmp.cols; j++) {
+                tmp.data[i][j] = (tmp.data[i][j] + b.data[i][j]) / 2;
             }
         }
-        return a;
+        return tmp;
     }
 
     void multiply(double scalar) {
@@ -120,7 +110,27 @@ public class Matrix implements Serializable {
         }
     }
 
-    void multiplyElementwise(Matrix m) {
+    static Matrix apply(Matrix a, Function<Double, Double> function) {
+        Matrix m = a.copy();
+        for (int i = 0; i < m.rows; i++) {
+            for (int j = 0; j < m.cols; j++) {
+                m.data[i][j] = function.apply(m.data[i][j]);
+            }
+        }
+        return m;
+    }
+
+    static Matrix apply(Matrix a, Matrix b, BiFunction<Double, Double, Double> function) {
+        Matrix m = a.copy();
+        for (int i = 0; i < m.rows; i++) {
+            for (int j = 0; j < m.cols; j++) {
+                m.data[i][j] = function.apply(m.data[i][j], b.data[i][j]);
+            }
+        }
+        return m;
+    }
+
+    void scalarProduct(Matrix m) {
         if (cols != m.cols || rows != m.rows) {
             throw new IllegalArgumentException("wrong input matrix dimensions!");
         }
@@ -129,6 +139,19 @@ public class Matrix implements Serializable {
                 data[i][j] *= m.data[i][j];
             }
         }
+    }
+
+    static double dotProduct(Matrix a, Matrix b) {
+        double sum = 0;
+        if (a.cols != b.cols || a.rows != b.rows) {
+            throw new IllegalArgumentException("wrong input matrix dimensions!");
+        }
+        for (int i = 0; i < a.rows; i++) {
+            for (int j = 0; j < a.cols; j++) {
+                sum += a.data[i][j] * b.data[i][j];
+            }
+        }
+        return sum;
     }
 
     static Matrix multiply(Matrix a, Matrix b) {
@@ -157,6 +180,36 @@ public class Matrix implements Serializable {
             }
         }
         return tmp;
+    }
+
+    static double crossEntropy(Matrix actual, Matrix target) {
+        Matrix z = new Matrix(actual.rows, actual.cols);
+        for (int i = 0; i < actual.rows; i++) {
+            for (int j = 0; j < actual.cols; j++) {
+                z.data[i][j] = (target.data[i][j] * Math.log(actual.data[i][j])) + ((1 - target.data[i][j]) * Math.log(1 - actual.data[i][j]));
+            }
+        }
+        return -z.sum();
+    }
+
+    static Matrix crossEntropyGradient(Matrix actual, Matrix target) {
+        Matrix z = new Matrix(actual.rows, actual.cols);
+        for (int i = 0; i < actual.rows; i++) {
+            for (int j = 0; j < actual.cols; j++) {
+                z.data[i][j] = (actual.data[i][j] - target.data[i][j]) / ((1 - actual.data[i][j]) * (actual.data[i][j]));
+            }
+        }
+        return z;
+    }
+
+    static Matrix divide(Matrix m, int divisor) {
+        Matrix z = new Matrix(m.rows, m.cols);
+        for (int i = 0; i < m.rows; i++) {
+            for (int j = 0; j < m.cols; j++) {
+                z.data[i][j] = (m.data[i][j] / divisor);
+            }
+        }
+        return z;
     }
 
     static Matrix transpose(Matrix m) {
@@ -211,7 +264,7 @@ public class Matrix implements Serializable {
         return cols;
     }
 
-    static Matrix fromArray(double[] arr, boolean normalize) {
+    static Matrix fromArray(double[] arr) {
         Matrix tmp = new Matrix(arr.length, 1);
         for (int i = 0; i < arr.length; i++) {
             tmp.data[i][0] = arr[i];
@@ -229,26 +282,32 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
-    void initialize(Initializer initializer, int fanIn, int fanOut, double value, boolean isBias) {
+    static double[] asArray(Matrix m) {
+
+        int index = 0;
+        double[] tmp = new double[m.rows * m.cols];
+        for (int i = 0; i < m.rows; i++) {
+            for (int j = 0; j < m.cols; j++) {
+                tmp[index] = m.data[i][j];
+                index++;
+            }
+        }
+        return tmp;
+    }
+
+    void initialize(Initializer initializer, int fanIn, int fanOut, boolean isBias) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                data[i][j] = initializer.getValue(value, fanIn, fanOut, isBias);
+                data[i][j] = initializer.getValue(fanIn, fanOut, isBias);
             }
         }
     }
 
-    void randomize(double factor, double mutationRate, boolean normalize) {
+    void randomize(double factor, double mutationRate) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (Math.random() < mutationRate) {
                     double value = data[i][j] + (Math.random() * 2 - 1) * factor;
-                    if (normalize) {
-                        if (value > 1) {
-                            value = 1;
-                        } else if (value < -1) {
-                            value = -1;
-                        }
-                    }
                     data[i][j] = value;
                 }
             }
@@ -259,7 +318,7 @@ public class Matrix implements Serializable {
         return data.clone();
     }
 
-    double getSum() {
+    double sum() {
         double sum = 0;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {

@@ -13,6 +13,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import neuralnet.NeuralNetwork;
+import util.Initializer;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,7 +32,7 @@ public class NNVisualizerTest extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         try {
-            final NeuralNetwork[] neuralNetwork = {new NeuralNetwork(2, 5, 8, 5, 2)};
+            final NeuralNetwork[] neuralNetwork = {new NeuralNetwork(Initializer.KAIMING, 2, 5, 8, 5, 2)};
 
             primaryStage.setTitle("NNVisualizer test");
             VBox root = new VBox();
@@ -74,7 +75,7 @@ public class NNVisualizerTest extends Application {
             Button btnr = new Button("new neural network");
             btnr.setOnAction(e -> {
                 int[][] config = new int[][]{{2, 5, 8, 5, 2}, {2, 2}, {2, 10, 10, 10, 10, 2}, {2, 3, 4, 5, 4, 3, 2}, {2, 4, 2}, {2, 2, 1, 2, 2}, {2, 4, 8, 16, 8, 4, 2}, {2, 4, 12, 7, 2}, {2, 12, 3, 2}};
-                neuralNetwork[0] = new NeuralNetwork(config[new Random().nextInt(config.length)]);
+                neuralNetwork[0] = new NeuralNetwork(Initializer.KAIMING, config[new Random().nextInt(config.length)]);
                 visualizer.setNeuralNetwork(neuralNetwork[0]);
                 visualizer.setGraphInputNodeCount(2);
                 visualizer.setInputNodeLabels(new String[]{"a", "b"});
