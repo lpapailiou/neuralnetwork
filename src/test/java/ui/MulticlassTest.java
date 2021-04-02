@@ -1,32 +1,29 @@
 package ui;
 
-import data.ForwardPropData;
-import data.IterationObject;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import neuralnet.Cost;
 import neuralnet.NeuralNetwork;
-import neuralnet.Regularizer;
-import org.junit.Test;
 import util.Descent;
 import util.Initializer;
-import util.Rectifier;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.SortedMap;
+import java.util.Map;
 
-public class DecisionBoundaryTest extends Application {
+import static javafx.scene.paint.Color.*;
 
-    double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
-    double[][] out = {{0}, {1}, {1}, {0}};
+public class MulticlassTest extends Application {
+
+    double[][] in = {{0.1, 0.2}, {0.2, 0.22}, {0.3,0.1}, {0.4,0.7}, {0.5,0.8}, {0.45,0.9}, {0.8,0.1}, {0.9,0.15}, {0.8,0.2}};
+    double[][] out = {{1,0,0}, {1,0,0}, {1,0,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,0,1}, {0,0,1}, {0,0,1}};
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -38,19 +35,24 @@ public class DecisionBoundaryTest extends Application {
             root.setSpacing(10);
             root.setPadding(new Insets(20, 20, 20, 20));
 
-            NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15,15, 1)
+            NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15,15, 3)
                     .setLearningRate(0.8)
                     .setLearningRateDescent(Descent.NONE);
             net.costFunction = Cost.MSE;
 
             net.fit(in, out, 50);
 
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < 3; i++) {
                 net.fit(in, out, 20);
 
                 NNPlot plot = new NNPlot(addCanvas(300,300, root));
-                plot.setPadding(0,0,20,30, 10);
-                plot.plot(net, 0.8, true, true, true, 1, Arrays.asList(Color.GREEN, Color.YELLOW, Color.RED));
+                plot.setPadding(0,0,20,30, 0.1);
+                plot.plot(net, 0.8, true, true, true, 1, Arrays.asList(PURPLE, SALMON, ORANGE));
+                Map<String, Color> colorMap = new HashMap<>();
+                colorMap.put(Arrays.toString(new double[]{1,0,0}), GREEN);
+                colorMap.put(Arrays.toString(new double[]{0,1,0}), RED);
+                colorMap.put(Arrays.toString(new double[]{0,0,1}), YELLOW);
+                plot.plot2DData(in, out, colorMap, 12);
             }
 
 

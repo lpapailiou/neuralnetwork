@@ -8,7 +8,7 @@ public class ForwardPropData {
     private List<Tuple> data = new ArrayList<>();
 
     public void add(double[] in, List<Double> out) {
-        data.add(new Tuple(in[0], in[1], out.get(0)));
+        data.add(new Tuple(in[0], in[1], out));
     }
 
     public List<Tuple> get() {

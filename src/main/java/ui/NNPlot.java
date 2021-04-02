@@ -10,8 +10,7 @@ import javafx.scene.text.TextAlignment;
 import neuralnet.NeuralNetwork;
 
 import java.text.DecimalFormat;
-import java.util.List;
-import java.util.SortedMap;
+import java.util.*;
 import java.util.function.Function;
 
 import static javafx.scene.paint.Color.*;
@@ -71,7 +70,12 @@ public class NNPlot {
         return ((((Math.random() * 2 - 1) * (1 + padding)) + 1 )/ 2);
     }
 
-    public void plot(NeuralNetwork neuralNetwork, double density, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, double opacity) {
+    public void plot(NeuralNetwork neuralNetwork, double density, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, double opacity, List<Color> colorList) {
+        int[] configuration = neuralNetwork.getConfiguration();
+        if (configuration[0] != 2) {
+            throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
+        }
+
         plotBackgroundColor = TRANSPARENT;
         ForwardPropData data = new ForwardPropData();
         for (int i = 0; i < 75000 * density; i++) {
@@ -96,7 +100,11 @@ public class NNPlot {
         }
 
         drawBackground();
-        plotBinaryClassifierDecisionBoundaries(tuples);
+        if (configuration[configuration.length-1] == 1) {
+            plotBinaryClassifierDecisionBoundaries(tuples, colorList);
+        } else {
+            plotMultiClassClassifierDecisionBoundaries(tuples, colorList);
+        }
         drawOverlay(opacity);
         drawAxes(drawAxes, drawTicks, drawAxisLabels);
 
@@ -262,24 +270,65 @@ public class NNPlot {
         return (plotHeight +hOffsetTop - (plotHeight *padding*0.5)) - ((y-ymin) / Math.abs(ymin - ymax) * (plotHeight * (1-padding)));
     }
 
-    private void plotBinaryClassifierDecisionBoundaries(List<Tuple> tuples) {
+    private void plotBinaryClassifierDecisionBoundaries(List<Tuple> tuples, List<Color> colorList) {
         double dotRadius = ((plotWidth+plotHeight)/2) /64;
 
         for (Tuple tuple : tuples) {
             double x = x(tuple.getX());
             double y =  y(tuple.getY());
-            double output = tuple.getOutput();
+            double output = tuple.getOutput().get(0);
             Color color;
 
             if (output <= 0.5) {
-                color = blend(RED, YELLOW, 1-(output*2));
+                color = blend(colorList.get(2), colorList.get(1), 1-(output*2));
             } else {
-                color = blend(GREEN, YELLOW, (output-0.5)*2);
+                color = blend(colorList.get(0), colorList.get(1), (output-0.5)*2);
             }
 
             context.setFill(color);
             context.fillOval(x- dotRadius /2.0, y- dotRadius /2.0, dotRadius, dotRadius);
 
+        }
+    }
+
+    private void plotMultiClassClassifierDecisionBoundaries(List<Tuple> tuples, List<Color> colorList) {
+        double dotRadius = ((plotWidth+plotHeight)/2) /64;
+
+        List<TupleOutput> outList = new ArrayList<>();
+
+
+        for (Tuple tuple : tuples) {
+            double x = x(tuple.getX());
+            double y =  y(tuple.getY());
+            List<Double> output = tuple.getOutput();
+
+            for (int i = 0; i <  output.size(); i++) {
+                Color color = TRANSPARENT;
+                double value = output.get(i);
+
+                if (value > 0.5) {
+                    color = blend(colorList.get(i), TRANSPARENT, (value - 0.5) * 2);
+                }
+                outList.add(new TupleOutput(x, y, color));
+
+            }
+        }
+
+        Collections.shuffle(outList);
+        for (TupleOutput tout : outList) {
+            context.setFill(tout.color);
+            context.fillOval(tout.x - dotRadius / 2.0, tout.y - dotRadius / 2.0, dotRadius, dotRadius);
+        }
+    }
+
+    static class TupleOutput {
+        double x;
+        double y;
+        Color color;
+        TupleOutput(double x, double y, Color color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
         }
     }
 
@@ -312,6 +361,17 @@ public class NNPlot {
                 oldX = x;
                 oldY = y;
             }
+        }
+    }
+
+    public void plot2DData(double[][] data, double[][] out, Map<String, Color> colorMap, double dotRadius) {
+        if (data != null && data[0].length != 2) {
+            throw new IllegalArgumentException("Data must be 2-dimensional!");
+        }
+
+        for (int i = 0; i < data.length; i++) {
+            context.setFill(colorMap.get(Arrays.toString(out[i])));
+            context.fillOval(x(data[i][0]) - dotRadius / 2.0, y(data[i][1]) - dotRadius / 2.0, dotRadius, dotRadius);
         }
     }
 
