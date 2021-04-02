@@ -2,16 +2,12 @@ package ui;
 
 import javafx.scene.paint.Color;
 
-import java.text.DecimalFormat;
-
 /**
  * This class is a helper class for the NNVisualizer. It serves as container for the javafx color palette to be used
  * to visualize a neural network on the ui.
  */
-
 public class NNColorPalette {
 
-    private static DecimalFormat df = new DecimalFormat("#.##");
     private Color backgroundColor;
     private Color nodeColor;
     private Color lineColor;
@@ -80,35 +76,6 @@ public class NNColorPalette {
 
     Color getLowerAccentWeightColor() {
         return lowerAccentWeightColor;
-    }
-
-    static Color blend(Color c1, Color c2, double ratio) {
-        if (ratio > 1.0)  {
-            ratio = 1;
-        } else if (ratio < 0.0) {
-            ratio = 0;
-        }
-        double iRatio = 1.0 - ratio;
-        int a1 = isolateComponent(c1.getOpacity());
-        int r1 = isolateComponent(c1.getRed());
-        int g1 = isolateComponent(c1.getGreen());
-        int b1 = isolateComponent(c1.getBlue());
-
-        int a2 = isolateComponent(c2.getOpacity());
-        int r2 = isolateComponent(c2.getRed());
-        int g2 = isolateComponent(c2.getGreen());
-        int b2 = isolateComponent(c2.getBlue());
-
-        double a = Double.parseDouble(df.format(((a1 * ratio) + (a2 * iRatio)) / 255.0));
-        double r = Double.parseDouble(df.format(((r1 * ratio) + (r2 * iRatio)) / 255.0));
-        double g = Double.parseDouble(df.format(((g1 * ratio) + (g2 * iRatio)) / 255.0));
-        double b = Double.parseDouble(df.format(((b1 * ratio) + (b2 * iRatio)) / 255.0));
-
-        return new Color(r, g, b, a);
-    }
-
-    private static int isolateComponent(double component) {
-        return Integer.parseInt(Integer.toHexString(((int) (component * 255))), 16);
     }
 
 }
