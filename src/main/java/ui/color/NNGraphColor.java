@@ -3,10 +3,10 @@ package ui.color;
 import javafx.scene.paint.Color;
 
 /**
- * This class is a helper class for the NNVisualizer. It serves as container for the javafx color palette to be used
+ * This class is a helper class for the NNGraph. It serves as container for the javafx color palette to be used
  * to visualize a neural network on the ui.
  */
-public class NNColorPalette {
+public class NNGraphColor {
 
     private Color backgroundColor;
     private Color nodeColor;
@@ -30,7 +30,7 @@ public class NNColorPalette {
      * @param upperAccentWeightColor the color to indicate higher weights.
      * @param lowerAccentWeightColor the color to indicate lower weights.
      */
-    public NNColorPalette(Color backgroundColor, Color nodeColor, Color lineColor, Color flashedNodeColor, Color inactiveInputNodeColor, Color upperAccentNodeColor, Color lowerAccentNodeColor, Color upperAccentWeightColor, Color lowerAccentWeightColor) {
+    public NNGraphColor(Color backgroundColor, Color nodeColor, Color lineColor, Color flashedNodeColor, Color inactiveInputNodeColor, Color upperAccentNodeColor, Color lowerAccentNodeColor, Color upperAccentWeightColor, Color lowerAccentWeightColor) {
         this.backgroundColor = backgroundColor;
         this.nodeColor = nodeColor;
         this.lineColor = lineColor;

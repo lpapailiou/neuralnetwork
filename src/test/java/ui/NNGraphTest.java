@@ -10,10 +10,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import neuralnet.NeuralNetwork;
-import ui.color.NNColorPalette;
+import ui.color.NNGraphColor;
 import util.Initializer;
 
 import java.util.Arrays;
@@ -21,21 +20,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class NNVisualizerTest extends Application {
+import static ui.color.NNColorSupport.randomColor;
+
+public class NNGraphTest extends Application {
 
     private double[][] in = {{0,0}, {1,0}, {0,1}, {1,1}};
     private double[][] out = {{1,0}, {0,1}, {0,1}, {1,0}};
     private Label inLabel = new Label();
     private Label outLabel = new Label();
     private Label successLabel = new Label();
-    private NNVisualizer visualizer;
+    private NNGraph graph;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         try {
             final NeuralNetwork[] neuralNetwork = {new NeuralNetwork(Initializer.KAIMING, 2, 5, 8, 5, 2)};
 
-            primaryStage.setTitle("NNVisualizer test");
+            primaryStage.setTitle("NNGraph test");
             VBox root = new VBox();
             root.setSpacing(10);
             root.setPadding(new Insets(20, 20, 20, 20));
@@ -54,7 +55,7 @@ public class NNVisualizerTest extends Application {
             Button btnf = new Button("fit");
             btnf.setOnAction(e -> {
                 neuralNetwork[0].fit(in, out, 1000);
-                visualizer.refresh();
+                graph.refresh();
                 inLabel.setText("");
                 outLabel.setText("");
                 successLabel.setText("");
@@ -77,16 +78,16 @@ public class NNVisualizerTest extends Application {
             btnr.setOnAction(e -> {
                 int[][] config = new int[][]{{2, 5, 8, 5, 2}, {2, 2}, {2, 10, 10, 10, 10, 2}, {2, 3, 4, 5, 4, 3, 2}, {2, 4, 2}, {2, 2, 1, 2, 2}, {2, 4, 8, 16, 8, 4, 2}, {2, 4, 12, 7, 2}, {2, 12, 3, 2}};
                 neuralNetwork[0] = new NeuralNetwork(Initializer.KAIMING, config[new Random().nextInt(config.length)]);
-                visualizer.setNeuralNetwork(neuralNetwork[0]);
-                visualizer.setGraphInputNodeCount(2);
-                visualizer.setInputNodeLabels(new String[]{"a", "b"});
-                visualizer.setOutputNodeLabels(null);
+                graph.setNeuralNetwork(neuralNetwork[0]);
+                graph.setGraphInputNodeCount(2);
+                graph.setInputNodeLabels(new String[]{"a", "b"});
+                //graph.setOutputNodeLabels(null);
             });
             btnBox.getChildren().add(btnr);
 
             Button btnc = new Button("new color palette");
             btnc.setOnAction(e -> {
-                visualizer.setColorPalette(randomPalette());
+                graph.setColorPalette(randomPalette());
             });
             btnBox.getChildren().add(btnc);
 
@@ -102,32 +103,16 @@ public class NNVisualizerTest extends Application {
     }
 
     private void drawNeuralNetwork(GraphicsContext context, NeuralNetwork neuralNetwork) {
-        visualizer = new NNVisualizer(context).setNeuralNetwork(neuralNetwork);
-        visualizer.setGraphInputNodeCount(3, 0);
-        visualizer.setOutputNodeLabels(new String[] {"0", "1"});
-        visualizer.setInputNodeLabels(new String[] {"(this node is not in use)", "a", "b"});
-        visualizer.setWidthOffset(120);
-        /*
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e){}
-        neuralNetwork.predict(new double[]{1,1});
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e){}
-        neuralNetwork.predict(new double[]{0,0});
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e){}
-        neuralNetwork.predict(new double[]{1,0});*/
+        graph = new NNGraph(context).setNeuralNetwork(neuralNetwork);
+        graph.setGraphInputNodeCount(3, 0);
+        graph.setOutputNodeLabels(new String[] {"0", "1"});
+        graph.setInputNodeLabels(new String[] {"(this node is not in use)", "a", "b"});
+        graph.setPadding(0,0,0,120);
+        //graph.setFontProperties(true, true, 12);
     }
 
-    private NNColorPalette randomPalette() {
-        return new NNColorPalette(randomColor(), randomColor(), randomColor(), randomColor(), randomColor(), randomColor(), randomColor(), randomColor(), randomColor());
-    }
-
-    private Color randomColor() {
-        return Color.color(Math.random(), Math.random(), Math.random());
+    private NNGraphColor randomPalette() {
+        return new NNGraphColor(randomColor(false), randomColor(false), randomColor(false), randomColor(false), randomColor(false), randomColor(false), randomColor(false), randomColor(false), randomColor(false));
     }
 
     public void stop() {

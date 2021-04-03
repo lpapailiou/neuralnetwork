@@ -6,11 +6,15 @@ import data.IterationObject;
 import data.Tuple;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import neuralnet.NeuralNetwork;
 import ui.color.NNBinaryClassifierColor;
 import ui.color.NNColorSupport;
-import ui.color.NNMultiClassColor;
+import ui.color.NNMultiColor;
+import ui.color.NNPlotColor;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -44,13 +48,15 @@ public class NNPlot {
     private Function<IterationObject, Double> function;
 
     private GraphicsContext context;
-    private Color backgroundColor = WHITE;
-    private Color plotBackgroundColor = blend(LIGHTSKYBLUE, WHITE, 0.2);
-    private Color plotLineColor = LIGHTSKYBLUE.darker();
+    private Color backgroundColor = TRANSPARENT;
+    private Color plotBackgroundColor = blend(LIGHTSKYBLUE, backgroundColor, 0.2);
+    private Color plotAxisColor = LIGHTSKYBLUE.darker();
     private Color plotGridColor = LIGHTSKYBLUE;
     private Color plotTextColor = LIGHTSKYBLUE;
     private Color plotDataColor = ROYALBLUE;
     private NNColorSupport customColors;
+
+    private String title;
 
     public NNPlot(GraphicsContext context) {
         this.context = context;
@@ -74,12 +80,11 @@ public class NNPlot {
         return (((((Math.random() * 2 - 1) * (1 + padding*2)) + 1) / 2) * Math.abs(min - max)) + min;
     }
 
-    public void plot(NeuralNetwork neuralNetwork, double[][] in, double density, double opacity, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, NNColorSupport customColors) {
+    public void plot(NeuralNetwork neuralNetwork, double[][] in, double resolution, double opacity, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, NNColorSupport customColors) {
         int[] configuration = neuralNetwork.getConfiguration();
         if (configuration[0] != 2) {
             throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
         }
-
         data = in;
 
         xMin = Double.MAX_VALUE;
@@ -108,7 +113,7 @@ public class NNPlot {
         this.customColors = customColors;
 
         ForwardPropData data = new ForwardPropData();
-        for (int i = 0; i < 60000 * density; i++) {
+        for (int i = 0; i < 60000 * resolution; i++) {
             double[] input = {getRandomInput(xMin, xMax), getRandomInput(yMin, yMax)};
             List<Double> output = neuralNetwork.predict(input);
             data.add(input, output);
@@ -133,15 +138,16 @@ public class NNPlot {
 
         drawBackground();
         if (configuration[configuration.length-1] == 1) {
-            plotBinaryClassifierDecisionBoundaries(tuples);
+            plotBinaryClassifierDecisionBoundaries(tuples, resolution);
         } else {
-            plotMultiClassClassifierDecisionBoundaries(tuples);
+            plotMultiClassClassifierDecisionBoundaries(tuples, resolution);
         }
         drawOverlay(opacity);
         drawAxes(drawAxes, drawTicks, drawAxisLabels);
+        setTitle(title);
     }
 
-    public void plot(BackPropData data, Function<IterationObject, Double> function, boolean asDot, int modulo) {
+    public void plot(BackPropData data, Function<IterationObject, Double> function, boolean asDot, double smoothing) {
         this.map = data.getMap();
         this.function = function;
         xMin = map.keySet().stream().min(Integer::compare).get();
@@ -159,10 +165,24 @@ public class NNPlot {
 
         drawBackground();
         drawGrid(true);
-        plotData(asDot, modulo);
+
+        int smooth = (int) (smoothing * 100);
+        smooth = Math.max(smooth, 1);
+        smooth = Math.min(smooth, map.size()-1);
+        plotData(asDot, smooth);
 
         drawAxes(true, true, true);
+        setTitle(title);
+    }
 
+    public void setTitle(String text) {
+        this.title = text;
+        context.setFill(plotTextColor);
+        context.setTextAlign(TextAlignment.CENTER);
+        Font currentFont = context.getFont();
+        context.setFont(new Font("", currentFont.getSize() * 1.2));
+        context.fillText(text, width/2+(wOffsetLeft/2), hOffsetTop-12);
+        context.setFont(currentFont);
     }
 
     private void drawBackground() {
@@ -236,8 +256,8 @@ public class NNPlot {
                     x += x(xStep + xMin) - wOffsetLeft - (plotWidth * padding * 0.5);
                 }
                 if (x < wOffsetLeft + plotWidth - (plotWidth * padding * 0.1) && x > wOffsetLeft + (plotWidth * padding * 0.1)) {
-                    drawText(xRangeLabel + i * xStep, x, height - hOffsetBottom + 18, TextAlignment.LEFT, drawAxisLabels);
-                    drawLine(x, height - hOffsetBottom, x, height - hOffsetBottom + 6, plotLineColor, gridLineWidth, drawTicks);
+                    drawText(xRangeLabel + i * xStep, x, height - hOffsetBottom + 20, TextAlignment.LEFT, drawAxisLabels);
+                    drawLine(x, height - hOffsetBottom, x, height - hOffsetBottom + 6, plotAxisColor, plotLineWidth, drawTicks);
                 }
             }
 
@@ -253,7 +273,7 @@ public class NNPlot {
                 }
                 if (y > hOffsetTop + (plotHeight * padding * 0.1) && y < plotHeight + hOffsetTop - (plotHeight * padding * 0.1)) {
                     drawText(yRangeLabel + i * yStep, wOffsetLeft - 12, y, TextAlignment.RIGHT, drawAxisLabels);
-                    drawLine(wOffsetLeft, y, wOffsetLeft - 6, y, plotLineColor, gridLineWidth, drawTicks);
+                    drawLine(wOffsetLeft, y, wOffsetLeft - 6, y, plotAxisColor, plotLineWidth, drawTicks);
                 }
             }
         }
@@ -300,8 +320,9 @@ public class NNPlot {
         return (plotHeight +hOffsetTop - (plotHeight *padding*0.5)) - ((y- yMin) / Math.abs(yMin - yMax) * (plotHeight * (1-padding)));
     }
 
-    private void plotBinaryClassifierDecisionBoundaries(List<Tuple> tuples) {
-        double dotRadius = ((plotWidth+plotHeight)/2) /64;
+    private void plotBinaryClassifierDecisionBoundaries(List<Tuple> tuples, double resolution) {
+        double dotRadius = (((plotWidth+plotHeight)/2) / 64) / resolution;
+
 
         for (Tuple tuple : tuples) {
             double x = x(tuple.getX());
@@ -322,9 +343,9 @@ public class NNPlot {
         }
     }
 
-    private void plotMultiClassClassifierDecisionBoundaries(List<Tuple> tuples) {
-        double dotRadius = ((plotWidth+plotHeight)/2) /64;
-        List<Color> colors = ((NNMultiClassColor) customColors).getColors();
+    private void plotMultiClassClassifierDecisionBoundaries(List<Tuple> tuples, double resolution) {
+        double dotRadius = (((plotWidth+plotHeight)/2) / 64) / resolution;
+        List<Color> colors = ((NNMultiColor) customColors).getColors();
 
         for (Tuple tuple : tuples) {
             double x = x(tuple.getX());
@@ -347,34 +368,37 @@ public class NNPlot {
 
 
     private void plotData(boolean asDot, int modulo) {
+        System.out.println("modulo : " + modulo);
         context.setStroke(plotDataColor);
         context.setFill(plotDataColor);
         context.setLineWidth(dataLineWidth);
 
+        double y = 0;
         double oldX = 0;
         double oldY = 0;
         boolean init = true;
         int counter = 0;
         for (Integer key : map.keySet()) {
             counter++;
-            if (counter%modulo != 0) {
+            double x = key;
+            y += function.apply(map.get(key));
+            if ((counter-1)%modulo != 0) {
                 continue;
-            }
-            double x = x(key);
-            double y =  y(function.apply(map.get(key)));
-            if (asDot) {
-                context.fillOval(x- dotRadius /2.0, y- dotRadius /2.0, dotRadius, dotRadius);
             } else {
-                if (init) {
+                y = y / modulo;
+            }
+            if (asDot) {
+                context.fillOval(x(x)- dotRadius /2.0, y(y) - dotRadius /2.0, dotRadius, dotRadius);
+            } else {
+                if (!init) {
+                    context.strokeLine(x(oldX), y(oldY), x(x), y(y));
+                } else {
                     init = false;
-                    oldX = x;
-                    oldY = y;
-                    continue;
                 }
-                context.strokeLine(oldX, oldY, x, y);
                 oldX = x;
                 oldY = y;
             }
+            y = 0;
         }
     }
 
@@ -394,7 +418,7 @@ public class NNPlot {
             colors.add(((NNBinaryClassifierColor) customColors).getNegative());
             colors.add(((NNBinaryClassifierColor) customColors).getPositive());
         } else {
-            colors.addAll(((NNMultiClassColor) customColors).getColors());
+            colors.addAll(((NNMultiColor) customColors).getColors());
         }
         for (int i = 0; i < data.length; i++) {
             double[] outClass = definedClasses[i];
@@ -405,7 +429,7 @@ public class NNPlot {
     }
 
     private void drawAxis(double x1, double y1, double x2, double y2) {
-        context.setStroke(plotLineColor);
+        context.setStroke(plotAxisColor);
         context.setLineWidth(plotLineWidth);
         context.strokeLine(x1, y1, x2, y2);
     }
@@ -428,6 +452,24 @@ public class NNPlot {
             return x / 5.0;
         }
         return x / 10.0;
+    }
+
+    public NNPlot setFontProperties(boolean bold, boolean italic, double fontSize) {
+        if (fontSize < 0) {
+            throw new IllegalArgumentException("Font size must be greater than 0!");
+        }
+        context.setFont(Font.font(null, bold ? FontWeight.BOLD : FontWeight.NORMAL, italic ? FontPosture.ITALIC : FontPosture.REGULAR, fontSize));
+        return this;
+    }
+
+    public NNPlot setColorPalette(NNPlotColor colors) {
+        this.backgroundColor = colors.getBackgroundColor();
+        this.plotBackgroundColor = colors.getPlotBackgroundColor();
+        this.plotAxisColor = colors.getPlotAxisColor();
+        this.plotGridColor = colors.getPlotGridColor();
+        this.plotTextColor = colors.getPlotTextColor();
+        this.plotDataColor = colors.getPlotDataColor();
+        return this;
     }
 
 }

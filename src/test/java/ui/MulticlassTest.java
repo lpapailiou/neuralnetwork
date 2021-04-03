@@ -5,19 +5,16 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import neuralnet.Cost;
 import neuralnet.NeuralNetwork;
-import ui.color.NNMultiClassColor;
+import ui.color.NNMultiColor;
+import ui.color.NNPlotColor;
 import util.Descent;
 import util.Initializer;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static javafx.scene.paint.Color.*;
 
@@ -33,6 +30,7 @@ public class MulticlassTest extends Application {
 
             primaryStage.setTitle("Decision boundary test");
             HBox root = new HBox();
+            root.setBackground(new Background(new BackgroundFill(BLACK, null, null)));
             root.setSpacing(10);
             root.setPadding(new Insets(20, 20, 20, 20));
 
@@ -40,16 +38,22 @@ public class MulticlassTest extends Application {
                     .setLearningRate(0.8)
                     .setLearningRateDescent(Descent.NONE);
             net.costFunction = Cost.MSE;
+            int iterations = 200;
 
-            net.fit(in, out, 200);
+            net.fit(in, out, iterations);
 
             for (int i = 0; i < 3; i++) {
-                net.fit(in, out, 200);
+                iterations += 200;
+                net.fit(in, out, iterations);
 
-                NNPlot plot = new NNPlot(addCanvas(300,300, root));
-                plot.setPadding(0,0,20,30, 0.1);
-                plot.plot(net, in, 1, 0.6, true, true, true, new NNMultiClassColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b")));
+                NNPlot plot = new NNPlot(addCanvas(350,350, root));
+                plot.setPadding(30,0,20,30, 0.1);
+                plot.setTitle("after " + iterations + " iterations");
+                plot.setColorPalette(new NNPlotColor(BLACK, BLACK, LIGHTGRAY, LIGHTGRAY, LIGHTGRAY, RED));
+
+                plot.plot(net, in, 1, 0.8, true, true, true, new NNMultiColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b")));
                 plot.plot2DData(out, 12);
+
             }
 
 

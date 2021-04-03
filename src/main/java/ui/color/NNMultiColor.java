@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class NNMultiClassColor implements NNColorSupport {
+public class NNMultiColor implements NNColorSupport {
 
     List<Color> colors = new ArrayList<>();
 
-    public NNMultiClassColor(Color... colors) {
+    public NNMultiColor(Color... colors) {
         this.colors.addAll(Arrays.asList(colors));
     }
 

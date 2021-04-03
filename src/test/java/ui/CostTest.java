@@ -62,8 +62,10 @@ public class CostTest extends Application {
 
             SortedMap<Integer, Double> costMap = net.getCostMap();
 
-            new NNPlot(context).plot(net.getBackPropData(), IterationObject::getCost, false, 1);
-            new NNPlot(context2).plot(net.getBackPropData(), IterationObject::getCostSum, false, 1);
+            NNPlot plot = new NNPlot(context);
+                    plot.plot(net.getBackPropData(), IterationObject::getCost, false, 0.05);
+            new NNPlot(context2).plot(net.getBackPropData(), IterationObject::getCostSum, false, 0);
+
 
             System.out.println(net.predict(in[0]) + " is 0?");
             System.out.println(net.predict(in[1]) + " is 1?");

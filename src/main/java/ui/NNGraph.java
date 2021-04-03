@@ -3,9 +3,11 @@ package ui;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import neuralnet.NeuralNetwork;
-import ui.color.NNColorPalette;
+import ui.color.NNGraphColor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,21 +22,23 @@ import static javafx.scene.paint.Color.*;
  * node values of the last prediction and the layer weights by different colors. There are three colors each
  * to support this functionality (below negative threshold, above positive threshold and in between).
  * Thresholds can be chosen individually.
- * The visualizer will be triggered automatically as soon as the linked NeuralNetwork will make a prediction.
+ * The graph will be triggered automatically as soon as the linked NeuralNetwork will make a prediction.
  * Further parameters concerning graphical representation (color palette, width offset, input and output node
  * labels, etc.) may be set by according setters. Chaining is supported.
  */
 
-public class NNVisualizer {
+public class NNGraph {
 
     private GraphicsContext context;
     private double initialWidth;
+    private double initialHeight;
     private double width;
     private double height;
-    private double wOffset;
+    private double wOffsetLeft;
+    private double hOffsetTop;
+    private boolean dynamicGrowth = true;
     private double radius = 16;
     private double lineWidth = 2;
-    private double textLineWidth = 0.7;
     private double lowerNodeThreshold = 0.3;
     private double uppweNodeThreshold = 0.7;
     private double lowerWeightThreshold = -0.2;
@@ -43,23 +47,24 @@ public class NNVisualizer {
     private int[] activeInputNodes;
     private String[] inputNodeLabels;
     private String[] outputNodeLabels;
-    private NNColorPalette colors = new NNColorPalette(WHITESMOKE, BLACK, BLACK, ROYALBLUE.brighter(), GAINSBORO, STEELBLUE, INDIANRED, STEELBLUE.darker(), INDIANRED.darker());
+    private NNGraphColor colors = new NNGraphColor(WHITESMOKE, BLACK, BLACK, ROYALBLUE.brighter(), GAINSBORO, STEELBLUE, INDIANRED, STEELBLUE.darker(), INDIANRED.darker());
     private List<List<GraphNode>> graph = new ArrayList<>();
     private List<List<Double>> nodeValues = new ArrayList<>();
 
     /**
-     * The constructor will prepare the visualizer. Initially, the display will be blank. It will update as soon
+     * The constructor will prepare the graph. Initially, the display will be blank. It will update as soon
      * as a neural network instance is set.
      * @param context the javafx GraphicsContext of a Canvas instance.
      */
-    public NNVisualizer(GraphicsContext context) {
+    public NNGraph(GraphicsContext context) {
         if (context == null) {
             throw new IllegalArgumentException("The context must not be null!");
         }
         this.context = context;
         initialWidth = context.getCanvas().getWidth();
         width = initialWidth;
-        height = context.getCanvas().getHeight();
+        initialHeight = context.getCanvas().getHeight();
+        height = initialHeight;
     }
 
     private void buildGraph() {
@@ -69,15 +74,15 @@ public class NNVisualizer {
             return;
         }
         int[] configuration = neuralNetwork.getConfiguration();
-        int w = (int) width / configuration.length;
+        double calcW = width / (configuration.length - (dynamicGrowth ? 0 : 1));
         for (int i = 0; i < configuration.length; i++) {
             List<GraphNode> layer = new ArrayList<>();
             int indicatorLayerSize = (i == 0) ? activeInputNodes.length : configuration[i];
-            int h = (int) height / indicatorLayerSize;
-            int hOffset = ((int) height - ((indicatorLayerSize - 1) * h) - 20) / 2;
+            double h = height / indicatorLayerSize;
+            double hOffset = (height - ((indicatorLayerSize - 1) * h) - 20) / 2;
 
             for (int j = 0; j < indicatorLayerSize; j++) {
-                GraphNode node = new GraphNode((int) ((w * i) + wOffset), (h * j) + hOffset);
+                GraphNode node = new GraphNode(((calcW * i) + wOffsetLeft), (h * j) + hOffset + hOffsetTop);
                 layer.add(node);
                 if (i == 0) {
                     if (activeInputNodes[j] != 1) {
@@ -124,12 +129,11 @@ public class NNVisualizer {
             for (int j = 0; j < graph.get(i).size(); j++) {
                 GraphNode node = graph.get(i).get(j);
                 Color color = colors.getNodeColor();
-                context.setStroke(colors.getLineColor());
-                context.setLineWidth(textLineWidth);
+                context.setFill(colors.getLineColor());
 
                 if (i == 0) {
                     context.setTextAlign(TextAlignment.RIGHT);
-                    context.strokeText(inputNodeLabels[j], node.x + radius * 0.5,node.y - radius * 0.5);
+                    context.fillText(inputNodeLabels[j], node.x + radius * 0.5,node.y - radius * 0.5);
                 }
 
                 if (node.active) {
@@ -137,16 +141,18 @@ public class NNVisualizer {
                         color = evaluateColor(nodeValues.get(i).get(j-skippedNodes), lowerNodeThreshold, uppweNodeThreshold, color, true);
                     }
 
-                    if (i == graph.size() - 1 && !nodeValues.isEmpty()) {
-                        double max = Collections.max(nodeValues.get(i));
-                        if (nodeValues.get(i).get(j-skippedNodes) == max) {
-                            Color flashColor = colors.getFlashedNodeColor();
-                            if (flashColor != TRANSPARENT) {
-                                color = flashColor;
+                    if (i == graph.size() - 1) {
+                        if (!nodeValues.isEmpty()) {
+                            double max = Collections.max(nodeValues.get(i));
+                            if (nodeValues.get(i).get(j - skippedNodes) == max) {
+                                Color flashColor = colors.getFlashedNodeColor();
+                                if (flashColor != TRANSPARENT) {
+                                    color = flashColor;
+                                }
                             }
                         }
                         context.setTextAlign(TextAlignment.LEFT);
-                        context.strokeText(outputNodeLabels[j], node.x + radius * 0.5,node.y - radius * 0.5);
+                        context.fillText(outputNodeLabels[j], node.x + radius * 0.5,node.y - radius * 0.5);
                     }
                 } else {
                     color = colors.getInactiveInputNodeColor();
@@ -157,7 +163,7 @@ public class NNVisualizer {
         }
     }
 
-    private void paintDot(int x, int y, double radius, Color color) {
+    private void paintDot(double x, double y, double radius, Color color) {
         context.setFill(color);
         context.fillOval(x, y, radius, radius);
     }
@@ -170,9 +176,9 @@ public class NNVisualizer {
     }
 
     private void paintBackground() {
-        context.clearRect(0, 0, initialWidth, height);
+        context.clearRect(0, 0, initialWidth, initialHeight);
         context.setFill(colors.getBackgroundColor());
-        context.fillRect(0, 0, initialWidth, height);
+        context.fillRect(0, 0, initialWidth, initialHeight);
     }
 
     private Color evaluateColor(double value, double negativeThreshold, double positiveThreshold, Color color, boolean isNode) {
@@ -197,9 +203,9 @@ public class NNVisualizer {
     /**
      * Method to set a new neural network instance to be represented visually.
      * @param neuralNetwork the neural network instance to be visualized.
-     * @return this NNVisualizer (for chaining).
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setNeuralNetwork(NeuralNetwork neuralNetwork) {
+    public NNGraph setNeuralNetwork(NeuralNetwork neuralNetwork) {
         nodeValues.clear();
         if (neuralNetwork == null) {
             throw new NullPointerException("NeuralNetwork must not be null!");
@@ -231,10 +237,10 @@ public class NNVisualizer {
 
     /**
      * Setter for the color palette.
-     * @param colorPalette the color palette to be applied to the visualizer.
-     * @return this NNVisualizer (for chaining).
+     * @param colorPalette the color palette to be applied to the graph.
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setColorPalette(NNColorPalette colorPalette) {
+    public NNGraph setColorPalette(NNGraphColor colorPalette) {
         if (colorPalette == null) {
             throw new NullPointerException("The color palette must not be null!");
         }
@@ -248,9 +254,9 @@ public class NNVisualizer {
      * from the color palette are chosen to display the nodes depending on their value.
      * @param lowerBound the lower threshold value.
      * @param upperBound the upper threshold value.
-     * @return this NNVisualizer (for chaining).
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setNodeColorThreshold(double lowerBound, double upperBound) {
+    public NNGraph setNodeColorThreshold(double lowerBound, double upperBound) {
         if (lowerBound >= upperBound) {
             throw new IllegalArgumentException("Lower bound must not be larger than upper bound!");
         }
@@ -265,9 +271,9 @@ public class NNVisualizer {
      * from the color palette are chosen to display the lines depending on their value.
      * @param lowerBound the lower threshold value.
      * @param upperBound the upper threshold value.
-     * @return this NNVisualizer (for chaining).
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setWeightColorThreshold(double lowerBound, double upperBound) {
+    public NNGraph setWeightColorThreshold(double lowerBound, double upperBound) {
         if (lowerBound >= upperBound) {
             throw new IllegalArgumentException("Lower bound must not be larger than upper bound!");
         }
@@ -280,16 +286,35 @@ public class NNVisualizer {
     /**
      * This method will set a new width offset on the left hand of the graphics. It may be used to free up some
      * space if the input nodes are labeled.
-     * @param widthOffset the left hand side width offset.
-     * @return this NNVisualizer (for chaining).
+     * @param top the top offset.
+     * @param right the right offset.
+     * @param bottom the bottom offset.
+     * @param left the left offset.
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setWidthOffset(double widthOffset) {
-        if (widthOffset < 0) {
-            throw new IllegalArgumentException("Width offset must be greater than 0!");
+    public NNGraph setPadding(double top, double right, double bottom, double left) {
+        if (top < 0 || right < 0 || bottom < 0 || left < 0) {
+            throw new IllegalArgumentException("Padding offset must be greater than 0!");
         }
-        this.width = width - widthOffset;
-        this.wOffset = widthOffset;
+        this.width = initialWidth;
+        this.height = initialHeight;
+
+        this.width = width - left - right;
+        this.height = height - top - bottom;
+        this.wOffsetLeft = left;
+        this.hOffsetTop = top;
         buildGraph();
+        return this;
+    }
+
+    /**
+     * This method defines if the neural network graph will grow horizontally to the right if
+     * the layer count will be expanded.
+     * @param growth the growth indicator.
+     * @return this NNGraph (for chaining).
+     */
+    public NNGraph setDynamicGrowth(boolean growth) {
+        this.dynamicGrowth = growth;
         return this;
     }
 
@@ -297,9 +322,9 @@ public class NNVisualizer {
      * This setter allows to set input node labels. Be aware, that by default the text will align from right
      * to left, so an additional width offset may be set.
      * @param inputNodeLabels the input node labels.
-     * @return this NNVisualizer (for chaining).
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setInputNodeLabels(String[] inputNodeLabels) {
+    public NNGraph setInputNodeLabels(String[] inputNodeLabels) {
         int inputLayerSize = graph.get(0).size();
         if (inputNodeLabels == null || inputNodeLabels.length == inputLayerSize) {
             if (inputNodeLabels == null) {
@@ -319,9 +344,9 @@ public class NNVisualizer {
     /**
      * This setter allows to set output node labels.
      * @param outputNodeLabels the output node labels.
-     * @return this NNVisualizer (for chaining).
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setOutputNodeLabels(String[] outputNodeLabels) {
+    public NNGraph setOutputNodeLabels(String[] outputNodeLabels) {
         int[] configuration = neuralNetwork.getConfiguration();
         int outputLayerSize = configuration[configuration.length-1];
         if (outputNodeLabels == null || outputNodeLabels.length == outputLayerSize) {
@@ -342,9 +367,9 @@ public class NNVisualizer {
     /**
      * Setter for the radius of the nodes / vertices.
      * @param radius the node/vertex radius.
-     * @return this NNVisualizer (for chaining).
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setNodeRadius(double radius) {
+    public NNGraph setNodeRadius(double radius) {
         if (radius < 0) {
             throw new IllegalArgumentException("Radius must be greater than 0!");
         }
@@ -356,9 +381,9 @@ public class NNVisualizer {
     /**
      * Setter for the line width. It will be applied to the edges of the neural network graph.
      * @param lineWidth the line width of the graph edges.
-     * @return this NNVisualizer (for chaining).
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setLineWidth(double lineWidth) {
+    public NNGraph setLineWidth(double lineWidth) {
         if (lineWidth < 0) {
             throw new IllegalArgumentException("Line with must be greater than 0!");
         }
@@ -369,28 +394,16 @@ public class NNVisualizer {
 
     /**
      * Setter for the line width of the font.
-     * @param lineWidth the font line width.
-     * @return this NNVisualizer (for chaining).
+     * @param bold can either be true or false.
+     * @param italic can either be true or false.
+     * @param fontSize the fontsize to set, default is 12.
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setTextLineWidth(double lineWidth) {
-        if (lineWidth < 0) {
-            throw new IllegalArgumentException("Line with must be greater than 0!");
-        }
-        this.textLineWidth = lineWidth;
-        paintNetwork();
-        return this;
-    }
-
-    /**
-     * Setter for the font size.
-     * @param fontSize the font size in pixel.
-     * @return this NNVisualizer (for chaining).
-     */
-    public NNVisualizer setFontSize(double fontSize) {
-        if (lineWidth < 0) {
+    public NNGraph setFontProperties(boolean bold, boolean italic, double fontSize) {
+        if (fontSize < 0) {
             throw new IllegalArgumentException("Font size must be greater than 0!");
         }
-        context.setFont(new Font(null, fontSize));
+        context.setFont(Font.font(null, bold ? FontWeight.BOLD : FontWeight.NORMAL, italic ? FontPosture.ITALIC : FontPosture.REGULAR, fontSize));
         paintNetwork();
         return this;
     }
@@ -403,9 +416,9 @@ public class NNVisualizer {
      * Like this, the visualization may appear smoother.
      * @param nodeCount the total count of input nodes to be displayed.
      * @param inactiveNodeIndexes the indexes of the input nodes to appear 'switched off'.
-     * @return this NNVisualizer (for chaining).
+     * @return this NNGraph (for chaining).
      */
-    public NNVisualizer setGraphInputNodeCount(int nodeCount, int... inactiveNodeIndexes) {
+    public NNGraph setGraphInputNodeCount(int nodeCount, int... inactiveNodeIndexes) {
         if (nodeCount < neuralNetwork.getConfiguration()[0]) {
             throw new IllegalArgumentException("Node count must be greater or equal to the actual input node count of the neural network!");
         } else if (nodeCount != neuralNetwork.getConfiguration()[0] + ((inactiveNodeIndexes == null) ? 0 : inactiveNodeIndexes.length)) {
@@ -427,11 +440,11 @@ public class NNVisualizer {
     }
 
     private static class GraphNode {
-        int x;
-        int y;
+        double x;
+        double y;
         boolean active = true;
 
-        GraphNode(int x, int y) {
+        GraphNode(double x, double y) {
             this.x = x;
             this.y = y;
         }
