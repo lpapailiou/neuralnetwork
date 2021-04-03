@@ -48,14 +48,15 @@ public class MulticlassTest extends Application {
 
                 NNPlot plot = new NNPlot(addCanvas(300,300, root));
                 plot.setPadding(0,0,20,30, 0.1);
-                plot.plot(net, in, 1, true, true, true, 0.4, new NNMultiClassColor(BLUE, GREEN, ORANGE, RED));
+                plot.plot(net, in, 1, 0.6, true, true, true, new NNMultiClassColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b")));
                 plot.plot2DData(out, 12);
             }
 
 
-            System.out.println(net.predict(in[0]) + " is 1 0 0?");
-            System.out.println(net.predict(in[3]) + " is 0 1 0?");
-            System.out.println(net.predict(in[6]) + " is 0 0 1?");
+            System.out.println(net.predict(in[0]) + " is 1 0 0 0 ?");
+            System.out.println(net.predict(in[3]) + " is 0 1 0 0 ?");
+            System.out.println(net.predict(in[6]) + " is 0 0 1 0 ?");
+            System.out.println(net.predict(in[9]) + " is 0 0 0 1 ?");
 
             primaryStage.setScene(new Scene(root));
             primaryStage.show();

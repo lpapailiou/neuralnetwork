@@ -71,10 +71,10 @@ public class NNPlot {
     }
 
     private double getRandomInput(double min, double max) {
-        return (((((Math.random() * 2 - 1) * (1 + padding)) + 1) / 2) * Math.abs(min - max)) + min;
+        return (((((Math.random() * 2 - 1) * (1 + padding*2)) + 1) / 2) * Math.abs(min - max)) + min;
     }
 
-    public void plot(NeuralNetwork neuralNetwork, double[][] in, double density, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, double opacity, NNColorSupport customColors) {
+    public void plot(NeuralNetwork neuralNetwork, double[][] in, double density, double opacity, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, NNColorSupport customColors) {
         int[] configuration = neuralNetwork.getConfiguration();
         if (configuration[0] != 2) {
             throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
@@ -82,22 +82,24 @@ public class NNPlot {
 
         data = in;
 
-        xMin = 0;
-        xMax = 0;
-        yMin = 0;
-        yMax = 0;
+        xMin = Double.MAX_VALUE;
+        xMax = Double.MIN_VALUE;
+        yMin = Double.MAX_VALUE;
+        yMax = Double.MIN_VALUE;
 
         for (int i = 0; i < in.length; i++) {
             double xValue = in[i][0];
             if (xValue < xMin) {
                 xMin = xValue;
-            } else if (xValue > xMax) {
+            }
+            if (xValue > xMax) {
                 xMax = xValue;
             }
             double yValue = in[i][1];
             if (yValue < yMin) {
                 yMin = yValue;
-            } else if (yValue > yMax) {
+            }
+            if (yValue > yMax) {
                 yMax = yValue;
             }
         }

@@ -50,8 +50,8 @@ public class DecisionBoundaryTest extends Application {
                 net.fit(in, out, 20);
 
                 NNPlot plot = new NNPlot(addCanvas(300,300, root));
-                plot.setPadding(0,0,20,30, 10);
-                plot.plot(net, in, 1, true, true, true, 1, new NNBinaryClassifierColor(Color.GREEN, Color.RED, Color.YELLOW));
+                plot.setPadding(0,0,20,30, 5);
+                plot.plot(net, in, 1, 1, true, true, true, new NNBinaryClassifierColor(Color.GREEN, Color.RED, Color.YELLOW));
                 //plot.plot2DData(out, 12);
             }
 
