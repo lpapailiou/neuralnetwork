@@ -5,6 +5,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import neuralnet.NeuralNetwork;
+import ui.color.NNColorPalette;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -136,11 +137,12 @@ public class NNVisualizer {
                         color = evaluateColor(nodeValues.get(i).get(j-skippedNodes), lowerNodeThreshold, uppweNodeThreshold, color, true);
                     }
 
-                    if (i == graph.size() - 1) {
-                        if (!nodeValues.isEmpty()) {
-                            double max = Collections.max(nodeValues.get(i));
-                            if (nodeValues.get(i).get(j-skippedNodes) == max) {
-                                color = colors.getFlashedNodeColor();
+                    if (i == graph.size() - 1 && !nodeValues.isEmpty()) {
+                        double max = Collections.max(nodeValues.get(i));
+                        if (nodeValues.get(i).get(j-skippedNodes) == max) {
+                            Color flashColor = colors.getFlashedNodeColor();
+                            if (flashColor != TRANSPARENT) {
+                                color = flashColor;
                             }
                         }
                         context.setTextAlign(TextAlignment.LEFT);

@@ -15,6 +15,7 @@ import neuralnet.Cost;
 import neuralnet.NeuralNetwork;
 import neuralnet.Regularizer;
 import org.junit.Test;
+import ui.color.NNBinaryClassifierColor;
 import util.Descent;
 import util.Initializer;
 import util.Rectifier;
@@ -50,7 +51,8 @@ public class DecisionBoundaryTest extends Application {
 
                 NNPlot plot = new NNPlot(addCanvas(300,300, root));
                 plot.setPadding(0,0,20,30, 10);
-                plot.plot(net, 0.8, true, true, true, 1, Arrays.asList(Color.GREEN, Color.YELLOW, Color.RED));
+                plot.plot(net, in, 1, true, true, true, 1, new NNBinaryClassifierColor(Color.GREEN, Color.RED, Color.YELLOW));
+                //plot.plot2DData(out, 12);
             }
 
 

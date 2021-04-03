@@ -8,12 +8,16 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import neuralnet.NeuralNetwork;
+import ui.color.NNBinaryClassifierColor;
+import ui.color.NNColorSupport;
+import ui.color.NNMultiClassColor;
 
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
 
 import static javafx.scene.paint.Color.*;
+import static ui.color.NNColorSupport.blend;
 
 public class NNPlot {
 
@@ -31,11 +35,11 @@ public class NNPlot {
     private double dotRadius = 4;
     private double plotWidth;
     private double plotHeight;
-    private double xmin;
-    private double xmax;
-    private double ymin;
-    private double ymax;
-    private BackPropData data;
+    private double xMin;
+    private double xMax;
+    private double yMin;
+    private double yMax;
+    private double[][] data;
     private SortedMap<Integer, IterationObject> map;
     private Function<IterationObject, Double> function;
 
@@ -45,8 +49,8 @@ public class NNPlot {
     private Color plotLineColor = LIGHTSKYBLUE.darker();
     private Color plotGridColor = LIGHTSKYBLUE;
     private Color plotTextColor = LIGHTSKYBLUE;
-
     private Color plotDataColor = ROYALBLUE;
+    private NNColorSupport customColors;
 
     public NNPlot(GraphicsContext context) {
         this.context = context;
@@ -66,65 +70,89 @@ public class NNPlot {
         plotHeight = height - hOffsetTop - hOffsetBottom;
     }
 
-    private double getRandomInput() {
-        return ((((Math.random() * 2 - 1) * (1 + padding)) + 1 )/ 2);
+    private double getRandomInput(double min, double max) {
+        return (((((Math.random() * 2 - 1) * (1 + padding)) + 1) / 2) * Math.abs(min - max)) + min;
     }
 
-    public void plot(NeuralNetwork neuralNetwork, double density, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, double opacity, List<Color> colorList) {
+    public void plot(NeuralNetwork neuralNetwork, double[][] in, double density, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, double opacity, NNColorSupport customColors) {
         int[] configuration = neuralNetwork.getConfiguration();
         if (configuration[0] != 2) {
             throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
         }
 
+        data = in;
+
+        xMin = 0;
+        xMax = 0;
+        yMin = 0;
+        yMax = 0;
+
+        for (int i = 0; i < in.length; i++) {
+            double xValue = in[i][0];
+            if (xValue < xMin) {
+                xMin = xValue;
+            } else if (xValue > xMax) {
+                xMax = xValue;
+            }
+            double yValue = in[i][1];
+            if (yValue < yMin) {
+                yMin = yValue;
+            } else if (yValue > yMax) {
+                yMax = yValue;
+            }
+        }
+
         plotBackgroundColor = TRANSPARENT;
+        this.customColors = customColors;
+
         ForwardPropData data = new ForwardPropData();
-        for (int i = 0; i < 75000 * density; i++) {
-            double[] input = {getRandomInput(), getRandomInput()};
+        for (int i = 0; i < 60000 * density; i++) {
+            double[] input = {getRandomInput(xMin, xMax), getRandomInput(yMin, yMax)};
             List<Double> output = neuralNetwork.predict(input);
             data.add(input, output);
         }
-        padding = 0;
-        List<Tuple> tuples = data.get();
-        xmin = tuples.stream().map(Tuple::getX).min(Double::compare).get();
-        xmax = tuples.stream().map(Tuple::getX).max(Double::compare).get();
-        ymin = tuples.stream().map(Tuple::getY).min(Double::compare).get();
-        ymax = tuples.stream().map(Tuple::getY).max(Double::compare).get();
 
-        if (xmin == xmax) {
-            xmin = xmin - 0.5;
-            xmax = xmax + 0.5;
+
+        List<Tuple> tuples = data.get();
+        xMin = tuples.stream().map(Tuple::getX).min(Double::compare).get();
+        xMax = tuples.stream().map(Tuple::getX).max(Double::compare).get();
+        yMin = tuples.stream().map(Tuple::getY).min(Double::compare).get();
+        yMax = tuples.stream().map(Tuple::getY).max(Double::compare).get();
+
+        if (xMin == xMax) {
+            xMin = xMin - 0.5;
+            xMax = xMax + 0.5;
         }
-        if (ymin == ymax) {
-            ymin = ymin - 0.5;
-            ymax = ymax + 0.5;
+        if (yMin == yMax) {
+            yMin = yMin - 0.5;
+            yMax = yMax + 0.5;
         }
+        padding = 0;
 
         drawBackground();
         if (configuration[configuration.length-1] == 1) {
-            plotBinaryClassifierDecisionBoundaries(tuples, colorList);
+            plotBinaryClassifierDecisionBoundaries(tuples);
         } else {
-            plotMultiClassClassifierDecisionBoundaries(tuples, colorList);
+            plotMultiClassClassifierDecisionBoundaries(tuples);
         }
         drawOverlay(opacity);
         drawAxes(drawAxes, drawTicks, drawAxisLabels);
-
     }
 
     public void plot(BackPropData data, Function<IterationObject, Double> function, boolean asDot, int modulo) {
-        this.data = data;
         this.map = data.getMap();
         this.function = function;
-        xmin = map.keySet().stream().min(Integer::compare).get();
-        xmax = map.keySet().stream().max(Integer::compare).get();
-        ymin = map.values().stream().map(function::apply).min(Double::compare).get();
-        ymax = map.values().stream().map(function::apply).max(Double::compare).get();
-        if (xmin == xmax) {
-            xmin = xmin - 0.5;
-            xmax = xmax + 0.5;
+        xMin = map.keySet().stream().min(Integer::compare).get();
+        xMax = map.keySet().stream().max(Integer::compare).get();
+        yMin = map.values().stream().map(function).min(Double::compare).get();
+        yMax = map.values().stream().map(function).max(Double::compare).get();
+        if (xMin == xMax) {
+            xMin = xMin - 0.5;
+            xMax = xMax + 0.5;
         }
-        if (ymin == ymax) {
-            ymin = ymin - 0.5;
-            ymax = ymax + 0.5;
+        if (yMin == yMax) {
+            yMin = yMin - 0.5;
+            yMax = yMax + 0.5;
         }
 
         drawBackground();
@@ -163,29 +191,29 @@ public class NNPlot {
         if (!drawGrid) {
             return;
         }
-        double xRange = Math.abs(xmin - xmax) * (1 + padding);
+        double xRange = Math.abs(xMin - xMax) * (1 + padding);
         double xStep = plotWidth <= 350 ? calculateIntervalSmall((xRange)) : calculateIntervalLarge(xRange);
-        double xRangeLabel = xmin - (xmin % xStep) - xStep;
+        double xRangeLabel = xMin - (xMin % xStep) - xStep;
         double x = x(xRangeLabel);
         int xTickcount = (int) (xRange / xStep) + 2;
         for (int i = 0; i < xTickcount; i++) {
             if (i > 0) {
-                x += x(xStep + xmin) - wOffsetLeft - (plotWidth * padding * 0.5);
+                x += x(xStep + xMin) - wOffsetLeft - (plotWidth * padding * 0.5);
             }
             if (x < wOffsetLeft + plotWidth - (plotWidth * padding * 0.1) && x > wOffsetLeft + (plotWidth * padding * 0.1)) {
                 drawLine(x, height - hOffsetBottom, x, hOffsetTop, plotGridColor, gridLineWidth, drawGrid);
             }
         }
 
-        double yRange = Math.abs(ymin - ymax) * (1 + padding);
+        double yRange = Math.abs(yMin - yMax) * (1 + padding);
         double yStep = plotHeight <= 350 ? calculateIntervalSmall((yRange)) : calculateIntervalLarge(yRange);
-        double yRangeLabel = ymin - (ymin % yStep) - yStep;
+        double yRangeLabel = yMin - (yMin % yStep) - yStep;
         double y = y(yRangeLabel);
         int yTickcount = (int) (yRange / yStep) + 2;
 
         for (int i = 0; i < yTickcount; i++) {
             if (i > 0) {
-                y -= Math.abs(Math.abs(y(yStep + ymin)) - (plotHeight + hOffsetTop - (plotHeight * padding * 0.5)));
+                y -= Math.abs(Math.abs(y(yStep + yMin)) - (plotHeight + hOffsetTop - (plotHeight * padding * 0.5)));
             }
             if (y > hOffsetTop + (plotHeight * padding * 0.1) && y < plotHeight + hOffsetTop - (plotHeight * padding * 0.1)) {
                 drawLine(wOffsetLeft, y, width - wOffsetRight, y, plotGridColor, gridLineWidth, drawGrid);
@@ -196,14 +224,14 @@ public class NNPlot {
     private void drawAxes(boolean drawAxes, boolean drawTicks, boolean drawAxisLabels) {
         clearAxeSpace();
         if (drawTicks || drawAxisLabels) {
-            double xRange = Math.abs(xmin - xmax) * (1 + padding);
+            double xRange = Math.abs(xMin - xMax) * (1 + padding);
             double xStep = plotWidth <= 350 ? calculateIntervalSmall((xRange)) : calculateIntervalLarge(xRange);
-            double xRangeLabel = xmin - (xmin % xStep) - xStep;
+            double xRangeLabel = xMin - (xMin % xStep) - xStep;
             double x = x(xRangeLabel);
             int xTickcount = (int) (xRange / xStep) + 2;
             for (int i = 0; i < xTickcount; i++) {
                 if (i > 0) {
-                    x += x(xStep + xmin) - wOffsetLeft - (plotWidth * padding * 0.5);
+                    x += x(xStep + xMin) - wOffsetLeft - (plotWidth * padding * 0.5);
                 }
                 if (x < wOffsetLeft + plotWidth - (plotWidth * padding * 0.1) && x > wOffsetLeft + (plotWidth * padding * 0.1)) {
                     drawText(xRangeLabel + i * xStep, x, height - hOffsetBottom + 18, TextAlignment.LEFT, drawAxisLabels);
@@ -211,15 +239,15 @@ public class NNPlot {
                 }
             }
 
-            double yRange = Math.abs(ymin - ymax) * (1 + padding);
+            double yRange = Math.abs(yMin - yMax) * (1 + padding);
             double yStep = plotHeight <= 350 ? calculateIntervalSmall((yRange)) : calculateIntervalLarge(yRange);
-            double yRangeLabel = ymin - (ymin % yStep) - yStep;
+            double yRangeLabel = yMin - (yMin % yStep) - yStep;
             double y = y(yRangeLabel);
             int yTickcount = (int) (yRange / yStep) + 2;
 
             for (int i = 0; i < yTickcount; i++) {
                 if (i > 0) {
-                    y -= Math.abs(Math.abs(y(yStep + ymin)) - (plotHeight + hOffsetTop - (plotHeight * padding * 0.5)));
+                    y -= Math.abs(Math.abs(y(yStep + yMin)) - (plotHeight + hOffsetTop - (plotHeight * padding * 0.5)));
                 }
                 if (y > hOffsetTop + (plotHeight * padding * 0.1) && y < plotHeight + hOffsetTop - (plotHeight * padding * 0.1)) {
                     drawText(yRangeLabel + i * yStep, wOffsetLeft - 12, y, TextAlignment.RIGHT, drawAxisLabels);
@@ -263,26 +291,27 @@ public class NNPlot {
     }
 
     private double x(double x) {
-        return ((x-xmin) / Math.abs(xmin-xmax) * (plotWidth * ((1-padding)))) + (wOffsetLeft + (plotWidth *padding*0.5));
+        return ((x- xMin) / Math.abs(xMin - xMax) * (plotWidth * ((1-padding)))) + (wOffsetLeft + (plotWidth *padding*0.5));
     }
 
     private double y(double y) {
-        return (plotHeight +hOffsetTop - (plotHeight *padding*0.5)) - ((y-ymin) / Math.abs(ymin - ymax) * (plotHeight * (1-padding)));
+        return (plotHeight +hOffsetTop - (plotHeight *padding*0.5)) - ((y- yMin) / Math.abs(yMin - yMax) * (plotHeight * (1-padding)));
     }
 
-    private void plotBinaryClassifierDecisionBoundaries(List<Tuple> tuples, List<Color> colorList) {
+    private void plotBinaryClassifierDecisionBoundaries(List<Tuple> tuples) {
         double dotRadius = ((plotWidth+plotHeight)/2) /64;
 
         for (Tuple tuple : tuples) {
             double x = x(tuple.getX());
             double y =  y(tuple.getY());
             double output = tuple.getOutput().get(0);
-            Color color;
 
+            NNBinaryClassifierColor colors = (NNBinaryClassifierColor) customColors;
+            Color color;
             if (output <= 0.5) {
-                color = blend(colorList.get(2), colorList.get(1), 1-(output*2));
+                color = blend(colors.getNegative(), colors.getMargin(), 1-(output*2));
             } else {
-                color = blend(colorList.get(0), colorList.get(1), (output-0.5)*2);
+                color = blend(colors.getPositive(), colors.getMargin(), (output-0.5)*2);
             }
 
             context.setFill(color);
@@ -291,46 +320,29 @@ public class NNPlot {
         }
     }
 
-    private void plotMultiClassClassifierDecisionBoundaries(List<Tuple> tuples, List<Color> colorList) {
+    private void plotMultiClassClassifierDecisionBoundaries(List<Tuple> tuples) {
         double dotRadius = ((plotWidth+plotHeight)/2) /64;
-
-        List<TupleOutput> outList = new ArrayList<>();
-
+        List<Color> colors = ((NNMultiClassColor) customColors).getColors();
 
         for (Tuple tuple : tuples) {
             double x = x(tuple.getX());
             double y =  y(tuple.getY());
             List<Double> output = tuple.getOutput();
-
+            Color color = new Color(plotBackgroundColor.getRed(), plotBackgroundColor.getGreen(), plotBackgroundColor.getBlue(), 0);
             for (int i = 0; i <  output.size(); i++) {
-                Color color = TRANSPARENT;
                 double value = output.get(i);
-
-                if (value > 0.5) {
-                    color = blend(colorList.get(i), TRANSPARENT, (value - 0.5) * 2);
+                if (value <= 0.5) {
+                    color = blend(color, colors.get(i), 1-(value*2));
+                } else {
+                    color = blend(colors.get(i), colors.get(i), (value-0.5)*2);
                 }
-                outList.add(new TupleOutput(x, y, color));
-
             }
+            context.setFill(color);
+            context.fillOval(x- dotRadius /2.0, y- dotRadius /2.0, dotRadius, dotRadius);
         }
 
-        Collections.shuffle(outList);
-        for (TupleOutput tout : outList) {
-            context.setFill(tout.color);
-            context.fillOval(tout.x - dotRadius / 2.0, tout.y - dotRadius / 2.0, dotRadius, dotRadius);
-        }
     }
 
-    static class TupleOutput {
-        double x;
-        double y;
-        Color color;
-        TupleOutput(double x, double y, Color color) {
-            this.x = x;
-            this.y = y;
-            this.color = color;
-        }
-    }
 
     private void plotData(boolean asDot, int modulo) {
         context.setStroke(plotDataColor);
@@ -364,17 +376,31 @@ public class NNPlot {
         }
     }
 
-    public void plot2DData(double[][] data, double[][] out, Map<String, Color> colorMap, double dotRadius) {
-        if (data != null && data[0].length != 2) {
+    public void plot2DData(double[][] definedClasses, double dotRadius) {
+        if (data == null || data[0].length != 2) {
             throw new IllegalArgumentException("Data must be 2-dimensional!");
         }
-
+        List<String> classes = new ArrayList<>();
+        for (double[] o : definedClasses) {
+            String outStr = Arrays.toString(o);
+            if (!classes.contains(outStr)) {
+                classes.add(outStr);
+            }
+        }
+        List<Color> colors = new ArrayList<>();
+        if (customColors instanceof NNBinaryClassifierColor) {
+            colors.add(((NNBinaryClassifierColor) customColors).getNegative());
+            colors.add(((NNBinaryClassifierColor) customColors).getPositive());
+        } else {
+            colors.addAll(((NNMultiClassColor) customColors).getColors());
+        }
         for (int i = 0; i < data.length; i++) {
-            context.setFill(colorMap.get(Arrays.toString(out[i])));
+            double[] outClass = definedClasses[i];
+            int colorIndex = classes.indexOf(Arrays.toString(outClass));
+            context.setFill(colors.get(colorIndex));
             context.fillOval(x(data[i][0]) - dotRadius / 2.0, y(data[i][1]) - dotRadius / 2.0, dotRadius, dotRadius);
         }
     }
-
 
     private void drawAxis(double x1, double y1, double x2, double y2) {
         context.setStroke(plotLineColor);
@@ -402,40 +428,4 @@ public class NNPlot {
         return x / 10.0;
     }
 
-    static Color blend(Color c1, Color c2, double ratio) {
-        if (ratio > 1.0)  {
-            ratio = 1;
-        } else if (ratio < 0.0) {
-            ratio = 0;
-        }
-        double iRatio = 1.0 - ratio;
-
-        Color rgb1 = c1 == TRANSPARENT ? c2 : c1;
-        Color rgb2 = c2 == TRANSPARENT ? c1 : c2;
-
-        int r1 = isolateComponent(rgb1.getRed());
-        int g1 = isolateComponent(rgb1.getGreen());
-        int b1 = isolateComponent(rgb1.getBlue());
-        int a1 = isolateComponent(c1.getOpacity());
-
-        int r2 = isolateComponent(rgb2.getRed());
-        int g2 = isolateComponent(rgb2.getGreen());
-        int b2 = isolateComponent(rgb2.getBlue());
-        int a2 = isolateComponent(c2.getOpacity());
-
-        double r = convertComponent((r1 * ratio) + (r2 * iRatio));
-        double g = convertComponent((g1 * ratio) + (g2 * iRatio));
-        double b = convertComponent((b1 * ratio) + (b2 * iRatio));
-        double a = convertComponent((a1 * ratio) + (a2 * iRatio));
-
-        return new Color(r, g, b, a);
-    }
-
-    private static double convertComponent(double value) {
-        return Double.parseDouble(df.format(value / 255));
-    }
-
-    private static int isolateComponent(double component) {
-        return Integer.parseInt(Integer.toHexString(((int) (component * 255))), 16);
-    }
 }

@@ -1,4 +1,4 @@
-package ui;
+package ui.color;
 
 import javafx.scene.paint.Color;
 
@@ -42,39 +42,39 @@ public class NNColorPalette {
         this.lowerAccentWeightColor = lowerAccentWeightColor;
     }
 
-    Color getBackgroundColor() {
+    public Color getBackgroundColor() {
         return backgroundColor;
     }
 
-    Color getNodeColor() {
+    public Color getNodeColor() {
         return nodeColor;
     }
 
-    Color getLineColor() {
+    public Color getLineColor() {
         return lineColor;
     }
 
-    Color getFlashedNodeColor() {
+    public Color getFlashedNodeColor() {
         return flashedNodeColor;
     }
 
-    Color getInactiveInputNodeColor() {
+    public Color getInactiveInputNodeColor() {
         return inactiveInputNodeColor;
     }
 
-    Color getUpperAccentNodeColor() {
+    public Color getUpperAccentNodeColor() {
         return upperAccentNodeColor;
     }
 
-    Color getLowerAccentNodeColor() {
+    public Color getLowerAccentNodeColor() {
         return lowerAccentNodeColor;
     }
 
-    Color getUpperAccentWeightColor() {
+    public Color getUpperAccentWeightColor() {
         return upperAccentWeightColor;
     }
 
-    Color getLowerAccentWeightColor() {
+    public Color getLowerAccentWeightColor() {
         return lowerAccentWeightColor;
     }
 

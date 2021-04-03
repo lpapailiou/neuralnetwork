@@ -13,6 +13,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import neuralnet.NeuralNetwork;
+import ui.color.NNColorPalette;
 import util.Initializer;
 
 import java.util.Arrays;
