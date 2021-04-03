@@ -13,14 +13,15 @@ public class IterationObject {
 
     public IterationObject(double cost, double tp, double fp, double tn, double fn, double costSum, double tpSum, double fpSum, double tnSum, double fnSum) {
         this.cost = cost;
-        accuracy = (tp+tn) / (tp+tn+fp+fn);
-        recall = (tp == 0 ? 1 : tp/(tp+fn));
-        precision = (tp==0&&fp==0 ? 0 : tp/(tp+fp));
+        accuracy = (tp + tn) / (tp + tn + fp + fn);
+        recall = (tp == 0 ? 1 : tp / (tp + fn));
+        precision = (tp == 0 && fp == 0 ? 0 : tp / (tp + fp));
         this.costSum = costSum;
-        accuracySum = (tpSum+tnSum) / (tpSum+tnSum+fpSum+fnSum);
-        recallSum = (tpSum == 0 ? 1 : tpSum/(tpSum+fnSum));
-        precisionSum = (tpSum==0&&fpSum==0 ? 0 : tpSum/(tpSum+fpSum));
+        accuracySum = (tpSum + tnSum) / (tpSum + tnSum + fpSum + fnSum);
+        recallSum = (tpSum == 0 ? 1 : tpSum / (tpSum + fnSum));
+        precisionSum = (tpSum == 0 && fpSum == 0 ? 0 : tpSum / (tpSum + fpSum));
     }
+
     public double getCost() {
         return cost;
     }

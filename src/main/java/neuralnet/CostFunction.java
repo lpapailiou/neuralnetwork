@@ -1,11 +1,8 @@
 package neuralnet;
 
-import neuralnet.Matrix;
-
-public enum Cost {
+public enum CostFunction {
 
     /**
-     *
      * cost:       f(x)  = 0.5 * sum((actual - expected)^2)
      * gradient:   f(x)' = (actual - expected)
      */
@@ -15,6 +12,7 @@ public enum Cost {
             Matrix difference = Matrix.subtract(actual, expected);
             return 0.5 * Matrix.dotProduct(difference, difference);
         }
+
         @Override
         public Matrix gradient(Matrix actual, Matrix expected) {
             Matrix difference = Matrix.subtract(actual, expected);
@@ -22,8 +20,7 @@ public enum Cost {
         }
     },
     /**
-     *
-     * cost:       f(x)  = sum((actual - expected)^2)
+     * cost:       f(x)  = 1/m * sum((actual - expected)^2)
      * gradient:   f(x)' = 2 * (actual - expected)
      */
     MSE("Mean squared error") {
@@ -32,6 +29,7 @@ public enum Cost {
             Matrix difference = Matrix.subtract(actual, expected);
             return (1.0 / actual.getRows()) * Matrix.dotProduct(difference, difference);
         }
+
         @Override
         public Matrix gradient(Matrix actual, Matrix expected) {
             Matrix difference = Matrix.subtract(actual, expected);
@@ -39,7 +37,6 @@ public enum Cost {
         }
     },
     /**
-     *
      * cost:       f(x)  = -sum(expected * ln(actual) + (1 - expected) * ln(1 - actual))
      * gradient:   f(x)' = (actual - expected) / ((1 - actual) * actual)
      */
@@ -48,6 +45,7 @@ public enum Cost {
         public double cost(Matrix actual, Matrix expected) {
             return Matrix.crossEntropy(actual, expected);
         }
+
         @Override
         public Matrix gradient(Matrix actual, Matrix expected) {
             return Matrix.crossEntropyGradient(actual, expected);
@@ -60,6 +58,7 @@ public enum Cost {
      */
     EXPONENTIAL("Exponential") {
         double tau = 0.1;
+
         @Override
         public double cost(Matrix actual, Matrix expected) {
             Matrix difference = Matrix.subtract(actual, expected);
@@ -67,6 +66,7 @@ public enum Cost {
             return tau * Math.exp((1 / tau) * sum);
 
         }
+
         @Override
         public Matrix gradient(Matrix actual, Matrix expected) {
             Matrix difference = Matrix.subtract(actual, expected);
@@ -87,6 +87,7 @@ public enum Cost {
             return (1 / Math.sqrt(2)) * Matrix.dotProduct(difference, difference);
 
         }
+
         @Override
         public Matrix gradient(Matrix actual, Matrix expected) {
             Matrix difference = Matrix.subtract(Matrix.apply(actual, Math::sqrt), Matrix.apply(expected, Math::sqrt));
@@ -94,7 +95,6 @@ public enum Cost {
         }
     },
     /**
-     *
      * cost:       f(x)  = sum(expected * ln(expected/actual))
      * gradient:   f(x)' = -(expected / actual)
      */
@@ -111,7 +111,6 @@ public enum Cost {
         }
     },
     /**
-     *
      * cost:       f(x)  = sum(expected * ln(expected/actual)) - sum(expected) + sum(actual)
      * gradient:   f(x)' = -((actual - expected) / actual)
      */
@@ -122,32 +121,33 @@ public enum Cost {
             return m.sum() - expected.sum() + actual.sum();
 
         }
+
         @Override
         public Matrix gradient(Matrix actual, Matrix expected) {
             return Matrix.apply(actual, expected, (a, e) -> (a - e) / a);
         }
     },
     /**
-     *
      * cost:       f(x)  = sum((expected / actual) - ln(expected / actual) - 1)
      * gradient:   f(x)' = (actual - expected) / (actual)^2
      */
     ISD("Ikura-Saito distance") {
         @Override
         public double cost(Matrix actual, Matrix expected) {
-            return Matrix.apply(actual, expected, (a, e) -> (e/a) - Math.log(e/a) -1).sum();
+            return Matrix.apply(actual, expected, (a, e) -> (e / a) - Math.log(e / a) - 1).sum();
 
         }
+
         @Override
         public Matrix gradient(Matrix actual, Matrix expected) {
-            return Matrix.apply(actual, expected, (a, e) -> (a - e) / (a*a));
+            return Matrix.apply(actual, expected, (a, e) -> (a - e) / (a * a));
         }
     };
 
     private final String description;
 
 
-    Cost(String description) {
+    CostFunction(String description) {
         this.description = description;
     }
 

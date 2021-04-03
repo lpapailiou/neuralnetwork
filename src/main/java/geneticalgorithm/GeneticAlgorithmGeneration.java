@@ -14,9 +14,9 @@ import java.util.logging.Logger;
 
 class GeneticAlgorithmGeneration<T> {
 
-    private Constructor<T> geneticAlgorithmObjectConstructor;
     private static final Logger LOG = Logger.getLogger("generation logger");
     private static final int THREAD_POOL = 16;
+    private Constructor<T> geneticAlgorithmObjectConstructor;
     private int id;
     private int populationSize;
     private NeuralNetwork bestNeuralNetwork;
@@ -70,7 +70,7 @@ class GeneticAlgorithmGeneration<T> {
 
         if (populationList.get(0).hasReachedGoal()) {
             long calc = populationList.stream().filter(IGeneticAlgorithmObject::hasReachedGoal).count();
-            double scorePercent = 100.0 / populationSize * (double) calc ;
+            double scorePercent = 100.0 / populationSize * (double) calc;
             LOG.log(Level.INFO, () -> String.format("****************** PERFECT SCORE ACHIEVED! ****************** \nat generation #%d, %.2f%s units (%d of %d) reached a perfect score.", id, scorePercent, "%", calc, populationSize));
         }
 
@@ -101,7 +101,7 @@ class GeneticAlgorithmGeneration<T> {
 
         List<NeuralNetwork> mergeList = new ArrayList<>();
 
-        for (int i = 0; i < reproductionPoolSize-1; i++) {
+        for (int i = 0; i < reproductionPoolSize - 1; i++) {
             mergeList.add(0, spinRouletteWheel(map, selectionPoolSize, sumFitness));
         }
 
@@ -147,7 +147,7 @@ class GeneticAlgorithmGeneration<T> {
         @Override
         public void run() {
             boolean running = true;
-            while(running) {
+            while (running) {
                 running = object.perform();
             }
         }

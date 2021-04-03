@@ -58,6 +58,7 @@ public enum Initializer {
 
     /**
      * Gets short description of the initializer.
+     *
      * @return the description.
      */
     public String getDescription() {
@@ -67,7 +68,8 @@ public enum Initializer {
     /**
      * Returns initial value for a weight or bias matrix component.
      * Depending on the chosen enum, not all parameters will be read.
-     * @param fanIn the fan in is the count of incoming values.
+     *
+     * @param fanIn  the fan in is the count of incoming values.
      * @param fanOut the fan out is the count of outgoing values.
      * @param isBias this boolean indicates if the value is used to initialize a bias or a weight.
      * @return the initialization value for a matrix component.

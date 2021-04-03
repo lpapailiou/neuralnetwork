@@ -54,6 +54,7 @@ public class NNGraph {
     /**
      * The constructor will prepare the graph. Initially, the display will be blank. It will update as soon
      * as a neural network instance is set.
+     *
      * @param context the javafx GraphicsContext of a Canvas instance.
      */
     public NNGraph(GraphicsContext context) {
@@ -110,12 +111,12 @@ public class NNGraph {
     private void cross(List<GraphNode> layer1, List<GraphNode> layer2, int layerIndex) {
         for (int i = 0; i < layer1.size(); i++) {
             int nodesSkipped = 0;
-            double[][] layerWeights = neuralNetwork.getWeights(layerIndex-1);
+            double[][] layerWeights = neuralNetwork.getWeights(layerIndex - 1);
             for (int j = 0; j < layer2.size(); j++) {
                 GraphNode a = layer1.get(i);
                 GraphNode b = layer2.get(j);
                 if (a.active && b.active) {
-                    paintLine(a, b, layerWeights[i][j-nodesSkipped]);
+                    paintLine(a, b, layerWeights[i][j - nodesSkipped]);
                 } else {
                     nodesSkipped++;
                 }
@@ -133,12 +134,12 @@ public class NNGraph {
 
                 if (i == 0) {
                     context.setTextAlign(TextAlignment.RIGHT);
-                    context.fillText(inputNodeLabels[j], node.x + radius * 0.5,node.y - radius * 0.5);
+                    context.fillText(inputNodeLabels[j], node.x + radius * 0.5, node.y - radius * 0.5);
                 }
 
                 if (node.active) {
                     if (!nodeValues.isEmpty()) {
-                        color = evaluateColor(nodeValues.get(i).get(j-skippedNodes), lowerNodeThreshold, uppweNodeThreshold, color, true);
+                        color = evaluateColor(nodeValues.get(i).get(j - skippedNodes), lowerNodeThreshold, uppweNodeThreshold, color, true);
                     }
 
                     if (i == graph.size() - 1) {
@@ -152,7 +153,7 @@ public class NNGraph {
                             }
                         }
                         context.setTextAlign(TextAlignment.LEFT);
-                        context.fillText(outputNodeLabels[j], node.x + radius * 0.5,node.y - radius * 0.5);
+                        context.fillText(outputNodeLabels[j], node.x + radius * 0.5, node.y - radius * 0.5);
                     }
                 } else {
                     color = colors.getInactiveInputNodeColor();
@@ -202,6 +203,7 @@ public class NNGraph {
 
     /**
      * Method to set a new neural network instance to be represented visually.
+     *
      * @param neuralNetwork the neural network instance to be visualized.
      * @return this NNGraph (for chaining).
      */
@@ -219,7 +221,7 @@ public class NNGraph {
             this.activeInputNodes = inNodes;
         }
 
-        int outNodes = configuration[configuration.length-1];
+        int outNodes = configuration[configuration.length - 1];
         if (inputNodeLabels == null || (!graph.isEmpty() && (int) graph.get(0).stream().filter(n -> n.active).count() != inNodes.length)) {
             inputNodeLabels = new String[inNodes.length];
         }
@@ -237,6 +239,7 @@ public class NNGraph {
 
     /**
      * Setter for the color palette.
+     *
      * @param colorPalette the color palette to be applied to the graph.
      * @return this NNGraph (for chaining).
      */
@@ -252,6 +255,7 @@ public class NNGraph {
     /**
      * With this method, the threshold for the node color switch can be set. It will have effect on which colors
      * from the color palette are chosen to display the nodes depending on their value.
+     *
      * @param lowerBound the lower threshold value.
      * @param upperBound the upper threshold value.
      * @return this NNGraph (for chaining).
@@ -269,6 +273,7 @@ public class NNGraph {
     /**
      * With this method, the threshold for the line color switch can be set. It will have effect on which colors
      * from the color palette are chosen to display the lines depending on their value.
+     *
      * @param lowerBound the lower threshold value.
      * @param upperBound the upper threshold value.
      * @return this NNGraph (for chaining).
@@ -286,10 +291,11 @@ public class NNGraph {
     /**
      * This method will set a new width offset on the left hand of the graphics. It may be used to free up some
      * space if the input nodes are labeled.
-     * @param top the top offset.
-     * @param right the right offset.
+     *
+     * @param top    the top offset.
+     * @param right  the right offset.
      * @param bottom the bottom offset.
-     * @param left the left offset.
+     * @param left   the left offset.
      * @return this NNGraph (for chaining).
      */
     public NNGraph setPadding(double top, double right, double bottom, double left) {
@@ -310,6 +316,7 @@ public class NNGraph {
     /**
      * This method defines if the neural network graph will grow horizontally to the right if
      * the layer count will be expanded.
+     *
      * @param growth the growth indicator.
      * @return this NNGraph (for chaining).
      */
@@ -321,6 +328,7 @@ public class NNGraph {
     /**
      * This setter allows to set input node labels. Be aware, that by default the text will align from right
      * to left, so an additional width offset may be set.
+     *
      * @param inputNodeLabels the input node labels.
      * @return this NNGraph (for chaining).
      */
@@ -343,12 +351,13 @@ public class NNGraph {
 
     /**
      * This setter allows to set output node labels.
+     *
      * @param outputNodeLabels the output node labels.
      * @return this NNGraph (for chaining).
      */
     public NNGraph setOutputNodeLabels(String[] outputNodeLabels) {
         int[] configuration = neuralNetwork.getConfiguration();
-        int outputLayerSize = configuration[configuration.length-1];
+        int outputLayerSize = configuration[configuration.length - 1];
         if (outputNodeLabels == null || outputNodeLabels.length == outputLayerSize) {
             if (outputNodeLabels == null) {
                 String[] labels = new String[outputLayerSize];
@@ -366,6 +375,7 @@ public class NNGraph {
 
     /**
      * Setter for the radius of the nodes / vertices.
+     *
      * @param radius the node/vertex radius.
      * @return this NNGraph (for chaining).
      */
@@ -380,6 +390,7 @@ public class NNGraph {
 
     /**
      * Setter for the line width. It will be applied to the edges of the neural network graph.
+     *
      * @param lineWidth the line width of the graph edges.
      * @return this NNGraph (for chaining).
      */
@@ -394,8 +405,9 @@ public class NNGraph {
 
     /**
      * Setter for the line width of the font.
-     * @param bold can either be true or false.
-     * @param italic can either be true or false.
+     *
+     * @param bold     can either be true or false.
+     * @param italic   can either be true or false.
      * @param fontSize the fontsize to set, default is 12.
      * @return this NNGraph (for chaining).
      */
@@ -414,7 +426,8 @@ public class NNGraph {
      * By every switch, a new neural network has to be created, because in the background it has to be
      * fully connected. On the visual representation side, we can graphically add 'unconnected input nodes'.
      * Like this, the visualization may appear smoother.
-     * @param nodeCount the total count of input nodes to be displayed.
+     *
+     * @param nodeCount           the total count of input nodes to be displayed.
      * @param inactiveNodeIndexes the indexes of the input nodes to appear 'switched off'.
      * @return this NNGraph (for chaining).
      */

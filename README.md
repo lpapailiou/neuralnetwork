@@ -6,7 +6,7 @@ This is a maven library for neural networks in java 8.
 	1.1 [Architecture](#architecture)  
 	1.2 [Supported algorithms](#supported-algorithms)  
     1.3 [Rectifiers](#rectifiers)  
-    1.4 [Learning rate descent](#learning-and-mutation-rate-descent)  
+    1.4 [Optimizers](#learning-and-mutation-rate-optimizer)  
     1.5 [Parametrization](#parametrization)  
     1.6 [Persistence](#persistence)  
     1.7 [UI](#ui)  
@@ -45,7 +45,7 @@ Implemented are following rectifiers:
 
 Rectifiers can be quite sensitive to hyperparameters (e.g. learning rate). 
 
-### Learning and mutation rate descent
+### Learning and mutation rate optimizer
 - none (static learning rate)
 - stochastic gradient descent
 
@@ -75,10 +75,10 @@ Create a neural network adding parameters (builder pattern may be used as well).
 
     NeuralNetwork neuralNetwork = new NeuralNetwork(Initializer.RANDOM, 2, 2);    // first parameter is for initialization
     neuralNetwork.setRectifier(Rectifier.SIGMOID);
-    neuralNetwork.setLearningRateDescent(Descent.SGD);
+    neuralNetwork.setLearningRateOptimizer(Optimizer.SGD);
     neuralNetwork.setLearningRate(0.8);
     neuralNetwork.setLearningRateMomentum(0.005);
-    neuralNetwork.setMutationRateDescent(Descent.SGD);
+    neuralNetwork.setMutationRateOptimizer(Optimizer.SGD);
     neuralNetwork.setMutationRate(0.5);
     neuralNetwork.setMutationRateMomentum(0.07);
 
@@ -151,7 +151,7 @@ Mutate a neural network according to the current settings.
     neuralNetwork.mutate();
     
 If you want to decrease the learning rate manually, you may call `decreaseLearningRate()`. Please note you
-should then select another type than `LearningRateDescent.NONE` (and according learning rate and momentum).
+should then select another type than `LearningRateOptimizer.NONE` (and according learning rate and momentum).
 As the decreasing learning rate is optional and has to be performed on a neural network instance chosen
 for reproduction only, it has to be called separately.
 
@@ -177,7 +177,7 @@ See below a full xor test of the neural network with supervised learning:
     // create and configure neural network
     Rectifier rectifier = Rectifier.SIGMOID
     NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 1);
-    neuralNetwork.setRectifier(rectifier).setLearningRate(0.8).setLearningRateDescent(LearningRateDescent.NONE);
+    neuralNetwork.setRectifier(rectifier).setLearningRate(0.8).setLearningRateOptimizer(LearningRateOptimizer.NONE);
     
     // train neural network with the input set, the corresponding expected output set and the training epochs
     neuralNetwork.train(in, out, 2000);
@@ -413,12 +413,12 @@ Below an overview of the `neuralnetwork.properties` file.
     # available values: gelu|identity|relu|leaky_relu|sigmoid|sigmoid_accurate|silu|silu_accurate|softplus|tanh.
     rectifier=sigmoid
     
-    # the descent of the learning rate between iterations.
+    # the optimizer of the learning rate between iterations.
     # available values: none|sgd
-    learning_rate_descent=sgd
+    learning_rate_optimizer=sgd
     
     # the learning rate decay as momentum.
-    # if learning_rate_descent is set to 'none', this value will have no effect.
+    # if learning_rate_optimizer is set to 'none', this value will have no effect.
     # must have a value between 0.0 and 1.0.
     learning_decay_momentum=0.01
     
@@ -434,11 +434,11 @@ Below an overview of the `neuralnetwork.properties` file.
     # must have a value between 0.0 and 1.0
     genetic_mutation_rate=0.5
     
-    # the descent of the mutation rate between iterations.
+    # the optimizer for the mutation rate between iterations.
     # available values: none|sgd
-    mutation_rate_descent=sgd
+    mutation_rate_optimizer=sgd
     
     # the mutation rate decay as momentum.
-    # if mutation_rate_descent is set to 'none', this value will have no effect.
+    # if mutation_rate_optimizer is set to 'none', this value will have no effect.
     # must have a value between 0.0 and 1.0.
     mutation_decay_momentum=0.01

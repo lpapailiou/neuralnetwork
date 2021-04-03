@@ -24,8 +24,8 @@ import static ui.color.NNColorSupport.randomColor;
 
 public class NNGraphTest extends Application {
 
-    private double[][] in = {{0,0}, {1,0}, {0,1}, {1,1}};
-    private double[][] out = {{1,0}, {0,1}, {0,1}, {1,0}};
+    private double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
+    private double[][] out = {{1, 0}, {0, 1}, {0, 1}, {1, 0}};
     private Label inLabel = new Label();
     private Label outLabel = new Label();
     private Label successLabel = new Label();
@@ -105,9 +105,9 @@ public class NNGraphTest extends Application {
     private void drawNeuralNetwork(GraphicsContext context, NeuralNetwork neuralNetwork) {
         graph = new NNGraph(context).setNeuralNetwork(neuralNetwork);
         graph.setGraphInputNodeCount(3, 0);
-        graph.setOutputNodeLabels(new String[] {"0", "1"});
-        graph.setInputNodeLabels(new String[] {"(this node is not in use)", "a", "b"});
-        graph.setPadding(0,0,0,120);
+        graph.setOutputNodeLabels(new String[]{"0", "1"});
+        graph.setInputNodeLabels(new String[]{"(this node is not in use)", "a", "b"});
+        graph.setPadding(0, 0, 0, 120);
         //graph.setFontProperties(true, true, 12);
     }
 

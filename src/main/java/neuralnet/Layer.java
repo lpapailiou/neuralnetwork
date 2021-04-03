@@ -1,7 +1,6 @@
 package neuralnet;
 
 import util.Initializer;
-import util.Rectifier;
 
 import java.io.Serializable;
 

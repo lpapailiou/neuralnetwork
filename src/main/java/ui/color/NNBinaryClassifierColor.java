@@ -9,9 +9,9 @@ public class NNBinaryClassifierColor implements NNColorSupport {
     private Color margin;
 
     public NNBinaryClassifierColor(Color positive, Color negative, Color margin) {
-        this.positive = positive;
-        this.negative = negative;
-        this.margin = margin;
+        this.positive = positive == null ? Color.TRANSPARENT : positive;
+        this.negative = negative == null ? Color.TRANSPARENT : negative;
+        this.margin = margin == null ? Color.TRANSPARENT : margin;
     }
 
     public Color getPositive() {

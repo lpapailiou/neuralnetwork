@@ -19,27 +19,29 @@ public class NNGraphColor {
     private Color lowerAccentWeightColor;
 
     /**
-     * Tho colors of this calor palette can be passed by the constructor only.
-     * @param backgroundColor the background color of the visualisation.
-     * @param nodeColor the vertice color of the neural network graph.
-     * @param lineColor the edge color of the neural network graph as well as text color.
-     * @param flashedNodeColor the color of the output node with the highest value.
+     * Tho colors of this color palette can be passed by the constructor only.
+     * If null is passed, it will be translated to Color.TRANSPARENT.
+     *
+     * @param backgroundColor        the background color of the visualisation.
+     * @param nodeColor              the vertice color of the neural network graph.
+     * @param lineColor              the edge color of the neural network graph as well as text color.
+     * @param flashedNodeColor       the color of the output node with the highest value.
      * @param inactiveInputNodeColor the color of inactive input nodes.
-     * @param upperAccentNodeColor the color to indicate higher node values.
-     * @param lowerAccentNodeColor the color to indicate lower node values.
+     * @param upperAccentNodeColor   the color to indicate higher node values.
+     * @param lowerAccentNodeColor   the color to indicate lower node values.
      * @param upperAccentWeightColor the color to indicate higher weights.
      * @param lowerAccentWeightColor the color to indicate lower weights.
      */
     public NNGraphColor(Color backgroundColor, Color nodeColor, Color lineColor, Color flashedNodeColor, Color inactiveInputNodeColor, Color upperAccentNodeColor, Color lowerAccentNodeColor, Color upperAccentWeightColor, Color lowerAccentWeightColor) {
-        this.backgroundColor = backgroundColor;
-        this.nodeColor = nodeColor;
-        this.lineColor = lineColor;
-        this.flashedNodeColor = flashedNodeColor;
-        this.inactiveInputNodeColor = inactiveInputNodeColor;
-        this.upperAccentNodeColor = upperAccentNodeColor;
-        this.lowerAccentNodeColor = lowerAccentNodeColor;
-        this.upperAccentWeightColor = upperAccentWeightColor;
-        this.lowerAccentWeightColor = lowerAccentWeightColor;
+        this.backgroundColor = backgroundColor == null ? Color.TRANSPARENT : backgroundColor;
+        this.nodeColor = nodeColor == null ? Color.TRANSPARENT : nodeColor;
+        this.lineColor = lineColor == null ? Color.TRANSPARENT : lineColor;
+        this.flashedNodeColor = flashedNodeColor == null ? Color.TRANSPARENT : flashedNodeColor;
+        this.inactiveInputNodeColor = inactiveInputNodeColor == null ? Color.TRANSPARENT : inactiveInputNodeColor;
+        this.upperAccentNodeColor = upperAccentNodeColor == null ? Color.TRANSPARENT : upperAccentNodeColor;
+        this.lowerAccentNodeColor = lowerAccentNodeColor == null ? Color.TRANSPARENT : lowerAccentNodeColor;
+        this.upperAccentWeightColor = upperAccentWeightColor == null ? Color.TRANSPARENT : upperAccentWeightColor;
+        this.lowerAccentWeightColor = lowerAccentWeightColor == null ? Color.TRANSPARENT : lowerAccentWeightColor;
     }
 
     public Color getBackgroundColor() {

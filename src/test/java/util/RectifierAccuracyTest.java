@@ -6,13 +6,11 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
 public class RectifierAccuracyTest {
 
     @Test
     public void rectifierTest() {
-        double[][] in = {{0,0}, {1,0}, {0,1}, {1,1}};
+        double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
         double[][] out = {{0}, {1}, {1}, {0}};
 
 
@@ -30,7 +28,7 @@ public class RectifierAccuracyTest {
     void testXOr(Rectifier rectifier, double[][] in, double[][] out) {
         // testing xor function
 
-        NeuralNetwork net = new NeuralNetwork(Initializer.RANDOM, 2, 2,1).setLearningRate(0.5).setLearningRateDescent(Descent.NONE);
+        NeuralNetwork net = new NeuralNetwork(Initializer.RANDOM, 2, 2, 1).setLearningRate(0.5).setLearningRateOptimizer(Optimizer.NONE);
         net.setRectifier(rectifier);
         net.fit(in, out, 50000);
 
@@ -73,11 +71,11 @@ public class RectifierAccuracyTest {
         } else {
             FN++;
         }
-        String data = "TP="+TP+", TN="+TN+", FP="+FP+", FN="+FN;
-        String accuracy = "accuracy: " + (TP+TN) / (TP+TN+FP+FN);
+        String data = "TP=" + TP + ", TN=" + TN + ", FP=" + FP + ", FN=" + FN;
+        String accuracy = "accuracy: " + (TP + TN) / (TP + TN + FP + FN);
 
-        String recall = "recall: " + (TP == 0 ? 1 : TP/(TP+FN));
-        String precision = "precision: " + (TP==0&&FP==0 ? 0 : TP/(TP+FP));
+        String recall = "recall: " + (TP == 0 ? 1 : TP / (TP + FN));
+        String precision = "precision: " + (TP == 0 && FP == 0 ? 0 : TP / (TP + FP));
 
         return data + " \n" + accuracy + " \n" + recall + " \n" + precision;
 
@@ -86,21 +84,18 @@ public class RectifierAccuracyTest {
     boolean getSuccess(List<Double> result, int eval) {
         double max = Collections.max(result);
         System.out.println(result);
-        if (result.get(eval) == max) {
-            return true;
-        }
-        return false;
+        return result.get(eval) == max;
     }
 
 
     public void xOrTest() {
-        double[][] in = {{0,0}, {1,0}, {0,1}, {1,1}};
+        double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
         double[][] out = {{0}, {1}, {1}, {0}};
 
         Rectifier rectifier = Rectifier.RELU;
 
         NeuralNetwork net = new NeuralNetwork(2, 4, 1);
-        net.setRectifier(rectifier).setLearningRate(0.8).setLearningRateDescent(Descent.NONE);
+        net.setRectifier(rectifier).setLearningRate(0.8).setLearningRateOptimizer(Optimizer.NONE);
         net.fit(in, out, 1000);
 
         System.out.println("test with rectifier: " + rectifier.getDescription());

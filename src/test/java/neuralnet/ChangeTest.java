@@ -8,14 +8,14 @@ public class ChangeTest {
 
     @Test
     public void changeTest() {
-        Matrix matrix = new Matrix(2,1);
-        Matrix matrixB = new Matrix(2,1);
-        matrix.initialize(Initializer.RANDOM,0,1,false);
-        matrixB.initialize(Initializer.RANDOM,0,1,false);
+        Matrix matrix = new Matrix(2, 1);
+        Matrix matrixB = new Matrix(2, 1);
+        matrix.initialize(Initializer.RANDOM, 0, 1, false);
+        matrixB.initialize(Initializer.RANDOM, 0, 1, false);
         System.out.println(matrix);
         System.out.println();
 
-        Matrix tmp = Cost.MSE_NAIVE.gradient(matrixB, matrix);
+        Matrix tmp = CostFunction.MSE_NAIVE.gradient(matrixB, matrix);
 
         System.out.println(tmp);
         System.out.println();

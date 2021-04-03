@@ -6,11 +6,11 @@ public class LearningRateDecreaseTest {
 
     @Test
     public void learningRateDescentTest() {
-        descentTest(Descent.NONE);
-        descentTest(Descent.SGD);
+        descentTest(Optimizer.NONE);
+        descentTest(Optimizer.SGD);
     }
 
-    void descentTest(Descent lrd) {
+    void descentTest(Optimizer lrd) {
         double lrinit = 0.8;
         double lr = 0.8;
         System.out.println("testing with: " + lrd.getDescription());

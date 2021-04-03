@@ -12,12 +12,16 @@ public class NNPlotColor {
     private Color plotDataColor;
 
     public NNPlotColor(Color backgroundColor, Color plotBackgroundColor, Color plotAxisColor, Color plotGridColor, Color plotTextColor, Color plotDataColor) {
-        this.backgroundColor = backgroundColor;
-        this.plotBackgroundColor = plotBackgroundColor;
-        this.plotAxisColor = plotAxisColor;
-        this.plotGridColor = plotGridColor;
-        this.plotTextColor = plotTextColor;
-        this.plotDataColor = plotDataColor;
+        this.backgroundColor = backgroundColor == null ? Color.TRANSPARENT : backgroundColor;
+        this.plotBackgroundColor = plotBackgroundColor == null ? Color.TRANSPARENT : plotBackgroundColor;
+        this.plotAxisColor = plotAxisColor == null ? Color.TRANSPARENT : plotAxisColor;
+        this.plotGridColor = plotGridColor == null ? Color.TRANSPARENT : plotGridColor;
+        this.plotTextColor = plotTextColor == null ? Color.TRANSPARENT : plotTextColor;
+        this.plotDataColor = plotDataColor == null ? Color.TRANSPARENT : plotDataColor;
+    }
+
+    public NNPlotColor(Color backgroundColor, Color plotAxisColor,  Color plotTextColor) {
+        this(backgroundColor, null, plotAxisColor, null, plotTextColor, null);
     }
 
     public Color getBackgroundColor() {

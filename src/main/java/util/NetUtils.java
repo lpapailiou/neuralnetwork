@@ -8,6 +8,7 @@ public class NetUtils {
 
     /**
      * This method may be used to cleanse the output of previous runs with the neural network.
+     *
      * @param nodeList the Double list of results
      * @return the index of the max value
      */
@@ -20,6 +21,7 @@ public class NetUtils {
 
     /**
      * This method may be used to cleanse the output of previous runs with the neural network.
+     *
      * @param nodeList the Double list of results
      * @return the standardized list, where all values will be rounded to 0 or 1
      */

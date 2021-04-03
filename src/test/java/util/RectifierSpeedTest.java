@@ -7,7 +7,7 @@ public class RectifierSpeedTest {
 
     @Test
     public void rectifierTest() {
-        double[][] in = {{0,0}, {1,0}, {0,1}, {1,1}};
+        double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
         double[][] out = {{0}, {1}, {1}, {0}};
         testXOr(Rectifier.GELU, in, out);
         testXOr(Rectifier.IDENTITY, in, out);

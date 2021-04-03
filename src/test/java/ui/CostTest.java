@@ -8,11 +8,11 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import neuralnet.Cost;
+import neuralnet.CostFunction;
 import neuralnet.NeuralNetwork;
 import neuralnet.Regularizer;
-import util.Descent;
 import util.Initializer;
+import util.Optimizer;
 import util.Rectifier;
 
 import java.util.SortedMap;
@@ -34,13 +34,13 @@ public class CostTest extends Application {
             double canvasWidth = 1000;
             double canvasHeight = 300;
             double offset = 10;
-            Canvas canvas = new Canvas(canvasWidth+2*offset, canvasHeight+2*offset);
+            Canvas canvas = new Canvas(canvasWidth + 2 * offset, canvasHeight + 2 * offset);
             GraphicsContext context = canvas.getGraphicsContext2D();
             root.getChildren().add(canvas);
-            Canvas canvas2 = new Canvas(canvasWidth+2*offset, canvasHeight+2*offset);
+            Canvas canvas2 = new Canvas(canvasWidth + 2 * offset, canvasHeight + 2 * offset);
             GraphicsContext context2 = canvas2.getGraphicsContext2D();
             root.getChildren().add(canvas2);
-            Canvas canvas3 = new Canvas(canvasWidth+2*offset, canvasHeight+2*offset);
+            Canvas canvas3 = new Canvas(canvasWidth + 2 * offset, canvasHeight + 2 * offset);
             GraphicsContext context3 = canvas3.getGraphicsContext2D();
             //root.getChildren().add(canvas3);
 
@@ -50,10 +50,10 @@ public class CostTest extends Application {
     public double regularizationLambda = 0;
              */
 
-            NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15,15, 1)
+            NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15, 15, 1)
                     .setLearningRate(0.8)
-                    .setLearningRateDescent(Descent.NONE);
-            net.costFunction = Cost.MSE;
+                    .setLearningRateOptimizer(Optimizer.NONE);
+            net.costFunction = CostFunction.MSE;
             net.regularizationLambda = 0.1;
             net.regularizer = Regularizer.NONE;
             net.setRectifier(Rectifier.SIGMOID);
@@ -63,7 +63,7 @@ public class CostTest extends Application {
             SortedMap<Integer, Double> costMap = net.getCostMap();
 
             NNPlot plot = new NNPlot(context);
-                    plot.plot(net.getBackPropData(), IterationObject::getCost, false, 0.05);
+            plot.plot(net.getBackPropData(), IterationObject::getCost, false, 0.05);
             new NNPlot(context2).plot(net.getBackPropData(), IterationObject::getCostSum, false, 0);
 
 

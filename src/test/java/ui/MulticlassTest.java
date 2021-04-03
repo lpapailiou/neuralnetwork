@@ -9,19 +9,19 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import neuralnet.Cost;
+import neuralnet.CostFunction;
 import neuralnet.NeuralNetwork;
 import ui.color.NNMultiColor;
 import ui.color.NNPlotColor;
-import util.Descent;
 import util.Initializer;
+import util.Optimizer;
 
 import static javafx.scene.paint.Color.*;
 
 public class MulticlassTest extends Application {
 
-    double[][] in = {{0.1, 2.2}, {0.2, 0.22}, {0.3,0.1}, {0.4,0.7}, {0.5,0.8}, {0.45,0.9}, {0.8,0.1}, {0.9,0.15}, {0.8,0.2}, {0.5,0.55}};
-    double[][] out = {{1,0,0,0}, {1,0,0,0}, {1,0,0,0}, {0,1,0,0}, {0,1,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,1,0}, {0,0,1,0}, {0,0,0,1}};
+    double[][] in = {{0.1, 2.2}, {0.2, 0.22}, {0.3, 0.1}, {0.4, 0.7}, {0.5, 0.8}, {0.45, 0.9}, {0.8, 0.1}, {0.9, 0.15}, {0.8, 0.2}, {0.5, 0.55}};
+    double[][] out = {{1, 0, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -34,10 +34,10 @@ public class MulticlassTest extends Application {
             root.setSpacing(10);
             root.setPadding(new Insets(20, 20, 20, 20));
 
-            NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15,15, 4)
+            NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15, 15, 4)
                     .setLearningRate(0.8)
-                    .setLearningRateDescent(Descent.NONE);
-            net.costFunction = Cost.MSE;
+                    .setLearningRateOptimizer(Optimizer.NONE);
+            net.costFunction = CostFunction.MSE;
             int iterations = 200;
 
             net.fit(in, out, iterations);
@@ -46,13 +46,13 @@ public class MulticlassTest extends Application {
                 iterations += 200;
                 net.fit(in, out, iterations);
 
-                NNPlot plot = new NNPlot(addCanvas(350,350, root));
-                plot.setPadding(30,0,20,30, 0.1);
-                plot.setTitle("after " + iterations + " iterations");
-                plot.setColorPalette(new NNPlotColor(BLACK, BLACK, LIGHTGRAY, LIGHTGRAY, LIGHTGRAY, RED));
+                NNDecisionBoundaryPlot plot = new NNDecisionBoundaryPlot(addCanvas(350, 350, root));
+                plot.setPadding(30, 0, 20, 30, 0.1);
+
+                plot.setColorPalette(new NNPlotColor(BLACK, BLACK, LIGHTGRAY, LIGHTGRAY, LIGHTGRAY, RED)).setTitle("after " + iterations + " iterations");;
 
                 plot.plot(net, in, 1, 0.8, true, true, true, new NNMultiColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b")));
-                plot.plot2DData(out, 12);
+                plot.plotData(out, 12);
 
             }
 

@@ -21,6 +21,7 @@ public class Matrix implements Serializable {
 
     /**
      * The constructor to create a randomized matrix for given type.
+     *
      * @param rows the row count of the matrix.
      * @param cols the column count of the matrix.
      */
@@ -32,48 +33,13 @@ public class Matrix implements Serializable {
 
     /**
      * Constructor used for testing
+     *
      * @param input the input 2d array to be converted to a matrix.
      */
     Matrix(double[][] input) {
         data = input;
         rows = input.length;
         cols = input[0].length;
-    }
-
-    void add(Matrix m) {
-        if (cols != m.cols || rows != m.rows) {
-            throw new IllegalArgumentException("wrong input matrix dimensions for addition!");
-        }
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                double sideA = data[i][j];
-                double sideB = m.data[i][j];
-                double value = sideA + sideB;
-                if (Double.isInfinite(value)) {
-                    value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
-                } else if (Double.isNaN(value)) {
-                    throw new ArithmeticException("Addition operation evaluated to NaN");
-                }
-                data[i][j] = value;
-            }
-        }
-    }
-
-    void addBias(Matrix m) {
-        if (cols != m.cols) {
-            throw new IllegalArgumentException("wrong input matrix dimensions!");
-        }
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                double value = data[i][j] + m.data[0][j];
-                if (Double.isInfinite(value)) {
-                    value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
-                } else if (Double.isNaN(value)) {
-                    throw new ArithmeticException("Bias addition evaluated to NaN");
-                }
-                data[i][j] = value;
-            }
-        }
     }
 
     static Matrix subtract(Matrix a, Matrix b) {
@@ -102,14 +68,6 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
-    void multiply(double scalar) {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                data[i][j] *= scalar;
-            }
-        }
-    }
-
     static Matrix apply(Matrix a, Function<Double, Double> function) {
         Matrix m = a.copy();
         for (int i = 0; i < m.rows; i++) {
@@ -128,17 +86,6 @@ public class Matrix implements Serializable {
             }
         }
         return m;
-    }
-
-    void scalarProduct(Matrix m) {
-        if (cols != m.cols || rows != m.rows) {
-            throw new IllegalArgumentException("wrong input matrix dimensions!");
-        }
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                data[i][j] *= m.data[i][j];
-            }
-        }
     }
 
     static double dotProduct(Matrix a, Matrix b) {
@@ -222,6 +169,92 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
+    static Matrix fromArray(double[] arr) {
+        Matrix tmp = new Matrix(arr.length, 1);
+        for (int i = 0; i < arr.length; i++) {
+            tmp.data[i][0] = arr[i];
+        }
+        return tmp;
+    }
+
+    static List<Double> asList(Matrix m) {
+        List<Double> tmp = new ArrayList<>();
+        for (int i = 0; i < m.rows; i++) {
+            for (int j = 0; j < m.cols; j++) {
+                tmp.add(m.data[i][j]);
+            }
+        }
+        return tmp;
+    }
+
+    static double[] asArray(Matrix m) {
+
+        int index = 0;
+        double[] tmp = new double[m.rows * m.cols];
+        for (int i = 0; i < m.rows; i++) {
+            for (int j = 0; j < m.cols; j++) {
+                tmp[index] = m.data[i][j];
+                index++;
+            }
+        }
+        return tmp;
+    }
+
+    void add(Matrix m) {
+        if (cols != m.cols || rows != m.rows) {
+            throw new IllegalArgumentException("wrong input matrix dimensions for addition!");
+        }
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                double sideA = data[i][j];
+                double sideB = m.data[i][j];
+                double value = sideA + sideB;
+                if (Double.isInfinite(value)) {
+                    value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                } else if (Double.isNaN(value)) {
+                    throw new ArithmeticException("Addition operation evaluated to NaN");
+                }
+                data[i][j] = value;
+            }
+        }
+    }
+
+    void addBias(Matrix m) {
+        if (cols != m.cols) {
+            throw new IllegalArgumentException("wrong input matrix dimensions!");
+        }
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                double value = data[i][j] + m.data[0][j];
+                if (Double.isInfinite(value)) {
+                    value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                } else if (Double.isNaN(value)) {
+                    throw new ArithmeticException("Bias addition evaluated to NaN");
+                }
+                data[i][j] = value;
+            }
+        }
+    }
+
+    void multiply(double scalar) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                data[i][j] *= scalar;
+            }
+        }
+    }
+
+    void scalarProduct(Matrix m) {
+        if (cols != m.cols || rows != m.rows) {
+            throw new IllegalArgumentException("wrong input matrix dimensions!");
+        }
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                data[i][j] *= m.data[i][j];
+            }
+        }
+    }
+
     void activate(Rectifier rectifier) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -262,37 +295,6 @@ public class Matrix implements Serializable {
 
     int getCols() {
         return cols;
-    }
-
-    static Matrix fromArray(double[] arr) {
-        Matrix tmp = new Matrix(arr.length, 1);
-        for (int i = 0; i < arr.length; i++) {
-            tmp.data[i][0] = arr[i];
-        }
-        return tmp;
-    }
-
-    static List<Double> asList(Matrix m) {
-        List<Double> tmp = new ArrayList<>();
-        for (int i = 0; i < m.rows; i++) {
-            for (int j = 0; j < m.cols; j++) {
-                tmp.add(m.data[i][j]);
-            }
-        }
-        return tmp;
-    }
-
-    static double[] asArray(Matrix m) {
-
-        int index = 0;
-        double[] tmp = new double[m.rows * m.cols];
-        for (int i = 0; i < m.rows; i++) {
-            for (int j = 0; j < m.cols; j++) {
-                tmp[index] = m.data[i][j];
-                index++;
-            }
-        }
-        return tmp;
     }
 
     void initialize(Initializer initializer, int fanIn, int fanOut, boolean isBias) {
@@ -350,10 +352,10 @@ public class Matrix implements Serializable {
                 sb.append(data[i][j]);
                 sb.append(", ");
             }
-            sb.replace(sb.length()-2, sb.length(), "");
+            sb.replace(sb.length() - 2, sb.length(), "");
             sb.append("],\n");
         }
-        sb.replace(sb.length()-2, sb.length(), "");
+        sb.replace(sb.length() - 2, sb.length(), "");
         sb.append("]");
         return sb.toString();
     }

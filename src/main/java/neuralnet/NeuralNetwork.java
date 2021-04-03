@@ -1,8 +1,8 @@
 package neuralnet;
 
 import data.BackPropData;
-import util.Descent;
 import util.Initializer;
+import util.Optimizer;
 import util.Rectifier;
 
 import java.beans.PropertyChangeListener;
@@ -25,33 +25,8 @@ import java.util.*;
  */
 public class NeuralNetwork implements Serializable {
 
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
     private static final Properties PROPERTIES = new Properties();
     private static final long serialVersionUID = 2L;
-
-    private int[] configuration;
-    private List<Layer> layers = new ArrayList<>();
-    private List<List<Double>> cachedNodeValues = new ArrayList<>();
-
-    private Initializer initializer;
-    private Rectifier rectifier;
-    private Descent learningRateDescent;
-    private double initialLearningRate;
-    private double learningRate;
-    private double learningRateMomentum;
-    private int iterationCount;
-    private Descent mutationRateDescent;
-    private double initialMutationRate;
-    private double mutationRate;
-    private double mutationRateMomentum;
-
-    public Cost costFunction = Cost.MSE;
-    public Regularizer regularizer = Regularizer.NONE;
-    public double regularizationLambda = 0;
-
-    private SortedMap<Integer, Double> costMap = new TreeMap<>();
-    private BackPropData backPropData = new BackPropData();
 
     static {
         URL path = NeuralNetwork.class.getClassLoader().getResource("neuralnetwork.properties");
@@ -65,11 +40,33 @@ public class NeuralNetwork implements Serializable {
         }
     }
 
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    public CostFunction costFunction = CostFunction.MSE;
+    public Regularizer regularizer = Regularizer.NONE;
+    public double regularizationLambda = 0;
+    private int[] configuration;
+    private List<Layer> layers = new ArrayList<>();
+    private List<List<Double>> cachedNodeValues = new ArrayList<>();
+    private Initializer initializer;
+    private Rectifier rectifier;
+    private Optimizer learningRateOptimizer;
+    private double initialLearningRate;
+    private double learningRate;
+    private double learningRateMomentum;
+    private int iterationCount;
+    private Optimizer mutationRateOptimizer;
+    private double initialMutationRate;
+    private double mutationRate;
+    private double mutationRateMomentum;
+    private SortedMap<Integer, Double> costMap = new TreeMap<>();
+    private BackPropData backPropData = new BackPropData();
+
     /**
      * A constructor of the neural network.
      * The varag parameters will define the architecture of the neural network. You need to enter at least two parameters.
      * For hyperparameters and additional default settings, please use the neuralnetwork.properties files or
      * the according setters (builder pattern available).
+     *
      * @param layerParams the architecture of the neural network. First argument = node count of input layer; last argument = node count of output layer; arguments between = node count per hidden layer.
      */
     public NeuralNetwork(int... layerParams) {
@@ -84,8 +81,8 @@ public class NeuralNetwork implements Serializable {
         try {
             this.initializer = Initializer.valueOf(PROPERTIES.getProperty("initializer").toUpperCase());
             this.rectifier = Rectifier.valueOf(PROPERTIES.getProperty("rectifier").toUpperCase());
-            this.learningRateDescent = Descent.valueOf(PROPERTIES.getProperty("learning_rate_descent").toUpperCase());
-            this.mutationRateDescent = Descent.valueOf(PROPERTIES.getProperty("mutation_rate_descent").toUpperCase());
+            this.learningRateOptimizer = Optimizer.valueOf(PROPERTIES.getProperty("learning_rate_optimizer").toUpperCase());
+            this.mutationRateOptimizer = Optimizer.valueOf(PROPERTIES.getProperty("mutation_rate_optimizer").toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Please choose valid enum constant. See properties files for hints.", e);
         }
@@ -115,9 +112,9 @@ public class NeuralNetwork implements Serializable {
         }
 
         for (int i = 1; i < layerParams.length; i++) {
-            int fanIn = layerParams[i-1];
-            int fanOut = (i == layerParams.length - 1) ? 0 : layerParams[i+1];
-            Layer layer = new Layer(layerParams[i], layerParams[i-1]);
+            int fanIn = layerParams[i - 1];
+            int fanOut = (i == layerParams.length - 1) ? 0 : layerParams[i + 1];
+            Layer layer = new Layer(layerParams[i], layerParams[i - 1]);
             layer.initialize(initializer, fanIn, fanOut);
             layers.add(layer);
         }
@@ -128,7 +125,8 @@ public class NeuralNetwork implements Serializable {
      * The varag parameters will define the architecture of the neural network. You need to enter at least two parameters.
      * For hyperparameters and additional default settings, please use the neuralnetwork.properties files or
      * the according setters (builder pattern available).
-     * @param  initializer the initializer function.
+     *
+     * @param initializer the initializer function.
      * @param layerParams the architecture of the neural network. First argument = node count of input layer; last argument = node count of output layer; arguments between = node count per hidden layer.
      */
     public NeuralNetwork(Initializer initializer, int... layerParams) {
@@ -139,9 +137,9 @@ public class NeuralNetwork implements Serializable {
         this.initializer = initializer;
         layers.clear();
         for (int i = 1; i < layerParams.length; i++) {
-            int fanIn = layerParams[i-1];
-            int fanOut = (i == layerParams.length - 1) ? 0 : layerParams[i+1];
-            Layer layer = new Layer(layerParams[i], layerParams[i-1]);
+            int fanIn = layerParams[i - 1];
+            int fanOut = (i == layerParams.length - 1) ? 0 : layerParams[i + 1];
+            Layer layer = new Layer(layerParams[i], layerParams[i - 1]);
             layer.initialize(initializer, fanIn, fanOut);
             layers.add(layer);
         }
@@ -156,9 +154,71 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
+     * This method will merge two neural networks to a new neural network.
+     *
+     * @param a neural network to be altered and merged
+     * @param b neural network to be merged
+     * @return the neural network a merged with b
+     */
+    public static NeuralNetwork merge(NeuralNetwork a, NeuralNetwork b) {
+        if (a == null || b == null) {
+            throw new NullPointerException("two NeuralNetwork instances required!");
+        }
+        a = a.copy();
+        for (int i = 0; i < a.layers.size(); i++) {
+            a.layers.get(i).weight = Matrix.merge(a.layers.get(i).weight, b.layers.get(i).weight);
+            a.layers.get(i).bias = Matrix.merge(a.layers.get(i).bias, b.layers.get(i).bias);
+        }
+        return a;
+    }
+
+    /**
+     * Setter to allow altering properties for the NeuralNetwork configuration.
+     * The set value will not be validated within this method. Please see neuralnetwork.properties
+     * as guideline.
+     *
+     * @param key   the key of the property.
+     * @param value the value of the property.
+     */
+    public static void setProperty(String key, String value) {
+        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_optimizer") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size") && !key.equals("genetic_mutation_rate") && !key.equals("mutation_rate_descent") && !key.equals("mutation_decay_momentum") &&
+                !key.equals("initializer")) {
+            throw new IllegalArgumentException("Property with key " + key + "is not valid in this context!");
+        } else if (key.equals("learning_rate")) {
+            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
+                throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
+            }
+        } else if (key.equals("learning_decay_momentum") || key.equals("mutation_decay_momentum")) {
+            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
+                throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
+            }
+        } else if (key.equals("genetic_reproduction_pool_size")) {
+            if (Double.parseDouble(value) < 2) {
+                throw new IllegalArgumentException("Reproduction pool size must be set above 2!");
+            }
+        } else if (key.equals("genetic_mutation_rate")) {
+            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
+                throw new IllegalArgumentException("Mutation rate must be set between 0.0 and 1.0!");
+            }
+        }
+        PROPERTIES.setProperty(key, value);
+    }
+
+    /**
+     * Getter for the NeuralNetwork properties.
+     *
+     * @param key the key of the property.
+     * @return the value of the according property.
+     */
+    public static String getProperty(String key) {
+        return PROPERTIES.getProperty(key);
+    }
+
+    /**
      * This method will take input nodes as parameter and return the predicted output nodes.
      * The neural net will not be modified. This method can be used for testing or the unsupervised machine learning approach.
      * Additionally, this method offers property change support.
+     *
      * @param inputNodes the input nodes as double array
      * @return the predicted output nodes as Double List
      */
@@ -186,7 +246,8 @@ public class NeuralNetwork implements Serializable {
     /**
      * This method will take input nodes as well as the expected output nodes as parameter and return the predicted output nodes.
      * The neural net will be modified and back propagate the expected values to adjust the weighed layers. This method can be used for training as supervised machine learning algorithm.
-     * @param inputNodes the input nodes as double array
+     *
+     * @param inputNodes          the input nodes as double array
      * @param expectedOutputNodes the expected output nodes as double array
      * @return the actual output nodes as Double List
      */
@@ -203,53 +264,47 @@ public class NeuralNetwork implements Serializable {
         List<Matrix> cachedNodeValueVector = new ArrayList<>();
         Matrix tmp = input;
         for (Layer layer : layers) {
-            tmp = Matrix.multiply(layer.weight, tmp);
-            tmp.addBias(layer.bias);
-            tmp.activate(rectifier);
+            tmp = Matrix.multiply(layer.weight, tmp);               // W x a
+            tmp.addBias(layer.bias);                                // (W x a) + b = z
+            tmp.activate(rectifier);                                // activate(z)
             cachedNodeValueVector.add(tmp);
         }
 
         Matrix target = Matrix.fromArray(expectedOutputNodes);
 
         // backward propagate to adjust weights in layers
-        costFunction = Cost.MSE_NAIVE;
-        Matrix error = null;
-        for (int i = cachedNodeValueVector.size()-1; i >= 0; i--) {
-            if (error == null) {
+        costFunction = CostFunction.MSE_NAIVE;
+        Matrix loss = null;
+        for (int i = cachedNodeValueVector.size() - 1; i >= 0; i--) {
+            if (loss == null) {
 
-                double cost = costFunction.cost(cachedNodeValueVector.get(cachedNodeValueVector.size()-1), target) + regularizer.get(cachedNodeValueVector.get(cachedNodeValueVector.size()-1), regularizationLambda);
+                // compotation of cost C
+                double cost = costFunction.cost(cachedNodeValueVector.get(cachedNodeValueVector.size() - 1), target) + regularizer.get(cachedNodeValueVector.get(cachedNodeValueVector.size() - 1), regularizationLambda);
                 costMap.put(iterationCount, cost);
-                backPropData.add(iterationCount, cost, Matrix.asArray(cachedNodeValueVector.get(cachedNodeValueVector.size()-1)), expectedOutputNodes);
+                backPropData.add(iterationCount, cost, Matrix.asArray(cachedNodeValueVector.get(cachedNodeValueVector.size() - 1)), expectedOutputNodes);
 
+                // computation of loss L (derivate of cost function)
+                loss = costFunction.gradient(target, cachedNodeValueVector.get(cachedNodeValueVector.size() - 1));
 
-                error = costFunction.gradient(target, cachedNodeValueVector.get(cachedNodeValueVector.size()-1));
-                error = Matrix.apply(error, regularizer.gradient(error, regularizationLambda), Double::sum);
-                //error = Matrix.subtract(target, cachedNodeValueVector.get(cachedNodeValueVector.size()-1));
-
+                // apply regularization
+                loss = Matrix.apply(loss, regularizer.gradient(loss, regularizationLambda), Double::sum);
 
             } else {
-                error = Matrix.multiply(Matrix.transpose(layers.get(i+1).weight), error);
+                loss = Matrix.multiply(Matrix.transpose(layers.get(i + 1).weight), loss);
             }
 
-            // plus --> distribute
-            // mul --> switch
-           Matrix gradient = cachedNodeValueVector.get(i).derive(rectifier);
-            gradient.scalarProduct(error);
+            // chain rule: plus --> distribute; mul --> switch
+
+            // chain rule for backpropagation: derivation of cost (loss) * derivation of activation * preceding activated neurons
+            Matrix gradient = cachedNodeValueVector.get(i).derive(rectifier);      // derivation of activation
+            gradient.scalarProduct(loss);                                          // loss * derivation of activation
+
             gradient.multiply(learningRate);
-            Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : cachedNodeValueVector.get(i-1)));
-            layers.get(i).weight.add(delta);     // add ok
-            layers.get(i).bias.addBias(gradient);        // add ok
 
+            Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : cachedNodeValueVector.get(i - 1)));      // multiply with preceding activated neurons
+            layers.get(i).weight.add(delta);                                       // update weights
 
-/*
-
-            Matrix gradient = cachedNodeValueVector.get(i).derive(rectifier);
-            gradient.scalarProduct(error);
-            gradient.multiply(learningRate);
-            Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : cachedNodeValueVector.get(i-1)));
-            layers.get(i).weight.add(delta);
-            layers.get(i).bias.addBias(gradient);*/
-
+            layers.get(i).bias.addBias(gradient);                                  // update biases
 
         }
         decreaseRate();
@@ -258,9 +313,10 @@ public class NeuralNetwork implements Serializable {
 
     /**
      * This method can be used to batch train the neural net with the supervised machine learning approach.
-     * @param inputSet the input set of possible input node values
+     *
+     * @param inputSet          the input set of possible input node values
      * @param expectedOutputSet the output set of according expected output values
-     * @param epochs the count of repetitions of the batch training
+     * @param epochs            the count of repetitions of the batch training
      */
     public void fit(double[][] inputSet, double[][] expectedOutputSet, int epochs) {
         if (inputSet == null || expectedOutputSet == null) {
@@ -273,25 +329,8 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * This method will merge two neural networks to a new neural network.
-     * @param a neural network to be altered and merged
-     * @param b neural network to be merged
-     * @return the neural network a merged with b
-     */
-    public static NeuralNetwork merge(NeuralNetwork a, NeuralNetwork b) {
-        if (a == null || b == null) {
-            throw new NullPointerException("two NeuralNetwork instances required!");
-        }
-        a = a.copy();
-        for (int i = 0; i < a.layers.size(); i++) {
-            a.layers.get(i).weight = Matrix.merge(a.layers.get(i).weight, b.layers.get(i).weight);
-            a.layers.get(i).bias = Matrix.merge(a.layers.get(i).bias, b.layers.get(i).bias);
-        }
-        return a;
-    }
-
-    /**
      * This method will provide a randomized copy of the current neural network. The output neural network will not be connected to the copied neural network.
+     *
      * @return a mutated copy of this instance
      */
     public NeuralNetwork mutate() {
@@ -302,6 +341,7 @@ public class NeuralNetwork implements Serializable {
 
     /**
      * This method will provide an identical copy of the current neural network. The output neural network will not be connected to the copied neural network.
+     *
      * @return an identical copy of this instance
      */
     public NeuralNetwork copy() {
@@ -309,12 +349,12 @@ public class NeuralNetwork implements Serializable {
         neuralNetwork.initializer = this.initializer;
         neuralNetwork.configuration = this.configuration;
         neuralNetwork.rectifier = this.rectifier;
-        neuralNetwork.learningRateDescent = this.learningRateDescent;
+        neuralNetwork.learningRateOptimizer = this.learningRateOptimizer;
         neuralNetwork.learningRateMomentum = this.learningRateMomentum;
         neuralNetwork.initialLearningRate = this.initialLearningRate;
         neuralNetwork.learningRate = this.learningRate;
         neuralNetwork.iterationCount = this.iterationCount;
-        neuralNetwork.mutationRateDescent = this.mutationRateDescent;
+        neuralNetwork.mutationRateOptimizer = this.mutationRateOptimizer;
         neuralNetwork.mutationRateMomentum = this.mutationRateMomentum;
         neuralNetwork.initialMutationRate = this.initialMutationRate;
         neuralNetwork.mutationRate = this.mutationRate;
@@ -330,6 +370,7 @@ public class NeuralNetwork implements Serializable {
 
     /**
      * Getter for the initializer enum.
+     *
      * @return the initializer.
      */
     public Initializer getInitializer() {
@@ -337,8 +378,18 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
+     * Returns current rectifier of this NeuralNetwork. Must not match corresponding property.
+     *
+     * @return the rectifier.
+     */
+    public Rectifier getRectifier() {
+        return rectifier;
+    }
+
+    /**
      * Method to set the rectifier for the NeuralNetwork.
      * The rectifier is the activation function for the nodes of the NeuralNetwork.
+     *
      * @param rectifier the rectifier to be chosen.
      * @return the NeuralNetwork.
      */
@@ -351,37 +402,41 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * Returns current rectifier of this NeuralNetwork. Must not match corresponding property.
-     * @return the rectifier.
+     * Returns current learning rate optimizer of this NeuralNetwork. Must not match corresponding property.
+     *
+     * @return the learning rate optimizer.
      */
-    public Rectifier getRectifier() {
-        return rectifier;
+    public Optimizer getLearningRateOptimizer() {
+        return learningRateOptimizer;
     }
 
     /**
-     * Method to set the learning rate descent.
-     * @param learningRateDescent the descent function the learning rate.
+     * Method to set the learning rate optimizer.
+     *
+     * @param learningRateOptimizer the optimizer function the learning rate.
      * @return the NeuralNetwork.
      */
-    public NeuralNetwork setLearningRateDescent(Descent learningRateDescent) {
-        if (learningRateDescent == null) {
-            throw new NullPointerException("Learning rate descent must not be null!");
+    public NeuralNetwork setLearningRateOptimizer(Optimizer learningRateOptimizer) {
+        if (learningRateOptimizer == null) {
+            throw new NullPointerException("Learning rate optimizer must not be null!");
         }
-        this.learningRateDescent = learningRateDescent;
+        this.learningRateOptimizer = learningRateOptimizer;
         return this;
     }
 
     /**
-     * Returns current learning rate descent of this NeuralNetwork. Must not match corresponding property.
-     * @return the learning rate descent.
+     * Returns current learning rate of this NeuralNetwork. Must not match corresponding property.
+     *
+     * @return the learning rate.
      */
-    public Descent getLearningRateDescent() {
-        return learningRateDescent;
+    public double getLearningRate() {
+        return learningRate;
     }
 
     /**
      * Method to set the learning rate. The learning rate may be decreased in case of
      * unsupervised learning.
+     *
      * @param learningRate the learning rate.
      * @return the NeuralNetwork.
      */
@@ -395,19 +450,11 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * Returns current learning rate of this NeuralNetwork. Must not match corresponding property.
-     * @return the learning rate.
-     */
-    public double getLearningRate() {
-        return learningRate;
-    }
-
-    /**
-     * Decreases the current learning and mutation rate according to the chosen Descent function.
+     * Decreases the current learning and mutation rate according to the chosen Optimizer function.
      */
     public void decreaseRate() {
-        this.learningRate = learningRateDescent.decrease(initialLearningRate, learningRateMomentum, iterationCount);
-        this.mutationRate = mutationRateDescent.decrease(initialMutationRate, mutationRateMomentum, iterationCount);
+        this.learningRate = learningRateOptimizer.decrease(initialLearningRate, learningRateMomentum, iterationCount);
+        this.mutationRate = mutationRateOptimizer.decrease(initialMutationRate, mutationRateMomentum, iterationCount);
         iterationCount++;
     }
 
@@ -419,7 +466,17 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
+     * Returns current momentum of this NeuralNetwork. Must not match corresponding property.
+     *
+     * @return the momentum.
+     */
+    public double getLearningRateMomentum() {
+        return learningRateMomentum;
+    }
+
+    /**
      * Sets momentum for the decrease of the learning rate.
+     *
      * @param learningRateMomentum the momentum to decrease the learning rate.
      * @return the NeuralNetwork.
      */
@@ -432,37 +489,41 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * Returns current momentum of this NeuralNetwork. Must not match corresponding property.
-     * @return the momentum.
+     * Returns current mutation rate optimizer of this NeuralNetwork. Must not match corresponding property.
+     *
+     * @return the mutation rate optimizer.
      */
-    public double getLearningRateMomentum() {
-        return learningRateMomentum;
+    public Optimizer getMutationRateOptimizer() {
+        return mutationRateOptimizer;
     }
 
     /**
-     * Method to set the mutation rate descent.
+     * Method to set the mutation rate optimizer.
      * Genetic algorithm only.
-     * @param mutationRateDescent the descent function the mutation rate.
+     *
+     * @param mutationRateOptimizer the optimizer function the mutation rate.
      * @return the NeuralNetwork.
      */
-    public NeuralNetwork setMutationRateDescent(Descent mutationRateDescent) {
-        if (mutationRateDescent == null) {
-            throw new NullPointerException("Mutation rate descent must not be null!");
+    public NeuralNetwork setMutationRateOptimizer(Optimizer mutationRateOptimizer) {
+        if (mutationRateOptimizer == null) {
+            throw new NullPointerException("Mutation rate optimizer must not be null!");
         }
-        this.mutationRateDescent = mutationRateDescent;
+        this.mutationRateOptimizer = mutationRateOptimizer;
         return this;
     }
 
     /**
-     * Returns current mutation rate descent of this NeuralNetwork. Must not match corresponding property.
-     * @return the mutation rate descent.
+     * Returns current mutation rate of this NeuralNetwork. Must not match corresponding property.
+     *
+     * @return the mutation rate.
      */
-    public Descent getMutationRateDescent() {
-        return mutationRateDescent;
+    public double getMutationRate() {
+        return mutationRate;
     }
 
     /**
      * Sets mutation rate in percentage for the count of mutated components of the neural network.
+     *
      * @param mutationRate the mutation rate. Must be between 0.0 and 1.0.
      * @return the NeuralNetwork.
      */
@@ -476,14 +537,6 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * Returns current mutation rate of this NeuralNetwork. Must not match corresponding property.
-     * @return the mutation rate.
-     */
-    public double getMutationRate() {
-        return mutationRate;
-    }
-
-    /**
      * This method will reset the mutation rate to its original state.
      */
     public void resetMutationRate() {
@@ -491,7 +544,17 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
+     * Returns current momentum of this NeuralNetwork. Must not match corresponding property.
+     *
+     * @return the momentum.
+     */
+    public double getMutationRateMomentum() {
+        return mutationRateMomentum;
+    }
+
+    /**
      * Sets momentum for the decrease of the mutation rate.
+     *
      * @param mutationRateMomentum the momentum to decrease the mutation rate.
      * @return the NeuralNetwork.
      */
@@ -504,55 +567,8 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * Returns current momentum of this NeuralNetwork. Must not match corresponding property.
-     * @return the momentum.
-     */
-    public double getMutationRateMomentum() {
-        return mutationRateMomentum;
-    }
-
-    /**
-     * Setter to allow altering properties for the NeuralNetwork configuration.
-     * The set value will not be validated within this method. Please see neuralnetwork.properties
-     * as guideline.
-     * @param key the key of the property.
-     * @param value the value of the property.
-     */
-    public static void setProperty(String key, String value) {
-        if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_descent") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size") && !key.equals("genetic_mutation_rate") && !key.equals("mutation_rate_descent") && !key.equals("mutation_decay_momentum") &&
-                !key.equals("initializer")) {
-            throw new IllegalArgumentException("Property with key " + key + "is not valid in this context!");
-        } else if (key.equals("learning_rate")) {
-            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
-                throw new IllegalArgumentException("Learning rate must be set between 0.0 and 1.0!");
-            }
-        } else if (key.equals("learning_decay_momentum") || key.equals("mutation_decay_momentum")) {
-            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
-                throw new IllegalArgumentException("Momentum must be set between 0.0 and 1.0!");
-            }
-        } else if (key.equals("genetic_reproduction_pool_size")) {
-            if (Double.parseDouble(value) < 2) {
-                throw new IllegalArgumentException("Reproduction pool size must be set above 2!");
-            }
-        } else if (key.equals("genetic_mutation_rate")) {
-            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
-                throw new IllegalArgumentException("Mutation rate must be set between 0.0 and 1.0!");
-            }
-        }
-        PROPERTIES.setProperty(key, value);
-    }
-
-    /**
-     * Getter for the NeuralNetwork properties.
-     * @param key the key of the property.
-     * @return the value of the according property.
-     */
-    public static String getProperty(String key) {
-        return PROPERTIES.getProperty(key);
-    }
-
-    /**
      * Getter of the configuration of the neural network, which was used to create it.
+     *
      * @return the node count per layer.
      */
     public int[] getConfiguration() {
@@ -562,6 +578,7 @@ public class NeuralNetwork implements Serializable {
     /**
      * With this method, the actual values of every node during a prediction process can be querieed. The
      * values are available right after a prediction was executed.
+     *
      * @return the cached values for every node after a prediction.
      */
     public List<List<Double>> getCachedNodeValues() {
@@ -570,6 +587,7 @@ public class NeuralNetwork implements Serializable {
 
     /**
      * This method allows do extracts the weight matrix of a specific layer.
+     *
      * @param layer the index of the layer.
      * @return the weight matrix of the layer.
      */
@@ -580,6 +598,7 @@ public class NeuralNetwork implements Serializable {
     /**
      * This method allows to set a property change listener to the neural network.
      * It will fire when a prediction is made.
+     *
      * @param listener the PropertyChangeListener to be added.
      */
     public void addListener(PropertyChangeListener listener) {
@@ -606,8 +625,8 @@ public class NeuralNetwork implements Serializable {
         sb.append("learning rate: ");
         sb.append(learningRate);
         sb.append(", ");
-        sb.append("learning rate descent: ");
-        sb.append(learningRateDescent.getDescription());
+        sb.append("learning rate optimizer: ");
+        sb.append(learningRateOptimizer.getDescription());
         sb.append(", ");
         sb.append("learning rate momentum: ");
         sb.append(learningRateMomentum);
@@ -615,8 +634,8 @@ public class NeuralNetwork implements Serializable {
         sb.append("mutation rate: ");
         sb.append(mutationRate);
         sb.append(", ");
-        sb.append("mutation rate descent: ");
-        sb.append(mutationRateDescent.getDescription());
+        sb.append("mutation rate optimizer: ");
+        sb.append(mutationRateOptimizer.getDescription());
         sb.append(", ");
         sb.append("mutation rate momentum: ");
         sb.append(mutationRateMomentum);

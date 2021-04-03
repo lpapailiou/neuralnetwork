@@ -22,6 +22,7 @@ public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObj
     /**
      * This method allows a prediction for given input. The input values will be processed in the
      * NeuralNetwork held by this instance.
+     *
      * @param inputValues the input array to be processed.
      * @return the output values as Double List.
      */
@@ -30,12 +31,14 @@ public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObj
     /**
      * This method contains the logic of one 'step' or 'move' of this instance. It will be triggered
      * sequentially, until the task to be performed is over.
+     *
      * @return true if the task is still active.
      */
     boolean perform();
 
     /**
      * This method will allow to extract the NeuralNetwork for the genetic algorithm.
+     *
      * @return the NeuralNetwork held by this instance.
      */
     NeuralNetwork getNeuralNetwork();
@@ -44,6 +47,7 @@ public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObj
      * This method returns the fitness of this instance. The fitness is a value which will be maximized by the
      * genetic algorithm throughout multiple generations. It will be used to compare this instance with other
      * instances within the same population.
+     *
      * @return the fitness value for this instance.
      */
     long getFitness();
@@ -51,6 +55,7 @@ public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObj
     /**
      * This method indicates if this instance is in an immature state yet. In mature statues only, the genetic
      * algorithm will perform a roulette selection for the next generation.
+     *
      * @return true if the state of the instance is yet immature.
      */
     boolean isImmature();
@@ -58,6 +63,7 @@ public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObj
     /**
      * This method allows writing log messages. The best performing instance of a generation will be selected
      * after a generation is run for log output, so the progress of a generation can be supervised.
+     *
      * @return the log message from the best instance of the current population.
      */
     String getLogMessage();
@@ -65,6 +71,7 @@ public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObj
     /**
      * This method indicates if this instance did reach the best possible state. It is used for specific log
      * messages, so the progress of the genetic algorithm can be supervised more easily.
+     *
      * @return true if the best possible state is reached.
      */
     boolean hasReachedGoal();
