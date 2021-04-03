@@ -41,9 +41,9 @@ public class NeuralNetwork implements Serializable {
     }
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-    public CostFunction costFunction = CostFunction.MSE;
-    public Regularizer regularizer = Regularizer.NONE;
-    public double regularizationLambda = 0;
+    private CostFunction costFunction;
+    private Regularizer regularizer = Regularizer.NONE;
+    private double regularizationLambda = 0;
     private int[] configuration;
     private List<Layer> layers = new ArrayList<>();
     private List<List<Double>> cachedNodeValues = new ArrayList<>();
@@ -58,7 +58,6 @@ public class NeuralNetwork implements Serializable {
     private double initialMutationRate;
     private double mutationRate;
     private double mutationRateMomentum;
-    private SortedMap<Integer, Double> costMap = new TreeMap<>();
     private BackPropData backPropData = new BackPropData();
 
     /**
@@ -80,6 +79,8 @@ public class NeuralNetwork implements Serializable {
 
         try {
             this.initializer = Initializer.valueOf(PROPERTIES.getProperty("initializer").toUpperCase());
+            this.costFunction = CostFunction.valueOf(PROPERTIES.getProperty("cost_function").toUpperCase());
+            this.regularizer = Regularizer.valueOf(PROPERTIES.getProperty("regularizer").toUpperCase());
             this.rectifier = Rectifier.valueOf(PROPERTIES.getProperty("rectifier").toUpperCase());
             this.learningRateOptimizer = Optimizer.valueOf(PROPERTIES.getProperty("learning_rate_optimizer").toUpperCase());
             this.mutationRateOptimizer = Optimizer.valueOf(PROPERTIES.getProperty("mutation_rate_optimizer").toUpperCase());
@@ -88,6 +89,10 @@ public class NeuralNetwork implements Serializable {
         }
 
         try {
+            this.regularizationLambda = Double.parseDouble(PROPERTIES.getProperty("regularizer_param"));
+            if (regularizationLambda < 0 || regularizationLambda > 1) {
+                throw new IllegalArgumentException("Regularization parameter must be set between 0.0 and 1.0!");
+            }
             this.initialLearningRate = Double.parseDouble(PROPERTIES.getProperty("learning_rate"));
             this.learningRate = initialLearningRate;
             this.mutationRate = Double.parseDouble(PROPERTIES.getProperty("genetic_mutation_rate"));
@@ -182,7 +187,7 @@ public class NeuralNetwork implements Serializable {
      */
     public static void setProperty(String key, String value) {
         if (!key.equals("learning_rate") && !key.equals("rectifier") && !key.equals("learning_rate_optimizer") && !key.equals("learning_decay_momentum") && !key.equals("genetic_reproduction_pool_size") && !key.equals("genetic_mutation_rate") && !key.equals("mutation_rate_descent") && !key.equals("mutation_decay_momentum") &&
-                !key.equals("initializer")) {
+                !key.equals("initializer") && !key.equals("cost_function") && !key.equals("regularizer") && !key.equals("regularizer_param")) {
             throw new IllegalArgumentException("Property with key " + key + "is not valid in this context!");
         } else if (key.equals("learning_rate")) {
             if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
@@ -199,6 +204,10 @@ public class NeuralNetwork implements Serializable {
         } else if (key.equals("genetic_mutation_rate")) {
             if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
                 throw new IllegalArgumentException("Mutation rate must be set between 0.0 and 1.0!");
+            }
+        } else if (key.equals("regularizer_param")) {
+            if (Double.parseDouble(value) < 0 || Double.parseDouble(value) > 1) {
+                throw new IllegalArgumentException("Regularization parameter must be set between 0.0 and 1.0!");
             }
         }
         PROPERTIES.setProperty(key, value);
@@ -278,9 +287,8 @@ public class NeuralNetwork implements Serializable {
         for (int i = cachedNodeValueVector.size() - 1; i >= 0; i--) {
             if (loss == null) {
 
-                // compotation of cost C
+                // computation of cost C
                 double cost = costFunction.cost(cachedNodeValueVector.get(cachedNodeValueVector.size() - 1), target) + regularizer.get(cachedNodeValueVector.get(cachedNodeValueVector.size() - 1), regularizationLambda);
-                costMap.put(iterationCount, cost);
                 backPropData.add(iterationCount, cost, Matrix.asArray(cachedNodeValueVector.get(cachedNodeValueVector.size() - 1)), expectedOutputNodes);
 
                 // computation of loss L (derivate of cost function)
@@ -349,6 +357,9 @@ public class NeuralNetwork implements Serializable {
         neuralNetwork.initializer = this.initializer;
         neuralNetwork.configuration = this.configuration;
         neuralNetwork.rectifier = this.rectifier;
+        neuralNetwork.regularizer = this.regularizer;
+        neuralNetwork.regularizationLambda = this.regularizationLambda;
+        neuralNetwork.costFunction = this.costFunction;
         neuralNetwork.learningRateOptimizer = this.learningRateOptimizer;
         neuralNetwork.learningRateMomentum = this.learningRateMomentum;
         neuralNetwork.initialLearningRate = this.initialLearningRate;
@@ -375,6 +386,66 @@ public class NeuralNetwork implements Serializable {
      */
     public Initializer getInitializer() {
         return initializer;
+    }
+
+    /**
+     * Getter for the cost function.
+     *
+     * @return the cost function.
+     */
+    public CostFunction getCostFunction() {
+        return costFunction;
+    }
+
+    /**
+     * Setter for the cost function.
+     *
+     * @param costFunction the cost function to set.
+     * @return  the NeuralNetwork.
+     */
+    public NeuralNetwork setCostFunction(CostFunction costFunction) {
+        this.costFunction = costFunction;
+        return this;
+    }
+
+    /**
+     * Getter for the regularizer.
+     *
+     * @return the regularizer.
+     */
+    public Regularizer getRegularizer() {
+        return regularizer;
+    }
+
+    /**
+     * Setter for the regularizer.
+     *
+     * @param regularizer the regularizer to set.
+     * @return  the NeuralNetwork.
+     */
+    public NeuralNetwork setRegularizer(Regularizer regularizer) {
+        this.regularizer = regularizer;
+        return this;
+    }
+
+    /**
+     * Getter for the regularization lambda.
+     *
+     * @return the regularization parameter.
+     */
+    public double getRegularizationLambda() {
+        return regularizationLambda;
+    }
+
+    /**
+     * Setter for the regularization lambda.
+     *
+     * @param regularizationLambda the regularization parameter to set.
+     * @return  the NeuralNetwork.
+     */
+    public NeuralNetwork setCostFunction(double regularizationLambda) {
+        this.regularizationLambda = regularizationLambda;
+        return this;
     }
 
     /**
@@ -605,10 +676,6 @@ public class NeuralNetwork implements Serializable {
         pcs.addPropertyChangeListener("predict", listener);
     }
 
-    public SortedMap<Integer, Double> getCostMap() {
-        return costMap;
-    }
-
     public BackPropData getBackPropData() {
         return backPropData;
     }
@@ -621,6 +688,15 @@ public class NeuralNetwork implements Serializable {
         sb.append(", ");
         sb.append("rectifier: ");
         sb.append(rectifier.getDescription());
+        sb.append(", ");
+        sb.append("cost function: ");
+        sb.append(costFunction.getDescription());
+        sb.append(", ");
+        sb.append("regularizer: ");
+        sb.append(regularizer.getDescription());
+        sb.append(", ");
+        sb.append("regularization lambda: ");
+        sb.append(regularizationLambda);
         sb.append(", ");
         sb.append("learning rate: ");
         sb.append(learningRate);

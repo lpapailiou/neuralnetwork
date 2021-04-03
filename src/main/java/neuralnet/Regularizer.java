@@ -45,23 +45,16 @@ public enum Regularizer {       // TODO
         public Matrix gradient(Matrix matrix, double lambda) {
             return Matrix.apply(matrix, x -> (1 - lambda) * Math.signum(x) + (2 * lambda * x));
         }
-    },
-    DROPOUT("Dropout") {
-        @Override
-        public double get(Matrix matrix, double lambda) {
-            return 0;
-        }
-
-        @Override
-        public Matrix gradient(Matrix matrix, double lambda) {
-            return new Matrix(matrix.getRows(), matrix.getCols());
-        }
     };
 
     private final String description;
 
     Regularizer(String description) {
         this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public double get(Matrix matrix, double lambda) {

@@ -1,6 +1,6 @@
 package data;
 
-public class IterationObject {
+public class BackPropEntity {
 
     private double cost;
     private double accuracy;
@@ -11,7 +11,7 @@ public class IterationObject {
     private double recallSum;
     private double precisionSum;
 
-    public IterationObject(double cost, double tp, double fp, double tn, double fn, double costSum, double tpSum, double fpSum, double tnSum, double fnSum) {
+    public BackPropEntity(double cost, double tp, double fp, double tn, double fn, double costSum, double tpSum, double fpSum, double tnSum, double fnSum) {
         this.cost = cost;
         accuracy = (tp + tn) / (tp + tn + fp + fn);
         recall = (tp == 0 ? 1 : tp / (tp + fn));

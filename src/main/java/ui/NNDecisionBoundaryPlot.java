@@ -1,7 +1,7 @@
 package ui;
 
 import data.ForwardPropData;
-import data.Tuple;
+import data.ForwardPropEntity;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import neuralnet.NeuralNetwork;
@@ -72,11 +72,11 @@ public class NNDecisionBoundaryPlot extends Plot {
         }
 
 
-        List<Tuple> tuples = data.get();
-        xMin = tuples.stream().map(Tuple::getX).min(Double::compare).get();
-        xMax = tuples.stream().map(Tuple::getX).max(Double::compare).get();
-        yMin = tuples.stream().map(Tuple::getY).min(Double::compare).get();
-        yMax = tuples.stream().map(Tuple::getY).max(Double::compare).get();
+        List<ForwardPropEntity> forwardPropEntities = data.get();
+        xMin = forwardPropEntities.stream().map(ForwardPropEntity::getX).min(Double::compare).get();
+        xMax = forwardPropEntities.stream().map(ForwardPropEntity::getX).max(Double::compare).get();
+        yMin = forwardPropEntities.stream().map(ForwardPropEntity::getY).min(Double::compare).get();
+        yMax = forwardPropEntities.stream().map(ForwardPropEntity::getY).max(Double::compare).get();
 
         if (xMin == xMax) {
             xMin = xMin - 0.5;
@@ -92,9 +92,9 @@ public class NNDecisionBoundaryPlot extends Plot {
 
         drawBackground();
         if (configuration[configuration.length - 1] == 1) {
-            plotBinaryClassifierDecisionBoundaries(tuples, resolution);
+            plotBinaryClassifierDecisionBoundaries(forwardPropEntities, resolution);
         } else {
-            plotMultiClassClassifierDecisionBoundaries(tuples, resolution);
+            plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, resolution);
         }
         drawOverlay(opacity);
         drawAxes(drawAxes, drawTicks, drawAxisLabels);
@@ -103,13 +103,13 @@ public class NNDecisionBoundaryPlot extends Plot {
         padding = cachedPadding;
     }
 
-    private void plotBinaryClassifierDecisionBoundaries(List<Tuple> tuples, double resolution) {
+    private void plotBinaryClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double resolution) {
         double dotRadius = (((plotWidth + plotHeight) / 2) / 64) / resolution;
 
-        for (Tuple tuple : tuples) {
-            double x = x(tuple.getX());
-            double y = y(tuple.getY());
-            double output = tuple.getOutput().get(0);
+        for (ForwardPropEntity forwardPropEntity : forwardPropEntities) {
+            double x = x(forwardPropEntity.getX());
+            double y = y(forwardPropEntity.getY());
+            double output = forwardPropEntity.getOutput().get(0);
 
             Color color;
             if (output <= 0.5) {
@@ -124,14 +124,14 @@ public class NNDecisionBoundaryPlot extends Plot {
         }
     }
 
-    private void plotMultiClassClassifierDecisionBoundaries(List<Tuple> tuples, double resolution) {
+    private void plotMultiClassClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double resolution) {
         double dotRadius = (((plotWidth + plotHeight) / 2) / 64) / resolution;
         List<Color> colors = customMultiColors.getColors();
 
-        for (Tuple tuple : tuples) {
-            double x = x(tuple.getX());
-            double y = y(tuple.getY());
-            List<Double> output = tuple.getOutput();
+        for (ForwardPropEntity forwardPropEntity : forwardPropEntities) {
+            double x = x(forwardPropEntity.getX());
+            double y = y(forwardPropEntity.getY());
+            List<Double> output = forwardPropEntity.getOutput();
             Color color = new Color(plotBackgroundColor.getRed(), plotBackgroundColor.getGreen(), plotBackgroundColor.getBlue(), 0);
             for (int i = 0; i < output.size(); i++) {
                 double value = output.get(i);

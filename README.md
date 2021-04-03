@@ -275,7 +275,7 @@ network, it will react automatically as soon as a prediction was made.
 
 If you like to change the colors, you can do so by setting a custom color palette.
 
-    NNColorPalette colors = new NNColorPalette(    
+    NNGraphColor colors = new NNGraphColor(    
         WHITESMOKE,                                 // background color
         BLACK,                                      // node color
         BLACK,                                      // line color

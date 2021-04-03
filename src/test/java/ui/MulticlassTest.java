@@ -47,9 +47,9 @@ public class MulticlassTest extends Application {
                 net.fit(in, out, iterations);
 
                 NNDecisionBoundaryPlot plot = new NNDecisionBoundaryPlot(addCanvas(350, 350, root));
-                plot.setPadding(30, 0, 20, 30, 0.1);
+                plot.setPadding(30, 0, 20, 30, 0.1).setFontProperties(false, false, 14);
 
-                plot.setColorPalette(new NNPlotColor(BLACK, BLACK, LIGHTGRAY, LIGHTGRAY, LIGHTGRAY, RED)).setTitle("after " + iterations + " iterations");;
+                plot.setColorPalette(new NNPlotColor(BLACK, DIMGREY, LIGHTGRAY)).setTitle("after " + iterations + " iterations");;
 
                 plot.plot(net, in, 1, 0.8, true, true, true, new NNMultiColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b")));
                 plot.plotData(out, 12);

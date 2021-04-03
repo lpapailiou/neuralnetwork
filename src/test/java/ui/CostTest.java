@@ -1,6 +1,6 @@
 package ui;
 
-import data.IterationObject;
+import data.BackPropEntity;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -14,8 +14,6 @@ import neuralnet.Regularizer;
 import util.Initializer;
 import util.Optimizer;
 import util.Rectifier;
-
-import java.util.SortedMap;
 
 public class CostTest extends Application {
 
@@ -60,11 +58,9 @@ public class CostTest extends Application {
             int iter = 500;
             net.fit(in, out, iter);
 
-            SortedMap<Integer, Double> costMap = net.getCostMap();
-
             NNPlot plot = new NNPlot(context);
-            plot.plot(net.getBackPropData(), IterationObject::getCost, false, 0.05);
-            new NNPlot(context2).plot(net.getBackPropData(), IterationObject::getCostSum, false, 0);
+            plot.plot(net.getBackPropData(), BackPropEntity::getCost, false, 0.05);
+            new NNPlot(context2).plot(net.getBackPropData(), BackPropEntity::getCostSum, false, 0);
 
 
             System.out.println(net.predict(in[0]) + " is 0?");

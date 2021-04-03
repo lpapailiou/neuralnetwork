@@ -4,7 +4,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class BackPropData {
-    private SortedMap<Integer, IterationObject> iterationMap = new TreeMap<>();
+    private SortedMap<Integer, BackPropEntity> iterationMap = new TreeMap<>();
     private double costSum;
     private int tpSum;
     private int fpSum;
@@ -37,11 +37,11 @@ public class BackPropData {
             }
         }
 
-        IterationObject iterationObject = new IterationObject(cost, tp, fp, tn, fn, costSum, tpSum, fpSum, tnSum, fnSum);
-        iterationMap.put(iteration, iterationObject);
+        BackPropEntity backPropEntity = new BackPropEntity(cost, tp, fp, tn, fn, costSum, tpSum, fpSum, tnSum, fnSum);
+        iterationMap.put(iteration, backPropEntity);
     }
 
-    public SortedMap<Integer, IterationObject> getMap() {
+    public SortedMap<Integer, BackPropEntity> getMap() {
         return iterationMap;
     }
 }

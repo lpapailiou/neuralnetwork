@@ -1,7 +1,7 @@
 package ui;
 
 import data.BackPropData;
-import data.IterationObject;
+import data.BackPropEntity;
 import javafx.scene.canvas.GraphicsContext;
 
 import java.util.SortedMap;
@@ -9,14 +9,14 @@ import java.util.function.Function;
 
 public class NNPlot extends Plot {
 
-    private SortedMap<Integer, IterationObject> map;
-    private Function<IterationObject, Double> function;
+    private SortedMap<Integer, BackPropEntity> map;
+    private Function<BackPropEntity, Double> function;
 
     public NNPlot(GraphicsContext context) {
         super(context);
     }
 
-    public void plot(BackPropData data, Function<IterationObject, Double> function, boolean asDot, double smoothing) {
+    public void plot(BackPropData data, Function<BackPropEntity, Double> function, boolean asDot, double smoothing) {
         this.map = data.getMap();
         this.function = function;
         xMin = map.keySet().stream().min(Integer::compare).get();

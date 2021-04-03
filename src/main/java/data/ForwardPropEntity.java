@@ -2,13 +2,13 @@ package data;
 
 import java.util.List;
 
-public class Tuple {
+public class ForwardPropEntity {
 
     private double x;
     private double y;
     private List<Double> output;
 
-    public Tuple(double x, double y, List<Double> output) {
+    public ForwardPropEntity(double x, double y, List<Double> output) {
         this.x = x;
         this.y = y;
         this.output = output;
