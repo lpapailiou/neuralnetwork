@@ -40,7 +40,6 @@ public class AnimationTest extends Application {
             NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15, 15, 1)
                     .setLearningRate(0.8)
                     .setLearningRateOptimizer(Optimizer.NONE);
-            net.costFunction = CostFunction.MSE;
             AtomicInteger iterations = new AtomicInteger();
             NNDecisionBoundaryPlot plot = new NNDecisionBoundaryPlot(addCanvas(700, 700, root));
             plot.setPadding(30, 0, 20, 30, 5);

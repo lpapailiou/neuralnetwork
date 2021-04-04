@@ -51,15 +51,12 @@ public class CostTest extends Application {
             NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15, 15, 1)
                     .setLearningRate(0.8)
                     .setLearningRateOptimizer(Optimizer.NONE);
-            net.costFunction = CostFunction.MSE;
-            net.regularizationLambda = 0.1;
-            net.regularizer = Regularizer.NONE;
             net.setRectifier(Rectifier.SIGMOID);
             int iter = 500;
             net.fit(in, out, iter);
 
             NNPlot plot = new NNPlot(context);
-            plot.plot(net.getBackPropData(), BackPropEntity::getCost, false, 0.05);
+            plot.plot(net.getBackPropData(), BackPropEntity::getCost, false, 0);
             new NNPlot(context2).plot(net.getBackPropData(), BackPropEntity::getCostSum, false, 0);
 
 

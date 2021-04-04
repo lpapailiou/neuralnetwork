@@ -37,7 +37,6 @@ public class MulticlassTest extends Application {
             NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15, 15, 4)
                     .setLearningRate(0.8)
                     .setLearningRateOptimizer(Optimizer.NONE);
-            net.costFunction = CostFunction.MSE;
             int iterations = 200;
 
             net.fit(in, out, iterations);
