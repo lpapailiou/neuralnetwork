@@ -10,11 +10,11 @@ public interface NNColorSupport {
 
     DecimalFormat df = new DecimalFormat("#.###");
 
-    public static Color randomColor(boolean includeOpacity) {
+    static Color randomColor(boolean includeOpacity) {
         return new Color(Math.random(), Math.random(), Math.random(), includeOpacity ? Math.random() : 1);
     }
 
-    public static Color blend(Color c1, Color c2, double ratio) {
+    static Color blend(Color c1, Color c2, double ratio) {
         if (ratio > 1.0) {
             ratio = 1;
         } else if (ratio < 0.0) {

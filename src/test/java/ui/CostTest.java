@@ -38,26 +38,23 @@ public class CostTest extends Application {
             Canvas canvas2 = new Canvas(canvasWidth + 2 * offset, canvasHeight + 2 * offset);
             GraphicsContext context2 = canvas2.getGraphicsContext2D();
             root.getChildren().add(canvas2);
-            Canvas canvas3 = new Canvas(canvasWidth + 2 * offset, canvasHeight + 2 * offset);
-            GraphicsContext context3 = canvas3.getGraphicsContext2D();
-            //root.getChildren().add(canvas3);
 
-            /*
-            public Cost costFunction = Cost.MSE;
-    public Regularizer regularizer = Regularizer.NONE;
-    public double regularizationLambda = 0;
-             */
-
-            NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15, 15, 1)
-                    .setLearningRate(0.8)
+            NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 10, 1)
+                    .setLearningRate(0.5)
                     .setLearningRateOptimizer(Optimizer.NONE);
             net.setRectifier(Rectifier.SIGMOID);
-            int iter = 500;
+            int iter = 1000;
             net.fit(in, out, iter);
 
-            NNPlot plot = new NNPlot(context);
-            plot.plot(net.getBackPropData(), BackPropEntity::getCost, false, 0);
-            new NNPlot(context2).plot(net.getBackPropData(), BackPropEntity::getCostSum, false, 0);
+            NNPlot costPlot = new NNPlot(context);
+            costPlot.plotCost(net, true, 0.02);
+            costPlot.setTitle("Cost of neural network during " + iter + " iterations");
+
+            NNPlot sumPlot = new NNPlot(context2);
+            sumPlot.plotAccuracySum(net, true, 0);
+            sumPlot.plotPrecisionSum(net, true, 0);
+            sumPlot.plotRecallSum(net, true, 0);
+            sumPlot.setTitle("Summed cost over " + iter + " iterations");
 
 
             System.out.println(net.predict(in[0]) + " is 0?");

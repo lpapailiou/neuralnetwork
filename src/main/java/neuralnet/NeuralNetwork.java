@@ -5,6 +5,7 @@ import util.Initializer;
 import util.Optimizer;
 import util.Rectifier;
 
+import javax.rmi.ssl.SslRMIClientSocketFactory;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
@@ -45,6 +46,7 @@ public class NeuralNetwork implements Serializable {
     private Regularizer regularizer = Regularizer.NONE;
     private double regularizationLambda = 0;
     private int[] configuration;
+
     private List<Layer> layers = new ArrayList<>();
     private List<List<Double>> cachedNodeValues = new ArrayList<>();
     private Initializer initializer;
@@ -282,37 +284,48 @@ public class NeuralNetwork implements Serializable {
         Matrix target = Matrix.fromArray(expectedOutputNodes);
 
         // backward propagate to adjust weights in layers
-        costFunction = CostFunction.MSE_NAIVE;
         Matrix loss = null;
+        Matrix pass = null;
         for (int i = cachedNodeValueVector.size() - 1; i >= 0; i--) {
             if (loss == null) {
-
+                Matrix lastCachedVector = cachedNodeValueVector.get(cachedNodeValueVector.size() - 1);
                 // computation of cost C
-                double cost = costFunction.cost(cachedNodeValueVector.get(cachedNodeValueVector.size() - 1), target) + regularizer.get(cachedNodeValueVector.get(cachedNodeValueVector.size() - 1), regularizationLambda);
-                backPropData.add(iterationCount, cost, Matrix.asArray(cachedNodeValueVector.get(cachedNodeValueVector.size() - 1)), expectedOutputNodes);
+                double cost = costFunction.cost(lastCachedVector, target) + regularizer.get(lastCachedVector, regularizationLambda);
+                backPropData.add(iterationCount, cost, Matrix.asArray(lastCachedVector), expectedOutputNodes);
 
-                // computation of loss L (derivate of cost function)
-                loss = costFunction.gradient(target, cachedNodeValueVector.get(cachedNodeValueVector.size() - 1));
+                // computation of loss L = dC/da(L) (derivation of cost function)
+                loss = costFunction.gradient(lastCachedVector, target);
 
                 // apply regularization
                 loss = Matrix.apply(loss, regularizer.gradient(loss, regularizationLambda), Double::sum);
 
             } else {
+                // computation of loss L = dC/da(L-i)
+                // this implementation does not follow the chain rule, but seems to get better results
                 loss = Matrix.multiply(Matrix.transpose(layers.get(i + 1).weight), loss);
+                // correct implementation according to chain rule
+                //loss = pass;
             }
 
-            // chain rule: plus --> distribute; mul --> switch
+            // gradient: da(L)/dz(L) (derivation of activation)
+            Matrix gradient = cachedNodeValueVector.get(i).derive(rectifier);
+            // loss * gradient: dC/da(L) * da(L)/dz(L) (loss * derivation of activation)
+            gradient.scalarProduct(loss);
 
-            // chain rule for backpropagation: derivation of cost (loss) * derivation of activation * preceding activated neurons
-            Matrix gradient = cachedNodeValueVector.get(i).derive(rectifier);      // derivation of activation
-            gradient.scalarProduct(loss);                                          // loss * derivation of activation
+            // this would be the correct implementation of the chain rule - would be used as loss for the next iteration
+            //pass = gradient.copy();
+            //pass = Matrix.multiply(Matrix.transpose(layers.get(i).weight), pass);
 
             gradient.multiply(learningRate);
 
-            Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : cachedNodeValueVector.get(i - 1)));      // multiply with preceding activated neurons
-            layers.get(i).weight.add(delta);                                       // update weights
+            // update biases (no change as add gate distributes when derived)
+            layers.get(i).bias.subtractBias(gradient);
 
-            layers.get(i).bias.addBias(gradient);                                  // update biases
+            // delta rule: dz(L)/dw(L) (* dC/da(L) * da(L)/dz(L)) (multiply with preceding activated neurons to get weight derivation)
+            Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : cachedNodeValueVector.get(i - 1)));
+
+            // update weights - gradient was already multiplied with learning rate
+            layers.get(i).weight.subtract(delta);
 
         }
         decreaseRate();

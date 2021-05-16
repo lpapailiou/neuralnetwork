@@ -236,6 +236,42 @@ public class Matrix implements Serializable {
         }
     }
 
+    void subtract(Matrix m) {
+        if (cols != m.cols || rows != m.rows) {
+            throw new IllegalArgumentException("wrong input matrix dimensions for addition!");
+        }
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                double sideA = data[i][j];
+                double sideB = m.data[i][j];
+                double value = sideA - sideB;
+                if (Double.isInfinite(value)) {
+                    value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                } else if (Double.isNaN(value)) {
+                    throw new ArithmeticException("Addition operation evaluated to NaN");
+                }
+                data[i][j] = value;
+            }
+        }
+    }
+
+    void subtractBias(Matrix m) {
+        if (cols != m.cols) {
+            throw new IllegalArgumentException("wrong input matrix dimensions!");
+        }
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                double value = data[i][j] - m.data[0][j];
+                if (Double.isInfinite(value)) {
+                    value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                } else if (Double.isNaN(value)) {
+                    throw new ArithmeticException("Bias addition evaluated to NaN");
+                }
+                data[i][j] = value;
+            }
+        }
+    }
+
     void multiply(double scalar) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {

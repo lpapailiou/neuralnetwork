@@ -34,10 +34,10 @@ abstract class Plot {
     String title;
     private double width;
     private double height;
-    private double wOffsetLeft = 120;
+    private double wOffsetLeft = 30;
     private double wOffsetRight = 10;
-    private double hOffsetTop = 10;
-    private double hOffsetBottom = 50;
+    private double hOffsetTop = 30;
+    private double hOffsetBottom = 20;
     private double plotLineWidth = 1.5;
     private double gridLineWidth = 0.5;
     private Color backgroundColor = TRANSPARENT;
