@@ -66,7 +66,7 @@ public class NeuralNetwork implements Serializable {
      * A constructor of the neural network.
      * The varag parameters will define the architecture of the neural network. You need to enter at least two parameters.
      * For hyperparameters and additional default settings, please use the neuralnetwork.properties files or
-     * the according setters (builder pattern available).
+     * the according setters.
      *
      * @param layerParams the architecture of the neural network. First argument = node count of input layer; last argument = node count of output layer; arguments between = node count per hidden layer.
      */
@@ -131,7 +131,7 @@ public class NeuralNetwork implements Serializable {
      * A constructor of the neural network.
      * The varag parameters will define the architecture of the neural network. You need to enter at least two parameters.
      * For hyperparameters and additional default settings, please use the neuralnetwork.properties files or
-     * the according setters (builder pattern available).
+     * the according setters.
      *
      * @param initializer the initializer function.
      * @param layerParams the architecture of the neural network. First argument = node count of input layer; last argument = node count of output layer; arguments between = node count per hidden layer.
