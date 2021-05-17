@@ -51,7 +51,7 @@ Rectifiers can be quite sensitive to hyperparameters (e.g. learning rate).
 
 ### Parametrization
 The parametrization of the neural network can be done as following:
-- during initialization (vararg for architecture + builder pattern)
+- during initialization (vararg for architecture & chaining of additional parameters)
 - during runtime (according setters)
 - by `neuralnetwork.properties` in case default values are used constantly
 
@@ -71,16 +71,16 @@ Create a neural network with two input nodes, two hidden layers (4 and 5 nodes) 
 
     NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 5, 6);
   
-Create a neural network adding parameters (builder pattern may be used as well).
+Create a neural network adding parameters.
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(Initializer.RANDOM, 2, 2);    // first parameter is for initialization
-    neuralNetwork.setRectifier(Rectifier.SIGMOID);
-    neuralNetwork.setLearningRateOptimizer(Optimizer.SGD);
-    neuralNetwork.setLearningRate(0.8);
-    neuralNetwork.setLearningRateMomentum(0.005);
-    neuralNetwork.setMutationRateOptimizer(Optimizer.SGD);
-    neuralNetwork.setMutationRate(0.5);
-    neuralNetwork.setMutationRateMomentum(0.07);
+    NeuralNetwork neuralNetwork = new NeuralNetwork(Initializer.RANDOM, 2, 2)    // first parameter is for initialization
+        .setRectifier(Rectifier.SIGMOID)
+        .setLearningRateOptimizer(Optimizer.SGD)
+        .setLearningRate(0.8)
+        .setLearningRateMomentum(0.005)
+        .setMutationRateOptimizer(Optimizer.SGD)
+        .setMutationRate(0.5)
+        .setMutationRateMomentum(0.07);
 
 ### Methods of NeuralNetwork
 #### Common methods

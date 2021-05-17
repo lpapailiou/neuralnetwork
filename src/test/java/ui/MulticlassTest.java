@@ -50,7 +50,7 @@ public class MulticlassTest extends Application {
 
                 plot.setColorPalette(new NNPlotColor(BLACK, DIMGREY, LIGHTGRAY)).setTitle("after " + iterations + " iterations");;
 
-                plot.plot(net, in, 1, 0.8, true, true, true, new NNMultiColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b")));
+                plot.plot(net, in, 0.8, 0.8, true, true, true, new NNMultiColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b")));
                 plot.plotData(out, 12);
 
             }

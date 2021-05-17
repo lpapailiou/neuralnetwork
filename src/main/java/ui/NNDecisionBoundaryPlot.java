@@ -65,12 +65,26 @@ public class NNDecisionBoundaryPlot extends Plot {
         }
 
         ForwardPropData data = new ForwardPropData();
-        for (int i = 0; i < 60000 * resolution; i++) {
-            double[] input = {getRandomInput(xMin, xMax), getRandomInput(yMin, yMax)};
-            List<Double> output = neuralNetwork.predict(input);
-            data.add(input, output);
-        }
 
+        int iterX = (int) Math.ceil(plotWidth * resolution);
+        int iterY = (int) Math.ceil(plotHeight * resolution);
+        double stepX = 1.0 / iterX;
+        double stepY = 1.0 / iterY;
+        double x = 0;
+        double y = 0;
+        double xOffset = Math.ceil(plotWidth / iterX);
+        double yOffset = Math.ceil(plotHeight / iterY);
+
+        for (int i = 0; i <= iterX; i++) {
+            for (int j = 0; j <= iterY; j++) {
+                double[] input = {scale(x, xMin, xMax), scale(y, yMin, yMax)};
+                y += stepY;
+                List<Double> output = neuralNetwork.predict(input);
+                data.add(input, output);
+            }
+            y = 0;
+            x += stepX;
+        }
 
         List<ForwardPropEntity> forwardPropEntities = data.get();
         xMin = forwardPropEntities.stream().map(ForwardPropEntity::getX).min(Double::compare).get();
@@ -92,9 +106,9 @@ public class NNDecisionBoundaryPlot extends Plot {
 
         drawBackground();
         if (configuration[configuration.length - 1] == 1) {
-            plotBinaryClassifierDecisionBoundaries(forwardPropEntities, resolution);
+            plotBinaryClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
         } else {
-            plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, resolution);
+            plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
         }
         drawOverlay(opacity);
         drawAxes(drawAxes, drawTicks, drawAxisLabels);
@@ -103,9 +117,7 @@ public class NNDecisionBoundaryPlot extends Plot {
         padding = cachedPadding;
     }
 
-    private void plotBinaryClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double resolution) {
-        double dotRadius = (((plotWidth + plotHeight) / 2) / 64) / resolution;
-
+    private void plotBinaryClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double xOffset, double yOffset) {
         for (ForwardPropEntity forwardPropEntity : forwardPropEntities) {
             double x = x(forwardPropEntity.getX());
             double y = y(forwardPropEntity.getY());
@@ -119,15 +131,12 @@ public class NNDecisionBoundaryPlot extends Plot {
             }
 
             context.setFill(color);
-            context.fillOval(x - dotRadius / 2.0, y - dotRadius / 2.0, dotRadius, dotRadius);
-
+            context.fillRect(x , y, xOffset, yOffset);
         }
     }
 
-    private void plotMultiClassClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double resolution) {
-        double dotRadius = (((plotWidth + plotHeight) / 2) / 64) / resolution;
+    private void plotMultiClassClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double xOffset, double yOffset) {
         List<Color> colors = customMultiColors.getColors();
-
         for (ForwardPropEntity forwardPropEntity : forwardPropEntities) {
             double x = x(forwardPropEntity.getX());
             double y = y(forwardPropEntity.getY());
@@ -142,11 +151,12 @@ public class NNDecisionBoundaryPlot extends Plot {
                 }
             }
             context.setFill(color);
-            context.fillOval(x - dotRadius / 2.0, y - dotRadius / 2.0, dotRadius, dotRadius);
+            context.fillRect(x , y, xOffset, yOffset);
         }
     }
 
-    public void plotData(double[][] definedClasses, double dotRadius) {
+    public void plotData(double[][] definedClasses, double radius) {
+        //double innerRadius = radius * 0.8;
         if (data == null || data[0].length != 2) {
             throw new IllegalArgumentException("Data must be 2-dimensional!");
         }
@@ -169,15 +179,19 @@ public class NNDecisionBoundaryPlot extends Plot {
         }
         for (int i = 0; i < data.length; i++) {
             double[] outClass = definedClasses[i];
-            int colorIndex = classes.indexOf(Arrays.toString(outClass));
-            context.setFill(colors.get(colorIndex));
-            context.fillOval(x(data[i][0]) - dotRadius / 2.0, y(data[i][1]) - dotRadius / 2.0, dotRadius, dotRadius);
+            Color innerColor = colors.get(classes.indexOf(Arrays.toString(outClass)));
+            //Color outerColor = NNColorSupport.blend(innerColor, plotBackgroundColor, 0.5);
+            //context.setFill(outerColor);
+            //context.fillOval(x(data[i][0]) - radius / 2, y(data[i][1]) - radius / 2, radius, radius);
+            context.setFill(innerColor);
+            context.fillOval(x(data[i][0]) - radius / 2, y(data[i][1]) - radius / 2, radius, radius);
         }
 
         padding = cachedPadding;
     }
 
-    private double getRandomInput(double min, double max) {
-        return (((((Math.random() * 2 - 1) * (1 + padding * 2)) + 1) / 2) * Math.abs(min - max)) + min;
+    private double scale(double x, double min, double max) {
+        return x * ((1 + padding *2) * Math.abs(min - max)) + min - (Math.abs(min - max) * padding);
     }
+
 }

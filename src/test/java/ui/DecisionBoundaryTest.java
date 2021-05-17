@@ -5,14 +5,21 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import neuralnet.CostFunction;
 import neuralnet.NeuralNetwork;
 import ui.color.NNBinaryClassifierColor;
+import ui.color.NNPlotColor;
 import util.Initializer;
 import util.Optimizer;
+import util.Rectifier;
+
+import static javafx.scene.paint.Color.*;
 
 public class DecisionBoundaryTest extends Application {
 
@@ -22,28 +29,36 @@ public class DecisionBoundaryTest extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         try {
-            final NeuralNetwork[] neuralNetwork = {new NeuralNetwork(2, 5, 8, 5, 2)};
 
             primaryStage.setTitle("Decision boundary test");
-            HBox root = new HBox();
-            root.setSpacing(10);
-            root.setPadding(new Insets(20, 20, 20, 20));
+            VBox root = new VBox();
+            root.setBackground(new Background(new BackgroundFill(BLACK, null, null)));
+            HBox hbox = null;
+            NNPlotColor plotColors = new NNPlotColor(BLACK, BLACK, STEELBLUE, LIGHTGRAY, STEELBLUE, RED);
 
             NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 15, 15, 1)
                     .setLearningRate(0.8)
+                    .setRectifier(Rectifier.SIGMOID)
                     .setLearningRateOptimizer(Optimizer.NONE);
             int iterations = 0;
             net.fit(in, out, iterations);
 
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < 9; i++) {
+                if (i % 3 == 0) {
+                    hbox = new HBox();
+                    hbox.setSpacing(10);
+                    hbox.setPadding(new Insets(20, 20, 20, 20));
+                    root.getChildren().add(hbox);
+                }
                 iterations += 20;
                 net.fit(in, out, 20);
 
-                NNDecisionBoundaryPlot plot = new NNDecisionBoundaryPlot(addCanvas(300, 300, root));
+                NNDecisionBoundaryPlot plot = new NNDecisionBoundaryPlot(addCanvas(300, 300, hbox));
                 plot.setPadding(25, 0, 20, 30, 5);
-                plot.plot(net, in, 1, 1, true, true, true, new NNBinaryClassifierColor(Color.GREEN, Color.RED, Color.YELLOW));
                 plot.setTitle("after " + iterations + " iterations");
-                //plot.plot2DData(out, 12);
+                plot.setColorPalette(plotColors);
+                plot.plot(net, in, 1, 0.9, true, true, true, new NNBinaryClassifierColor(Color.GREEN, Color.RED, Color.YELLOW));
+                plot.plotData(out, 8);
             }
 
 

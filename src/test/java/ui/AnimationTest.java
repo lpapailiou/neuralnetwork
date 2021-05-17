@@ -30,7 +30,6 @@ public class AnimationTest extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         try {
-            final NeuralNetwork[] neuralNetwork = {new NeuralNetwork(2, 5, 8, 5, 2)};
             primaryStage.setTitle("Hyperplane movement test");
             VBox root = new VBox();
             root.setBackground(new Background(new BackgroundFill(BLACK, null, null)));
