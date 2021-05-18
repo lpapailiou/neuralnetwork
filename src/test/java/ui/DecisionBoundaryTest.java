@@ -9,11 +9,9 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import neuralnet.CostFunction;
 import neuralnet.NeuralNetwork;
-import ui.color.NNBinaryClassifierColor;
+import ui.color.NNMultiColor;
 import ui.color.NNPlotColor;
 import util.Initializer;
 import util.Optimizer;
@@ -53,11 +51,13 @@ public class DecisionBoundaryTest extends Application {
                 iterations += 20;
                 net.fit(in, out, 20);
 
-                NNDecisionBoundaryPlot plot = new NNDecisionBoundaryPlot(addCanvas(300, 300, hbox));
+                NNMeshGrid plot = new NNMeshGrid(addCanvas(300, 300, hbox));
                 plot.setPadding(25, 0, 20, 30, 5);
                 plot.setTitle("after " + iterations + " iterations");
                 plot.setColorPalette(plotColors);
-                plot.plot(net, in, 1, 0.9, true, true, true, new NNBinaryClassifierColor(Color.GREEN, Color.RED, Color.YELLOW));
+                //plot.plot(net, in, 1, 0.9, true, true, true, new NNBinaryClassifierColor(Color.GREEN, Color.RED, Color.YELLOW));
+                plot.plot(net, in, 1, 0.9, true, true, true, new NNMultiColor(RED, YELLOW, GREEN));
+                //plot.plot(net, in, 0.5, 0.4, true, true, true, new NNMultiColor(STEELBLUE, AQUAMARINE, YELLOW, ORANGE, CRIMSON));
                 plot.plotData(out, 8);
             }
 

@@ -9,7 +9,6 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import neuralnet.CostFunction;
 import neuralnet.NeuralNetwork;
 import ui.color.NNMultiColor;
 import ui.color.NNPlotColor;
@@ -45,12 +44,12 @@ public class MulticlassTest extends Application {
                 iterations += 200;
                 net.fit(in, out, iterations);
 
-                NNDecisionBoundaryPlot plot = new NNDecisionBoundaryPlot(addCanvas(350, 350, root));
+                NNMeshGrid plot = new NNMeshGrid(addCanvas(350, 350, root));
                 plot.setPadding(30, 0, 20, 30, 0.1).setFontProperties(false, false, 14);
 
                 plot.setColorPalette(new NNPlotColor(BLACK, DIMGREY, LIGHTGRAY)).setTitle("after " + iterations + " iterations");;
 
-                plot.plot(net, in, 0.8, 0.8, true, true, true, new NNMultiColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b")));
+                plot.plot(net, in, 1, 0.8, true, true, true, new NNMultiColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b")));
                 plot.plotData(out, 12);
 
             }
@@ -69,10 +68,10 @@ public class MulticlassTest extends Application {
         }
     }
 
-    private GraphicsContext addCanvas(double width, double height, HBox parnet) {
+    private GraphicsContext addCanvas(double width, double height, HBox parent) {
         Canvas canvas = new Canvas(width, height);
         GraphicsContext context = canvas.getGraphicsContext2D();
-        parnet.getChildren().add(canvas);
+        parent.getChildren().add(canvas);
         return context;
     }
 

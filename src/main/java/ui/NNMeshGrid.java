@@ -1,12 +1,8 @@
 package ui;
 
-import data.ForwardPropData;
-import data.ForwardPropEntity;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import neuralnet.NeuralNetwork;
-import ui.color.NNBinaryClassifierColor;
-import ui.color.NNColorSupport;
 import ui.color.NNMultiColor;
 
 import java.util.ArrayList;
@@ -16,17 +12,16 @@ import java.util.List;
 import static javafx.scene.paint.Color.TRANSPARENT;
 import static ui.color.NNColorSupport.blend;
 
-public class NNDecisionBoundaryPlot extends Plot {
+public class NNMeshGrid extends Plot {
 
-    private NNBinaryClassifierColor customBinaryColors;
-    private NNMultiColor customMultiColors;
+    private List<Color> customColors;
     private double[][] data;
 
-    public NNDecisionBoundaryPlot(GraphicsContext context) {
+    public NNMeshGrid(GraphicsContext context) {
         super(context);
     }
 
-    public void plot(NeuralNetwork neuralNetwork, double[][] in, double resolution, double opacity, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, NNColorSupport customColors) {
+    public void plot(NeuralNetwork neuralNetwork, double[][] in, double resolution, double opacity, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, NNMultiColor customColors) {
         int[] configuration = neuralNetwork.getConfiguration();
         if (configuration[0] != 2) {
             throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
@@ -58,11 +53,7 @@ public class NNDecisionBoundaryPlot extends Plot {
 
         plotBackgroundColor = TRANSPARENT;
 
-        if (customColors instanceof NNBinaryClassifierColor) {
-            this.customBinaryColors = (NNBinaryClassifierColor) customColors;
-        } else if (customColors instanceof NNMultiColor) {
-            this.customMultiColors = (NNMultiColor) customColors;
-        }
+        this.customColors = customColors.getColors();
 
         ForwardPropData data = new ForwardPropData();
 
@@ -118,25 +109,33 @@ public class NNDecisionBoundaryPlot extends Plot {
     }
 
     private void plotBinaryClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double xOffset, double yOffset) {
+        double zMin = forwardPropEntities.stream().map(ForwardPropEntity::getZ).min(Double::compare).get();
+        double zMax = forwardPropEntities.stream().map(ForwardPropEntity::getZ).max(Double::compare).get();
+        double range = Math.abs(zMax - zMin);
+        double step = range / (customColors.size()-1);
         for (ForwardPropEntity forwardPropEntity : forwardPropEntities) {
             double x = x(forwardPropEntity.getX());
             double y = y(forwardPropEntity.getY());
             double output = forwardPropEntity.getOutput().get(0);
 
             Color color;
-            if (output <= 0.5) {
-                color = blend(customBinaryColors.getNegative(), customBinaryColors.getMargin(), 1 - (output * 2));
-            } else {
-                color = blend(customBinaryColors.getPositive(), customBinaryColors.getMargin(), (output - 0.5) * 2);
+            int stepIndex = 0;
+            double value = zMin;
+            for (int i = 0; i < customColors.size()-1; i++) {
+                value += step;
+                if (output <= value) {
+                    stepIndex = i;
+                    break;
+                }
             }
-
+            double ratio = 1 / step * Math.abs(value - output);
+            color = blend(customColors.get(stepIndex), customColors.get(stepIndex+1), ratio);
             context.setFill(color);
             context.fillRect(x , y, xOffset, yOffset);
         }
     }
 
     private void plotMultiClassClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double xOffset, double yOffset) {
-        List<Color> colors = customMultiColors.getColors();
         for (ForwardPropEntity forwardPropEntity : forwardPropEntities) {
             double x = x(forwardPropEntity.getX());
             double y = y(forwardPropEntity.getY());
@@ -145,9 +144,9 @@ public class NNDecisionBoundaryPlot extends Plot {
             for (int i = 0; i < output.size(); i++) {
                 double value = output.get(i);
                 if (value <= 0.5) {
-                    color = blend(color, colors.get(i), 1 - (value * 2));
+                    color = blend(color, customColors.get(i), 1 - (value * 2));
                 } else {
-                    color = blend(colors.get(i), colors.get(i), (value - 0.5) * 2);
+                    color = blend(customColors.get(i), customColors.get(i), (value - 0.5) * 2);
                 }
             }
             context.setFill(color);
@@ -172,10 +171,11 @@ public class NNDecisionBoundaryPlot extends Plot {
         }
         List<Color> colors = new ArrayList<>();
         if (definedClasses[0].length == 1) {
-            colors.add(customBinaryColors.getNegative());
-            colors.add(customBinaryColors.getPositive());
+            colors.add(customColors.get(0));
+            colors.add(customColors.get(customColors.size()-1));
+
         } else {
-            colors.addAll(customMultiColors.getColors());
+            colors = customColors;
         }
         for (int i = 0; i < data.length; i++) {
             double[] outClass = definedClasses[i];
@@ -194,4 +194,48 @@ public class NNDecisionBoundaryPlot extends Plot {
         return x * ((1 + padding *2) * Math.abs(min - max)) + min - (Math.abs(min - max) * padding);
     }
 
+    class ForwardPropData {
+
+        private List<ForwardPropEntity> data = new ArrayList<>();
+
+        public void add(double[] in, List<Double> out) {
+            data.add(new ForwardPropEntity(in[0], in[1], out));
+        }
+
+        public List<ForwardPropEntity> get() {
+            return data;
+        }
+
+    }
+
+    class ForwardPropEntity {
+
+        private double x;
+        private double y;
+        private List<Double> output;
+
+        public ForwardPropEntity(double x, double y, List<Double> output) {
+            this.x = x;
+            this.y = y;
+            this.output = output;
+        }
+
+        public double getX() {
+            return x;
+        }
+
+        public double getY() {
+            return y;
+        }
+
+        public double getZ() {
+            return output.get(0);
+        }
+
+        public List<Double> getOutput() {
+            return output;
+        }
+    }
+
 }
+

@@ -40,20 +40,18 @@ public class CostTest extends Application {
             root.getChildren().add(canvas2);
 
             NeuralNetwork net = new NeuralNetwork(Initializer.KAIMING, 2, 10, 1)
-                    .setLearningRate(0.5)
+                    .setLearningRate(0.8)
                     .setLearningRateOptimizer(Optimizer.NONE);
             net.setRectifier(Rectifier.SIGMOID);
-            int iter = 1000;
+            int iter = 500;
             net.fit(in, out, iter);
 
             NNPlot costPlot = new NNPlot(context);
-            costPlot.plotCost(net, true, 0.02);
+            costPlot.plotCost(net, false, 0.02);
             costPlot.setTitle("Cost of neural network during " + iter + " iterations");
 
             NNPlot sumPlot = new NNPlot(context2);
-            sumPlot.plotAccuracySum(net, true, 0);
-            sumPlot.plotPrecisionSum(net, true, 0);
-            sumPlot.plotRecallSum(net, true, 0);
+            sumPlot.plotCostSum(net, false, 0);
             sumPlot.setTitle("Summed cost over " + iter + " iterations");
 
 

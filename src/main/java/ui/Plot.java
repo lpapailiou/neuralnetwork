@@ -233,6 +233,11 @@ abstract class Plot {
         }
     }
 
+    void drawCross() {
+        drawAxis(x(0), height - hOffsetBottom, x(0), hOffsetTop);
+        drawAxis(wOffsetLeft, y(0), width - wOffsetRight, y(0));
+    }
+
     private void drawLine(double x1, double y1, double x2, double y2, Color color, double lineWidth, boolean draw) {
         if (!draw) {
             return;

@@ -9,11 +9,9 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import neuralnet.CostFunction;
 import neuralnet.NeuralNetwork;
-import ui.color.NNBinaryClassifierColor;
+import ui.color.NNMultiColor;
 import ui.color.NNPlotColor;
 import util.Initializer;
 import util.Optimizer;
@@ -40,11 +38,15 @@ public class AnimationTest extends Application {
                     .setLearningRate(0.8)
                     .setLearningRateOptimizer(Optimizer.NONE);
             AtomicInteger iterations = new AtomicInteger();
-            NNDecisionBoundaryPlot plot = new NNDecisionBoundaryPlot(addCanvas(700, 700, root));
+            NNMeshGrid plot = new NNMeshGrid(addCanvas(700, 700, root));
             plot.setPadding(30, 0, 20, 30, 5);
             plot.setTitle("after " + iterations + " iterations");
             plot.setColorPalette(new NNPlotColor(BLACK, BLACK, LIGHTGRAY, LIGHTGRAY, LIGHTGRAY, RED));
-            plot.plot(net, in, 1, 1, true, true, true, new NNBinaryClassifierColor(Color.GREEN, Color.RED, Color.YELLOW));
+            NNMultiColor defaultColors = new NNMultiColor(RED, YELLOW, GREEN);
+            NNMultiColor lightning = new NNMultiColor(BLUE, WHITE, STEELBLUE);
+            NNMultiColor heatMap = new NNMultiColor(STEELBLUE, AQUAMARINE, YELLOW, ORANGE, CRIMSON);
+            NNMultiColor customColors = defaultColors;
+            plot.plot(net, in, 0.2, 1, true, true, true, customColors);
 
 
             Button btnc = new Button("step forward");
@@ -52,9 +54,15 @@ public class AnimationTest extends Application {
                 iterations.addAndGet(1);
                 net.fit(in, out, 1);
                 plot.setTitle("after " + iterations + " iterations");
-                plot.plot(net, in, 1, 1, true, true, true, new NNBinaryClassifierColor(Color.GREEN, Color.RED, Color.YELLOW));
+                plot.plot(net, in, 0.2, 1, true, true, true, customColors);
             });
             root.getChildren().add(btnc);
+            Button btnr = new Button("render");
+            btnr.setOnAction(e -> {
+                plot.setTitle("after " + iterations + " iterations");
+                plot.plot(net, in, 1, 1, true, true, true, customColors);
+            });
+            root.getChildren().add(btnr);
 
             primaryStage.setScene(new Scene(root));
             primaryStage.show();

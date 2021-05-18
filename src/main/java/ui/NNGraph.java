@@ -440,8 +440,8 @@ public class NNGraph {
         int[] inNodes = new int[nodeCount];
         Arrays.fill(inNodes, 1);
         if (inactiveNodeIndexes != null) {
-            for (int i = 0; i < inactiveNodeIndexes.length; i++) {
-                inNodes[inactiveNodeIndexes[i]] = 0;
+            for (int inactiveNodeIndex : inactiveNodeIndexes) {
+                inNodes[inactiveNodeIndex] = 0;
             }
         }
         if (inputNodeLabels == null || nodeCount != inputNodeLabels.length) {
