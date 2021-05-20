@@ -72,15 +72,6 @@ public class NNPlot extends Plot {
 
         setLimits(data);
 
-        if (xMin == xMax) {
-            xMin = xMin - 0.5;
-            xMax = xMax + 0.5;
-        }
-        if (yMin == yMax) {
-            yMin = yMin - 0.5;
-            yMax = yMax + 0.5;
-        }
-
         if (!hasData) {
             drawBackground();
             drawGrid(true);
@@ -104,6 +95,15 @@ public class NNPlot extends Plot {
         xMax = data.keySet().stream().max(Double::compare).get();
         yMin = data.values().stream().min(Double::compare).get();
         yMax = data.values().stream().max(Double::compare).get();
+
+        if (xMin == xMax) {
+            xMin = xMin - 0.5;
+            xMax = xMax + 0.5;
+        }
+        if (yMin == yMax) {
+            yMin = yMin - 0.5;
+            yMax = yMax + 0.5;
+        }
     }
 
     public void plot(Rectifier rectifier, boolean showDerivation) {

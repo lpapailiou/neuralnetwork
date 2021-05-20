@@ -11,16 +11,17 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import neuralnet.NeuralNetwork;
-import ui.color.NNMultiColor;
+import ui.color.NNDataColor;
 import ui.color.NNPlotColor;
 import util.Initializer;
 import util.Optimizer;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static javafx.scene.paint.Color.*;
 
-public class AnimationTest extends Application {
+public class RenderTest extends Application {
 
     double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
     double[][] out = {{0}, {1}, {1}, {0}};
@@ -42,11 +43,13 @@ public class AnimationTest extends Application {
             plot.setPadding(30, 0, 20, 30, 5);
             plot.setTitle("after " + iterations + " iterations");
             plot.setColorPalette(new NNPlotColor(BLACK, BLACK, LIGHTGRAY, LIGHTGRAY, LIGHTGRAY, RED));
-            NNMultiColor defaultColors = new NNMultiColor(RED, YELLOW, GREEN);
-            NNMultiColor lightning = new NNMultiColor(BLUE, WHITE, STEELBLUE);
-            NNMultiColor heatMap = new NNMultiColor(STEELBLUE, AQUAMARINE, YELLOW, ORANGE, CRIMSON);
-            NNMultiColor customColors = defaultColors;
-            plot.plot(net, in, 0.2, 1, true, true, true, customColors);
+            NNDataColor defaultColors = new NNDataColor(RED, YELLOW, GREEN);
+            NNDataColor lightning = new NNDataColor(BLUE, WHITE, STEELBLUE);
+            NNDataColor heatMap = new NNDataColor(STEELBLUE, AQUAMARINE, YELLOW, ORANGE, CRIMSON);
+            NNDataColor customColors = defaultColors;
+            AtomicReference<Double> resolution = new AtomicReference<>(0.01);
+            double opacity = 1;
+            plot.plot(net, in, resolution.get(), opacity, true, true, true, customColors);
 
 
             Button btnc = new Button("step forward");
@@ -54,13 +57,18 @@ public class AnimationTest extends Application {
                 iterations.addAndGet(1);
                 net.fit(in, out, 1);
                 plot.setTitle("after " + iterations + " iterations");
-                plot.plot(net, in, 0.2, 1, true, true, true, customColors);
+                resolution.set(0.01);
+                plot.plot(net, in, resolution.get(), opacity, true, true, true, customColors);
             });
             root.getChildren().add(btnc);
             Button btnr = new Button("render");
             btnr.setOnAction(e -> {
+                resolution.updateAndGet(v -> new Double((double) (v *2.0)));
+                if (resolution.get() > 1) {
+                    resolution.set(1.0);
+                }
                 plot.setTitle("after " + iterations + " iterations");
-                plot.plot(net, in, 1, 1, true, true, true, customColors);
+                plot.plot(net, in, resolution.get(), 1, true, true, true, customColors);
             });
             root.getChildren().add(btnr);
 

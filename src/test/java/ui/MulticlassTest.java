@@ -10,7 +10,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import neuralnet.NeuralNetwork;
-import ui.color.NNMultiColor;
+import ui.color.NNDataColor;
 import ui.color.NNPlotColor;
 import util.Initializer;
 import util.Optimizer;
@@ -39,17 +39,18 @@ public class MulticlassTest extends Application {
             int iterations = 200;
 
             net.fit(in, out, iterations);
+            NNDataColor dataColor = new NNDataColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b"));
 
             for (int i = 0; i < 3; i++) {
                 iterations += 200;
                 net.fit(in, out, iterations);
 
                 NNMeshGrid plot = new NNMeshGrid(addCanvas(350, 350, root));
-                plot.setPadding(30, 0, 20, 30, 0.1).setFontProperties(false, false, 14);
+                plot.setPadding(30, 0, 20, 30, 0.2).setFontProperties(false, false, 14);
 
                 plot.setColorPalette(new NNPlotColor(BLACK, DIMGREY, LIGHTGRAY)).setTitle("after " + iterations + " iterations");;
 
-                plot.plot(net, in, 1, 0.8, true, true, true, new NNMultiColor(web("#eeb76b"), web("#e2703a"), web("#9c3d54"), web("#310b0b")));
+                plot.plot(net, in, 1, 0.8, true, true, true, dataColor);
                 plot.plotData(out, 12);
 
             }

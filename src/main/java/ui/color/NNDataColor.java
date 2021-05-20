@@ -6,11 +6,11 @@ import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NNMultiColor implements NNColorSupport {
+public class NNDataColor implements NNColorSupport {
 
-    List<Color> colors = new ArrayList<>();
+    private List<Color> colors = new ArrayList<>();
 
-    public NNMultiColor(Color... colors) {
+    public NNDataColor(Color... colors) {
         for (Color color : colors) {
             if (color == null) {
                 color = Color.TRANSPARENT;
@@ -22,4 +22,5 @@ public class NNMultiColor implements NNColorSupport {
     public List<Color> getColors() {
         return colors;
     }
+
 }

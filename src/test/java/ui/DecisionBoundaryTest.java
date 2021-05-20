@@ -11,7 +11,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import neuralnet.NeuralNetwork;
-import ui.color.NNMultiColor;
+import ui.color.NNDataColor;
+import ui.color.NNHeatMap;
 import ui.color.NNPlotColor;
 import util.Initializer;
 import util.Optimizer;
@@ -52,12 +53,12 @@ public class DecisionBoundaryTest extends Application {
                 net.fit(in, out, 20);
 
                 NNMeshGrid plot = new NNMeshGrid(addCanvas(300, 300, hbox));
-                plot.setPadding(25, 0, 20, 30, 5);
+                plot.setPadding(25, 0, 20, 30, 10);
                 plot.setTitle("after " + iterations + " iterations");
                 plot.setColorPalette(plotColors);
                 //plot.plot(net, in, 1, 0.9, true, true, true, new NNBinaryClassifierColor(Color.GREEN, Color.RED, Color.YELLOW));
-                plot.plot(net, in, 1, 0.9, true, true, true, new NNMultiColor(RED, YELLOW, GREEN));
-                //plot.plot(net, in, 0.5, 0.4, true, true, true, new NNMultiColor(STEELBLUE, AQUAMARINE, YELLOW, ORANGE, CRIMSON));
+                plot.plot(net, in, 1, 0.9, true, true, true, new NNHeatMap(0, 1, RED, YELLOW, GREEN));
+                //plot.plot(net, in, 0.5, 0.4, true, true, true, new NNDataColor(STEELBLUE, AQUAMARINE, YELLOW, ORANGE, CRIMSON));
                 plot.plotData(out, 8);
             }
 
