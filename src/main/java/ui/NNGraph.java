@@ -109,9 +109,10 @@ public class NNGraph {
     }
 
     private void cross(List<GraphNode> layer1, List<GraphNode> layer2, int layerIndex) {
+        List<double[][]> weights = neuralNetwork.getWeights();
         for (int i = 0; i < layer1.size(); i++) {
             int nodesSkipped = 0;
-            double[][] layerWeights = neuralNetwork.getWeights(layerIndex - 1);
+            double[][] layerWeights = weights.get(layerIndex - 1);
             for (int j = 0; j < layer2.size(); j++) {
                 GraphNode a = layer1.get(i);
                 GraphNode b = layer2.get(j);

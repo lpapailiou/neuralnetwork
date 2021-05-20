@@ -22,7 +22,142 @@ public class NNMeshGrid extends Plot {
         super(context);
     }
 
-    public void plot(NeuralNetwork neuralNetwork, double[][] in, double resolution, double opacity, boolean drawAxes, boolean drawTicks, boolean drawAxisLabels, NNDataColor dataColor) {
+    public void plotConfusionMatrix(NeuralNetwork neuralNetwork, double in[][], double opacity, boolean axes, boolean tickMarks, boolean ticks, NNDataColor dataColor) {
+        int[] configuration = neuralNetwork.getConfiguration();
+        if (configuration[configuration.length-1] ==1) {
+            throw new IllegalArgumentException("Confusion matrix cannot be created for 1-dimensional output architecture!");
+        }
+        xMin = 0;
+        xMax = configuration[configuration.length-1];
+        yMin = 0;
+        yMax = xMax;
+
+        data = new double[configuration[configuration.length-1]][configuration[configuration.length-1]];
+
+        for (int i = 0; i < xMax; i++) {
+            List<Double> prediction = neuralNetwork.predict(in[i]);
+            double[] predictionDouble = new double[configuration[configuration.length-1]];
+            for (int j = 0; j < xMax; j++) {
+                predictionDouble[j] = prediction.get(j);
+            }
+            data[i] = predictionDouble;
+        }
+        plotBackgroundColor = TRANSPARENT;
+
+        this.dataColor = dataColor;
+
+
+        int iterX = (int) xMax;
+        int iterY = (int) yMax;
+        double xOffset = Math.ceil(plotWidth / iterX) + 1;
+        double yOffset = Math.ceil(plotHeight / iterY) + 1;
+
+
+        double xMinNext = scaleX(0);
+        double xMaxNext = scaleX(1);
+        double yMinNext = scaleY(0);
+        double yMaxNext = scaleY(1);
+
+        xMin = xMinNext;
+        xMax = xMaxNext;
+        yMin = yMinNext;
+        yMax = yMaxNext;
+
+        double cachedPadding = padding;
+        padding = 0;
+
+        drawBackground();
+        plotWeights(data, xOffset, yOffset);
+        drawOverlay(opacity);
+        drawAxes(axes, tickMarks, ticks);
+        setTitle(title);
+
+        padding = cachedPadding;
+    }
+
+    public void plotWeights(NeuralNetwork neuralNetwork, int col, int width, double opacity, boolean axes, boolean tickMarks, boolean ticks, NNDataColor dataColor) {
+        data = neuralNetwork.getWeights().get(0);
+
+        xMin = 0;
+        xMax = width;
+        yMin = 0;
+        yMax = data[0].length / width;
+
+        plotBackgroundColor = TRANSPARENT;
+
+        this.dataColor = dataColor;
+
+
+        int iterX = (int) xMax;
+        int iterY = (int) yMax;
+        double xOffset = Math.ceil(plotWidth / iterX) + 1;
+        double yOffset = Math.ceil(plotHeight / iterY) + 1;
+
+
+        double xMinNext = scaleX(0);
+        double xMaxNext = scaleX(1);
+        double yMinNext = scaleY(0);
+        double yMaxNext = scaleY(1);
+
+        xMin = xMinNext;
+        xMax = xMaxNext;
+        yMin = yMinNext;
+        yMax = yMaxNext;
+
+        double cachedPadding = padding;
+        padding = 0;
+
+        drawBackground();
+        plotWeights(data, col, width, xOffset, yOffset);
+        drawOverlay(opacity);
+        drawAxes(axes, tickMarks, ticks);
+        setTitle(title);
+
+        padding = cachedPadding;
+    }
+
+    public void plotWeights(NeuralNetwork neuralNetwork, int layer, double opacity, boolean axes, boolean tickMarks, boolean ticks, NNDataColor dataColor) {
+        data = neuralNetwork.getWeights().get(layer);
+
+        xMin = 0;
+        xMax = data[0].length;
+        yMin = 0;
+        yMax = data.length;
+
+        plotBackgroundColor = TRANSPARENT;
+
+        this.dataColor = dataColor;
+
+
+        int iterX = (int) xMax;
+        int iterY = (int) yMax;
+        double xOffset = Math.ceil(plotWidth / iterX) + 1;
+        double yOffset = Math.ceil(plotHeight / iterY) + 1;
+
+
+        double xMinNext = scaleX(0);
+        double xMaxNext = scaleX(1);
+        double yMinNext = scaleY(0);
+        double yMaxNext = scaleY(1);
+
+        xMin = xMinNext;
+        xMax = xMaxNext;
+        yMin = yMinNext;
+        yMax = yMaxNext;
+
+        double cachedPadding = padding;
+        padding = 0;
+
+        drawBackground();
+        plotWeights(data, xOffset, yOffset);
+        drawOverlay(opacity);
+        drawAxes(axes, tickMarks, ticks);
+        setTitle(title);
+
+        padding = cachedPadding;
+    }
+
+    public void plot(NeuralNetwork neuralNetwork, double[][] in, double resolution, double opacity, boolean axes, boolean tickMarks, boolean ticks, NNDataColor dataColor) {
         int[] configuration = neuralNetwork.getConfiguration();
         if (configuration[0] != 2) {
             throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
@@ -69,7 +204,7 @@ public class NNMeshGrid extends Plot {
 
         for (int i = 0; i < iterX; i++) {
             for (int j = 0; j < iterY; j++) {
-                double[] input = {scale(x, xMin, xMax), scale(y, yMin, yMax)};
+                double[] input = {scaleX(x), scaleY(y)};
                 y += stepY;
                 List<Double> output = neuralNetwork.predict(input);
                 data.add(input, output);
@@ -80,10 +215,10 @@ public class NNMeshGrid extends Plot {
 
         List<ForwardPropEntity> forwardPropEntities = data.get();
 
-        double xMinNext = scale(0, xMin, xMax);
-        double xMaxNext = scale(1, xMin, xMax);
-        double yMinNext = scale(0, yMin, yMax);
-        double yMaxNext = scale(1, yMin, yMax);
+        double xMinNext = scaleX(0);
+        double xMaxNext = scaleX(1);
+        double yMinNext = scaleY(0);
+        double yMaxNext = scaleY(1);
 
         xMin = xMinNext;
         xMax = xMaxNext;
@@ -115,10 +250,106 @@ public class NNMeshGrid extends Plot {
             plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
         }
         drawOverlay(opacity);
-        drawAxes(drawAxes, drawTicks, drawAxisLabels);
+        drawAxes(axes, tickMarks, ticks);
         setTitle(title);
 
         padding = cachedPadding;
+    }
+
+    private void plotWeights(double[][] weights, int col, int width, double xOffset, double yOffset) {
+        List<Color> customColors = dataColor.getColors();
+        List<Double> weightList = new ArrayList<>();
+        //for (int i = 0; i < weights.length; i++) {
+            for (int j = 0; j < weights[0].length; j++) {
+                weightList.add(weights[col][j]);
+            }
+        //}
+        double zMin = weightList.stream().min(Double::compare).get();
+        double zMax = weightList.stream().max(Double::compare).get();
+        if (dataColor instanceof NNHeatMap && ((NNHeatMap) dataColor).isScaled()) {
+            zMin = ((NNHeatMap) dataColor).getMin();
+            zMax = ((NNHeatMap) dataColor).getMax();
+        }
+        double range = Math.abs(zMax - zMin);
+        double step = range / (customColors.size()-1);
+        int index = -1;
+        //for (int i = 0; i < Math.sqrt(weights[0].length); i++) {
+            for (int j = 0; j < weights[0].length; j++) {
+                if (j%width == 0) {
+                    index++;
+                }
+                double x = x(j%width);
+                double y = y((weights[col].length/width)-index);
+
+                double output = weights[col][j];
+
+                Color color;
+                int stepIndex = 0;
+                double value = zMin;
+                for (int k = 0; k < customColors.size()-1; k++) {
+                    value += step;
+                    if (output <= value || k == customColors.size()-2) {
+                        stepIndex = k;
+                        break;
+                    }
+                }
+                double ratio = 1 / step * Math.abs(value - output);
+                if (output > zMax) {
+                    ratio = 0;
+                }
+                color = blend(customColors.get(stepIndex), customColors.get(stepIndex+1), ratio);
+                context.setFill(color);
+                context.fillRect(x , y - yOffset, xOffset, yOffset);
+            }
+        //}
+
+    }
+
+    private void plotWeights(double[][] weights, double xOffset, double yOffset) {
+
+        List<Color> customColors = dataColor.getColors();
+        List<Double> weightList = new ArrayList<>();
+        for (int i = 0; i < weights.length; i++) {
+            for (int j = 0; j < weights[i].length; j++) {
+                weightList.add(weights[i][j]);
+            }
+        }
+
+        double zMin = weightList.stream().min(Double::compare).get();
+        double zMax = weightList.stream().max(Double::compare).get();
+
+        if (dataColor instanceof NNHeatMap && ((NNHeatMap) dataColor).isScaled()) {
+            zMin = ((NNHeatMap) dataColor).getMin();
+            zMax = ((NNHeatMap) dataColor).getMax();
+        }
+        double range = Math.abs(zMax - zMin);
+        double step = range / (customColors.size()-1);
+        for (int i = 0; i < weights.length; i++) {
+            for (int j = 0; j < weights[i].length; j++) {
+                double x = x(j);
+                double y = y(i);
+                double output = weights[i][j];
+
+                Color color;
+                int stepIndex = 0;
+                double value = zMin;
+                for (int k = 0; k < customColors.size()-1; k++) {
+                    value += step;
+                    if (output <= value || k == customColors.size()-2) {
+                        stepIndex = k;
+                        break;
+                    }
+                }
+                double ratio = 1 / step * Math.abs(value - output);
+                if (output > zMax) {
+                    ratio = 0;
+                }
+                color = blend(customColors.get(stepIndex), customColors.get(stepIndex+1), ratio);
+                context.setFill(color);
+                context.fillRect(x , y - yOffset, xOffset, yOffset);
+            }
+        }
+
     }
 
     private void plotBinaryClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double xOffset, double yOffset) {
@@ -213,8 +444,12 @@ public class NNMeshGrid extends Plot {
         padding = cachedPadding;
     }
 
-    private double scale(double x, double min, double max) {
-        return x * ((1 + padding) * Math.abs(min - max)) + min - (Math.abs(min - max) * (padding/2));
+    private double scaleX(double x) {
+        return x * ((1 + padding) * Math.abs(xMin - xMax)) + xMin - (Math.abs(xMin - xMax) * (padding/2));
+    }
+
+    private double scaleY(double y) {
+        return y * ((1 + padding) * Math.abs(yMin - yMax)) + yMin - (Math.abs(yMin - yMax) * (padding/2));
     }
 
     class ForwardPropData {

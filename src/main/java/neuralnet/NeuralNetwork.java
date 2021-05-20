@@ -670,13 +670,31 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * This method allows do extracts the weight matrix of a specific layer.
+     * This method allows do extracts the weight matrices from all layers.
+     * They are ordered from input to output.
      *
-     * @param layer the index of the layer.
-     * @return the weight matrix of the layer.
+     * @return the weight matrices of all layers.
      */
-    public double[][] getWeights(int layer) {
-        return layers.get(layer).weight.getData();
+    public List<double[][]> getWeights() {
+        List<double[][]> weights = new ArrayList<>();
+        for (Layer layer : layers) {
+            weights.add(layer.weight.getData());
+        }
+        return weights;
+    }
+
+    /**
+     * This method allows do extracts the bias matrices from all layers.
+     * They are ordered from input to output.
+     *
+     * @return the bias matrices of all layers.
+     */
+    public List<double[][]> getBiases() {
+        List<double[][]> biases = new ArrayList<>();
+        for (Layer layer : layers) {
+            biases.add(layer.bias.getData());
+        }
+        return biases;
     }
 
     /**

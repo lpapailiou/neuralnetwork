@@ -95,7 +95,7 @@ The output will show all matrix components (weights + biases) as well as the neu
   
 To access the weights, following method can be used:  
 
-    double[][] weights = neuralNetwork.getWeights(layerIndex);
+    List<double[][]> weights = neuralNetwork.getWeights();
     
 Every time a prediction is made, the node values (including input and output nodes) will be cached.
 It can be accessed with following method: 
