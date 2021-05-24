@@ -259,11 +259,11 @@ public class NNMeshGrid extends Plot {
     private void plotWeights(double[][] weights, int col, int width, double xOffset, double yOffset) {
         List<Color> customColors = dataColor.getColors();
         List<Double> weightList = new ArrayList<>();
-        //for (int i = 0; i < weights.length; i++) {
+        for (int i = 0; i < weights.length; i++) {
             for (int j = 0; j < weights[0].length; j++) {
-                weightList.add(weights[col][j]);
+                weightList.add(weights[i][j]);
             }
-        //}
+        }
         double zMin = weightList.stream().min(Double::compare).get();
         double zMax = weightList.stream().max(Double::compare).get();
         if (dataColor instanceof NNHeatMap && ((NNHeatMap) dataColor).isScaled()) {
@@ -299,7 +299,7 @@ public class NNMeshGrid extends Plot {
                 }
                 color = blend(customColors.get(stepIndex), customColors.get(stepIndex+1), ratio);
                 context.setFill(color);
-                context.fillRect(x , y - yOffset, xOffset, yOffset);
+                context.fillRect(x , y, xOffset, yOffset);
             }
         //}
 

@@ -1627,6 +1627,9 @@ public class WeightTest extends Application {
             net.fit(in, out, iterations);
             //System.out.println(net);
 
+            //NNHeatMap color = new NNHeatMap(STEELBLUE, AZURE, YELLOW, ORANGE, CRIMSON);
+            NNHeatMap color = new NNHeatMap(BLACK, WHITE);
+
             for (int i = 0; i < net.getConfiguration()[1]; i++) {
                 if (i % 15 == 0) {
                     hbox = new HBox();
@@ -1639,7 +1642,7 @@ public class WeightTest extends Application {
                 plot.setPadding(0, 0, 0, 0, 0);
                 plot.setTitle("weights for col " + i);
                 plot.setColorPalette(plotColors);
-                plot.plotWeights(net, i, 28, 0.9, true, true, false, new NNHeatMap(STEELBLUE, AZURE, YELLOW, ORANGE, CRIMSON));
+                plot.plotWeights(net, i, 28, 0.9, true, true, false, color);
                 //plot.plotConfusionMatrix(net, in, 1, true, true, true, new NNHeatMap(STEELBLUE, AZURE, YELLOW, ORANGE, CRIMSON));
             }
 

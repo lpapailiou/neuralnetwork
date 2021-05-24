@@ -34,9 +34,9 @@ abstract class Plot {
     String title;
     private double width;
     private double height;
-    private double wOffsetLeft = 30;
+    protected double wOffsetLeft = 30;
     private double wOffsetRight = 10;
-    private double hOffsetTop = 30;
+    protected double hOffsetTop = 30;
     private double hOffsetBottom = 20;
     private double plotLineWidth = 1.5;
     private double gridLineWidth = 0.5;
@@ -154,6 +154,11 @@ abstract class Plot {
         context.fillRect(0, 0, wOffsetLeft, height);
         context.fillRect(width - wOffsetRight, 0, width - wOffsetRight, height);
         context.fillRect(0, height - hOffsetBottom, width, height - hOffsetBottom);
+    }
+
+    protected void clear() {
+        context.setFill(backgroundColor);
+        context.clearRect(0, 0, width, height);
     }
 
     void drawGrid(boolean drawGrid) {
