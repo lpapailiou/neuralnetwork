@@ -1,21 +1,15 @@
 package ui;
 
 import javafx.application.Application;
-import javafx.application.ConditionalFeature;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.DepthTest;
 import javafx.scene.Scene;
-import javafx.scene.SceneAntialiasing;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Mesh;
-import javafx.scene.shape.MeshView;
-import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
 import neuralnet.NeuralNetwork;
 import ui.color.NNHeatMap;
@@ -28,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static javafx.scene.SceneAntialiasing.BALANCED;
 
-public class ThreeDeeTest extends Application {
+public class ThreeDee2Test extends Application {
 
     double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
     double[][] out = {{0}, {1}, {1}, {0}};
@@ -76,12 +70,11 @@ public class ThreeDeeTest extends Application {
                     .setRectifier(Rectifier.SIGMOID)
                     .setLearningRate(0.5)
                     .setLearningRateOptimizer(Optimizer.NONE);
-            int iter = 1000;
-            double resolution = 0.5;
+            int iter = 200;
+            double resolution = 0.02;
             double padding = 2;
             double step = 0.1;
             double angleStep = 5;
-
             net.fit(in, out, iter);
             NNHeatMap heatMap = new NNHeatMap(0,1,Color.STEELBLUE, Color.TURQUOISE, Color.YELLOW, Color.CRIMSON);
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);

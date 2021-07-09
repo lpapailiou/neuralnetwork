@@ -1,17 +1,18 @@
 package ui;
 
+import javafx.scene.Group;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
 import neuralnet.NeuralNetwork;
+import org.jetbrains.annotations.NotNull;
 import ui.color.NNDataColor;
 import ui.color.NNHeatMap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import static javafx.scene.paint.Color.TRANSPARENT;
+import static javafx.scene.paint.Color.*;
 import static ui.color.NNColorSupport.blend;
 
 public class NN3DPlot extends Plot {
@@ -23,17 +24,16 @@ public class NN3DPlot extends Plot {
     private double[] calcRange = {0,0};
     private double[][] matrix;
     private double cachedPadding;
+    private double zoom;
+    private double xAngle;
+    private double yAngle;
     private double zAngle;
+
+    // 10 x, 3 z, 6 zoom
 
     public NN3DPlot(GraphicsContext context) {
         super(context);
-        matrix = getProjectionMatrix2();
-    }
-
-    @Override
-    public NN3DPlot setPadding(double top, double right, double bottom, double left, double dataPadding) {
-        super.setPadding(top, right, bottom, left, dataPadding);
-        return this;
+        matrix = getProjectionMatrix();
     }
 
     public void plot(double[][] transformationMatrix, NeuralNetwork neuralNetwork, double[][] in, double resolution, double opacity, boolean axes, NNDataColor dataColor) {
@@ -48,6 +48,59 @@ public class NN3DPlot extends Plot {
             throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
         }
 
+        prepare(in);
+        plotBackgroundColor = TRANSPARENT;
+        cachedPadding = padding;
+        this.dataColor = dataColor;
+
+        ForwardPropData data = new ForwardPropData();
+
+        int iterX = (int) Math.ceil(plotWidth * resolution);
+        int iterY = (int) Math.ceil(plotHeight * resolution);
+        double stepX = 1.0 / iterX;
+        double stepY = 1.0 / iterY;
+        double x = stepX / 2;
+        double y = stepY / 2;
+        double xOffset = Math.ceil(plotWidth / iterX) + 1;
+        double yOffset = Math.ceil(plotHeight / iterY) + 1;
+        for (int i = 0; i < iterX; i++) {
+            for (int j = 0; j < iterY; j++) {
+                double[] input = {scaleX(x), scaleY(y)};
+                y += stepY;
+                List<Double> output = neuralNetwork.predict(input);
+                data.add(input, output);
+            }
+            y = stepY / 2;
+            x += stepX;
+        }
+        List<ForwardPropEntity> forwardPropEntities = data.get();
+
+        Collections.reverse(forwardPropEntities);
+
+        calcRange = new double[] {Math.abs(xMax-xMin), Math.abs(yMax-yMin)};
+
+        padding = 0;
+
+        drawBackground();
+        if (configuration[configuration.length - 1] == 1) {
+            if (dataColor.getColors().size() < 2) {
+                throw new IllegalArgumentException("At least 2 data color items must be provided!");
+            }
+            plotBinaryClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
+        } else {
+            if (dataColor.getColors().size() != configuration[configuration.length-1]) {
+                throw new IllegalArgumentException("Count of data color items " + dataColor.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
+            }
+            plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
+        }
+        drawOverlay(opacity);
+        drawAxes(axes, false, false);
+        setTitle(title);
+
+        padding = cachedPadding;
+    }
+
+    public void prepare(double[][] in) {
         data = in;
 
         xMin = Double.MAX_VALUE;
@@ -75,62 +128,11 @@ public class NN3DPlot extends Plot {
         dataMin = new double[] {xMin, yMin};
         dataRange = new double[] {Math.abs(xMax-xMin), Math.abs(yMax-yMin)};
 
-        plotBackgroundColor = TRANSPARENT;
-        cachedPadding = padding;
-
-        this.dataColor = dataColor;
-
-        ForwardPropData data = new ForwardPropData();
-
-        int iterX = (int) Math.ceil(plotWidth * resolution);
-        int iterY = (int) Math.ceil(plotHeight * resolution);
-        double stepX = 1.0 / iterX;
-        double stepY = 1.0 / iterY;
-        double x = stepX / 2;
-        double y = stepY / 2;
-        double xOffset = Math.ceil(plotWidth / iterX) + 1;
-        double yOffset = Math.ceil(plotHeight / iterY) + 1;
-        for (int i = 0; i < iterX; i++) {
-            for (int j = 0; j < iterY; j++) {
-                double[] input = {scaleX(x), scaleY(y)};
-                y += stepY;
-                List<Double> output = neuralNetwork.predict(input);
-                data.add(input, output);
-            }
-            y = stepY / 2;
-            x += stepX;
-        }
-        List<ForwardPropEntity> forwardPropEntities = data.get();
-
-
-        Collections.reverse(forwardPropEntities);
-
-        calcRange = new double[] {Math.abs(xMax-xMin), Math.abs(yMax-yMin)};
-
-        padding = 0;
-
-        drawBackground();
-        if (configuration[configuration.length - 1] == 1) {
-            if (dataColor.getColors().size() < 2) {
-                throw new IllegalArgumentException("At least 2 data color items must be provided!");
-            }
-            plotBinaryClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
-        } else {
-            if (dataColor.getColors().size() != configuration[configuration.length-1]) {
-                throw new IllegalArgumentException("Count of data color items " + dataColor.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
-            }
-            plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
-        }
-        drawOverlay(opacity);
-        drawAxes(axes, false, false);
-        setTitle(title);
-
-        padding = cachedPadding;
     }
 
     private void plotBinaryClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double xOffset, double yOffset) {
         List<Color> customColors = dataColor.getColors();
-        List<MultiDimensionData> dimList = new ArrayList<>();
+        List<Point> points = new ArrayList<>();
         double zFactor = 1 / (cachedPadding+1);
         double zMin = forwardPropEntities.stream().map(ForwardPropEntity::getZ).min(Double::compare).get();
         double zMax = forwardPropEntities.stream().map(ForwardPropEntity::getZ).max(Double::compare).get();
@@ -166,81 +168,57 @@ public class NN3DPlot extends Plot {
             double[] xPoints = {-x0y0[0], -x1y0[0], -x1y1[0], -x0y1[0]};
             double[] yPoints = {x0y0[1], x1y0[1], x1y1[1], x0y1[1]};
             color = blend(customColors.get(stepIndex), customColors.get(stepIndex+1), ratio);
+
+            color = blend(WHITE, BLACK, 4/t[3]);
+
             //context.setFill(color);
             //context.fillPolygon(xPoints, yPoints, 4);
-            dimList.add(new MultiDimensionData(xPoints, yPoints, color));
-            //break;
+            points.add(new Point(xPoints, yPoints, t[3], color));
         }
-
-        for (MultiDimensionData point : dimList) {
-            point.fill();
+        Comparator<Point> comparator = (Point::compareTo);
+        Collections.sort(points, comparator.reversed());
+        //Collections.reverse(points);
+        for (Point p : points) {
+            p.draw();
         }
-
     }
 
-    private class MultiDimensionData {
-        double[] xPoints;
-        double[] yPoints;
+    class Point implements Comparable<Point> {
+        double[] x;
+        double[] y;
+        double z;
         Color color;
-
-        MultiDimensionData(double[] xPoints, double[] yPoints, Color color) {
-            this.xPoints = xPoints;
-            this.yPoints = yPoints;
+        Point(double[] x, double[] y, double z, Color color) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
             this.color = color;
         }
-
-        void fill() {
+        void draw() {
             context.setFill(color);
-            context.fillPolygon(xPoints, yPoints, 4);
+            context.fillPolygon(x, y, 4);
+        }
+
+        @Override
+        public int compareTo(@NotNull NN3DPlot.Point o) {
+            return Double.compare(this.z, o.z);
         }
     }
 
-
-
-    public double[][] getProjectionMatrix2(double cx, double cy, double cz, double tx, double ty, double tz, double dx, double dy, double dz) {
-        double[] camera = {cx,cy,cz};
-        double[][] translate = translate(-0.5,0.5, -0);
-        double[][] translateBack = translate(0.5,-0.5, 0);
-        double[][] rotate = lift(multiply(multiply(xRotation(dx), yRotation(dy)), zRotation(dz)));
-
-        double[][] m = rotate;
-        m = multiply(m, baseProjection(camera));
-        m = multiply(translate(-tx,ty, tz), m);
-
-        m = multiply(centralProjection(), m);
-        m = multiply(translate, m);
-        return m;
-    }
-
-    public double[][] getProjectionMatrix2() {
+    public double[][] getProjectionMatrix() {
         double[] camera = {0,0,-1};
         double[][] translate = translate(-0.5,0.5, -0);
         double[][] translateBack = translate(0.5,-0.5, 0);
-        double[][] rotate = lift(multiply(multiply(xRotation(0), yRotation(0)), zRotation(0)));
-
+        double[][] rotate = lift(multiply(multiply(xRotation(xAngle), yRotation(yAngle)), zRotation(zAngle)));
 
         double[][] m = rotate;
         m = multiply(m, baseProjection(camera));
-        m = multiply(translate(0,0, 0), m);
+        m = multiply(translate(0,0, -zoom), m);
 
         m = multiply(centralProjection(), m);
         m = multiply(translate, m);
         return m;
-        ////cx: -0.0025, cy: 0.002, cz: -0.005, tx: 0.08999999999999958, ty: 0.46999999999999953, tz: -1.3499999999999999
-        // -0.5000000000000002, cy: 0.4, cz: -1.0, tx: 0.6, ty: 0.0, tz: -1.3000000000000003
     }
-/*
-    public double[][] getProjectionMatrix2() {
-        double[] camera = {-0.0025,0.002,-0.005};
-        double[][] m = baseProjection(camera);
-        // right / down
-        m = multiply(m, translate(0.09,0.5, -1.35));
-        m = multiply(centralProjection(), m);
-        return m;
-        ////cx: -0.0025, cy: 0.002, cz: -0.005, tx: 0.08999999999999958, ty: 0.46999999999999953, tz: -1.3499999999999999
-    }*/
-
-
 
     private double[] transform(double[] v) {
         return lower(multiply(matrix, lift(v)));
@@ -293,9 +271,6 @@ public class NN3DPlot extends Plot {
         for (int i = 0; i < data.length; i++) {
             double[] outClass = definedClasses[i];
             Color innerColor = colors.get(classes.indexOf(Arrays.toString(outClass)));
-            //Color outerColor = NNColorSupport.blend(innerColor, plotBackgroundColor, 0.5);
-            //context.setFill(outerColor);
-            //context.fillOval(x(data[i][0]) - radius / 2, y(data[i][1]) - radius / 2, radius, radius);
             context.setFill(innerColor);
             context.fillOval(x(data[i][0]) - radius / 2, y(data[i][1]) - radius / 2, radius, radius);
         }
@@ -317,31 +292,6 @@ public class NN3DPlot extends Plot {
 
     private double rescaleY(double y) {
         return (y - dataMin[1] + (dataRange[1] * (cachedPadding/2))) / ((1 + cachedPadding) * dataRange[1]) - 0.5;
-    }
-
-    private double scaleUnpaddedX(double x) {
-        return x * (Math.abs(xMin - xMax)) + xMin - (Math.abs(xMin - xMax));
-    }
-
-    private double scaleUnpaddedY(double y) {
-        return y * (Math.abs(yMin - yMax)) + yMin - (Math.abs(yMin - yMax));
-    }
-
-
-
-    @Override
-    double x(double x) {
-        //                            distance right                                            +    left side including padding
-
-        // return ((x - xMin) / Math.abs(xMin - xMax) * (plotWidth * ((1 - padding)))) + (wOffsetLeft + (plotWidth * padding * 0.5));
-        return super.x(x) - 0;// - wOffsetLeft;
-    }
-
-    @Override
-    double y(double y) {
-        return super.y(y) + 0;
-                    // bottom-line including padding                      -                      distance up
-        //return (plotHeight + hOffsetTop - (plotHeight * padding * 0.5)) - ((y - yMin) / Math.abs(yMin - yMax) * (plotHeight * (1 - padding)));
     }
 
     class ForwardPropData {
@@ -447,7 +397,7 @@ public class NN3DPlot extends Plot {
         if (val == 0) {
             val = 0.001;
         }
-        return new double[] {v[0]/val, v[1]/val, v[2]/val};
+        return new double[] {v[0]/val, v[1]/val, v[2]/val, val};
     }
 
     public double[][] translate(double x, double y, double z) {
@@ -470,187 +420,6 @@ public class NN3DPlot extends Plot {
         return tmp;
     }
 
-    public double[][] subtract(double[][] a, double[][] b) {
-        if (a.length != b.length || a[0].length != b[0].length) {
-            throw new IllegalArgumentException("wrong input dimensions for addition!");
-        }
-        double[][] tmp = new double[a.length][a[0].length];
-        for (int i = 0; i < a.length; i++) {
-            for (int j = 0; j < a[0].length; j++) {
-                double sideA = a[i][j];
-                double sideB = b[i][j];
-                double value = sideA - sideB;
-                tmp[i][j] = value;
-            }
-        }
-        return tmp;
-    }
-
-    public double[][] invert(double[][] matrix) {
-        double[] m = new double[16];
-        int index = 0;
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                m[index] = matrix[i][j];
-                index++;
-            }
-        }
-        double[] inv = new double[16];
-        double[][] invOut = new double[4][4];
-        double det = 0;
-
-        inv[0] = m[5]  * m[10] * m[15] -
-                m[5]  * m[11] * m[14] -
-                m[9]  * m[6]  * m[15] +
-                m[9]  * m[7]  * m[14] +
-                m[13] * m[6]  * m[11] -
-                m[13] * m[7]  * m[10];
-
-        inv[4] = -m[4] * m[10] * m[15] +
-                m[4] * m[11] * m[14] +
-                m[8] * m[6] * m[15] -
-                m[8] * m[7] * m[14] -
-                m[12] * m[6] * m[11] +
-                m[12] * m[7] * m[10];
-
-        inv[8] = m[4] * m[9] * m[15] -
-                m[4] * m[11] * m[13] -
-                m[8] * m[5] * m[15] +
-                m[8] * m[7] * m[13] +
-                m[12] * m[5] * m[11] -
-                m[12] * m[7] * m[9];
-
-        inv[12] = -m[4] * m[9] * m[14] +
-                m[4] * m[10] * m[13] +
-                m[8] * m[5] * m[14] -
-                m[8] * m[6] * m[13] -
-                m[12] * m[5] * m[10] +
-                m[12] * m[6] * m[9];
-
-        inv[1] = -m[1] * m[10] * m[15] +
-                m[1] * m[11] * m[14] +
-                m[9] * m[2] * m[15] -
-                m[9] * m[3] * m[14] -
-                m[13] * m[2] * m[11] +
-                m[13] * m[3] * m[10];
-
-        inv[5] = m[0] * m[10] * m[15] -
-                m[0] * m[11] * m[14] -
-                m[8] * m[2] * m[15] +
-                m[8] * m[3] * m[14] +
-                m[12] * m[2] * m[11] -
-                m[12] * m[3] * m[10];
-
-        inv[9] = -m[0] * m[9] * m[15] +
-                m[0] * m[11] * m[13] +
-                m[8] * m[1] * m[15] -
-                m[8] * m[3] * m[13] -
-                m[12] * m[1] * m[11] +
-                m[12] * m[3] * m[9];
-
-        inv[13] = m[0] * m[9] * m[14] -
-                m[0] * m[10] * m[13] -
-                m[8] * m[1] * m[14] +
-                m[8] * m[2] * m[13] +
-                m[12] * m[1] * m[10] -
-                m[12] * m[2] * m[9];
-
-        inv[2] = m[1] * m[6] * m[15] -
-                m[1] * m[7] * m[14] -
-                m[5] * m[2] * m[15] +
-                m[5] * m[3] * m[14] +
-                m[13] * m[2] * m[7] -
-                m[13] * m[3] * m[6];
-
-        inv[6] = -m[0] * m[6] * m[15] +
-                m[0] * m[7] * m[14] +
-                m[4] * m[2] * m[15] -
-                m[4] * m[3] * m[14] -
-                m[12] * m[2] * m[7] +
-                m[12] * m[3] * m[6];
-
-        inv[10] = m[0] * m[5] * m[15] -
-                m[0] * m[7] * m[13] -
-                m[4] * m[1] * m[15] +
-                m[4] * m[3] * m[13] +
-                m[12] * m[1] * m[7] -
-                m[12] * m[3] * m[5];
-
-        inv[14] = -m[0] * m[5] * m[14] +
-                m[0] * m[6] * m[13] +
-                m[4] * m[1] * m[14] -
-                m[4] * m[2] * m[13] -
-                m[12] * m[1] * m[6] +
-                m[12] * m[2] * m[5];
-
-        inv[3] = -m[1] * m[6] * m[11] +
-                m[1] * m[7] * m[10] +
-                m[5] * m[2] * m[11] -
-                m[5] * m[3] * m[10] -
-                m[9] * m[2] * m[7] +
-                m[9] * m[3] * m[6];
-
-        inv[7] = m[0] * m[6] * m[11] -
-                m[0] * m[7] * m[10] -
-                m[4] * m[2] * m[11] +
-                m[4] * m[3] * m[10] +
-                m[8] * m[2] * m[7] -
-                m[8] * m[3] * m[6];
-
-        inv[11] = -m[0] * m[5] * m[11] +
-                m[0] * m[7] * m[9] +
-                m[4] * m[1] * m[11] -
-                m[4] * m[3] * m[9] -
-                m[8] * m[1] * m[7] +
-                m[8] * m[3] * m[5];
-
-        inv[15] = m[0] * m[5] * m[10] -
-                m[0] * m[6] * m[9] -
-                m[4] * m[1] * m[10] +
-                m[4] * m[2] * m[9] +
-                m[8] * m[1] * m[6] -
-                m[8] * m[2] * m[5];
-
-        det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
-
-        if (det == 0) {
-            return null;
-        }
-
-        det = 1.0 / det;
-
-        for (int i = 0; i < 16; i++) {
-            inv[i] = inv[i] * det;
-        }
-
-        index = 0;
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                invOut[i][j] = inv[index];
-                index++;
-            }
-        }
-
-        return invOut;
-    }
-
-    private double[][] ndcTranslate(double zMin, double zMax) {
-        double xMin = -1;
-        double xMax = 1;
-        double yMin = -1;
-        double yMax = 1;
-        return new double[][] {{1., 0., 0., 0.},{0., 1., 0., 0.},{0., 0., 1., -(zMin + zMax)},{(xMin + xMax) / 2, (yMax + yMin) / 2, 0, 1.}};
-    }
-
-    private double[][] ndcScale(double zMin, double zMax) {
-        double xMin = -1;
-        double xMax = 1;
-        double yMin = -1;
-        double yMax = 1;
-        double device = xMax;
-        return new double[][] {{device/(xMax-xMin),0.,0.,0.}, {0.,device/(yMax-yMin),0.,0.}, {0.,0.,device/(zMin-zMax), 0}, {0,0,0,1}};
-    }
-
     double[] crossProduct(double[] a, double[] b) {
         return new double[] {a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]};
     }
@@ -664,10 +433,6 @@ public class NN3DPlot extends Plot {
             return v;
         }
         return new double[] {v[0]/s, v[1]/s, v[2]/s};
-    }
-
-    double distance(double[] a, double[] b) {
-        return norm(new double[] {a[0]-b[0], a[1]-b[1], a[2]-b[2]});
     }
 
     double[] negate(double[] v) {
@@ -690,19 +455,21 @@ public class NN3DPlot extends Plot {
         return new double[][] {{1,0,0,0},{0,1,0,0},{0,0,0,0},{0,0,1/zMin,1}};
     }
 
-    public double[][] getProjectionMatrix1() {
-        double xAngle = 20;
-        double yAngle = 15;
-        double zoom = 0;
-        double[][] rotationMatrix = lift(multiply(xRotation(xAngle), yRotation(yAngle)));
-        double[][] translation = multiply(rotationMatrix, translate(-200,-300,zoom));
-        double[][] cMatrix = multiply(rotationMatrix, translation);
-        double[][] ndc_matrix = multiply(ndcScale(-4, 4), ndcTranslate(-4,4));
-        double[][] invert = invert(cMatrix);
-        if (invert == null) {
-            throw new IllegalArgumentException("Matrix data cannot be inverted!");
-        }
-        return multiply(ndc_matrix, invert);
+    public void setZoom(double zoom) {
+        this.zoom = zoom;
+        matrix = getProjectionMatrix();
+    }
+    public void setXAngle(double xAngle) {
+        this.xAngle = xAngle % 360;
+        matrix = getProjectionMatrix();
+    }
+    public void setYAngle(double yAngle) {
+        this.yAngle = yAngle % 360;
+        matrix = getProjectionMatrix();
+    }
+    public void setZAngle(double zAngle) {
+        this.zAngle = zAngle % 360;
+        matrix = getProjectionMatrix();
     }
 
 }
