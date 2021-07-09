@@ -1,22 +1,18 @@
 package ui;
 
-import javafx.scene.Group;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Polygon;
 import neuralnet.NeuralNetwork;
 import org.jetbrains.annotations.NotNull;
 import ui.color.NNDataColor;
 import ui.color.NNHeatMap;
 
 import java.util.*;
-import java.util.function.DoubleToIntFunction;
-import java.util.stream.Collectors;
 
-import static javafx.scene.paint.Color.*;
+import static javafx.scene.paint.Color.TRANSPARENT;
 import static ui.color.NNColorSupport.blend;
 
-public class NN3DPlot extends Plot {
+public class NN3DPlotOld extends Plot {
 
     private NNDataColor dataColor;
     private double[][] data;
@@ -32,7 +28,7 @@ public class NN3DPlot extends Plot {
 
     // 10 x, 3 z, 6 zoom
 
-    public NN3DPlot(GraphicsContext context) {
+    public NN3DPlotOld(GraphicsContext context) {
         super(context);
         matrix = getProjectionMatrix();
     }
@@ -54,37 +50,27 @@ public class NN3DPlot extends Plot {
         cachedPadding = padding;
         this.dataColor = dataColor;
 
-
+        ForwardPropData data = new ForwardPropData();
 
         int iterX = (int) Math.ceil(plotWidth * resolution);
         int iterY = (int) Math.ceil(plotHeight * resolution);
-
-        ForwardPropEntity[][] data = new ForwardPropEntity[iterX+1][iterY+1];
-
         double stepX = 1.0 / iterX;
         double stepY = 1.0 / iterY;
-        double x = 0;
-        double y = 0;
+        double x = stepX / 2;
+        double y = stepY / 2;
         double xOffset = Math.ceil(plotWidth / iterX) + 1;
         double yOffset = Math.ceil(plotHeight / iterY) + 1;
-        double minZ = Double.MAX_VALUE;
-        double maxZ = Double.MIN_VALUE;
-        for (int i = 0; i <= iterX; i++) {
-            for (int j = 0; j <= iterY; j++) {
+        for (int i = 0; i < iterX; i++) {
+            for (int j = 0; j < iterY; j++) {
                 double[] input = {scaleX(x), scaleY(y)};
                 y += stepY;
                 List<Double> output = neuralNetwork.predict(input);
-                if (output.get(0) < minZ) {
-                    minZ = output.get(0);
-                }
-                if (output.get(0) > maxZ) {
-                    maxZ = output.get(0);
-                }
-                data[i][j] = new ForwardPropEntity(input[0], input[1], output);
+                data.add(input, output);
             }
-            y = 0;
+            y = stepY / 2;
             x += stepX;
         }
+        List<ForwardPropEntity> forwardPropEntities = data.get();
 
         calcRange = new double[] {Math.abs(xMax-xMin), Math.abs(yMax-yMin)};
 
@@ -95,12 +81,12 @@ public class NN3DPlot extends Plot {
             if (dataColor.getColors().size() < 2) {
                 throw new IllegalArgumentException("At least 2 data color items must be provided!");
             }
-            plotBinaryClassifierDecisionBoundaries(data, iterX+1, iterY+1, xOffset, yOffset, minZ, maxZ);
+            plotBinaryClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
         } else {
             if (dataColor.getColors().size() != configuration[configuration.length-1]) {
                 throw new IllegalArgumentException("Count of data color items " + dataColor.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
             }
-            //plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
+            plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
         }
         drawOverlay(opacity);
         drawAxes(axes, false, false);
@@ -139,78 +125,67 @@ public class NN3DPlot extends Plot {
 
     }
 
-    private void plotBinaryClassifierDecisionBoundaries(ForwardPropEntity[][] forwardPropEntities, int iterI, int iterJ, double xOffset, double yOffset, double zMin, double zMax) {
+    private void plotBinaryClassifierDecisionBoundaries(List<ForwardPropEntity> forwardPropEntities, double xOffset, double yOffset) {
         List<Color> customColors = dataColor.getColors();
+        List<Point> points = new ArrayList<>();
         double zFactor =  1 / (cachedPadding+1);
         if (cachedPadding < 1) {
             zFactor = 0.5;
         }
+        System.out.println(zFactor);
+        double zMin = forwardPropEntities.stream().map(ForwardPropEntity::getZ).min(Double::compare).get();
+        double zMax = forwardPropEntities.stream().map(ForwardPropEntity::getZ).max(Double::compare).get();
         if (dataColor instanceof NNHeatMap && ((NNHeatMap) dataColor).isScaled()) {
             zMin = ((NNHeatMap) dataColor).getMin();
             zMax = ((NNHeatMap) dataColor).getMax();
         }
-        double[][][] pointGrid = new double[iterI][iterJ][];
         double range = Math.abs(zMax - zMin);
         double step = range / (customColors.size()-1);
-        for (int ii = 0; ii < iterI; ii++) {
-            for (int jj = 0; jj < iterJ; jj++) {
-                double output = forwardPropEntities[ii][jj].getOutput().get(0);
 
+        for (ForwardPropEntity forwardPropEntity : forwardPropEntities) {
+            double output = forwardPropEntity.getOutput().get(0);
 
-                double[] t = transform(new double[] {rescaleX(forwardPropEntities[ii][jj].getX()), rescaleY(forwardPropEntities[ii][jj].getY()), output * zFactor});
-                pointGrid[ii][jj] = new double[]{-x(t[0]), y(t[1]), t[3], output};
-                //color = blend(customColors.get(stepIndex), customColors.get(stepIndex+1), ratio);   // TODO: make faster
-
-                //color = blend(WHITE, BLACK, 4/t[3]);
-
-                //points.add(new Point(xPoints, yPoints, t[3], color));
-            }
-
-        }
-        List<Square> squares = new ArrayList<>();
-        for (int ii = 0; ii < iterI-1; ii++) {
-            for (int jj = 0; jj < iterJ-1; jj++) {
-                double[] a = pointGrid[ii][jj];
-                double[] b = pointGrid[ii+1][jj];
-                double[] c = pointGrid[ii+1][jj+1];
-                double[] d = pointGrid[ii][jj+1];
-                double[] xEs = {a[0], b[0], c[0], d[0]};
-                double[] ys = {a[1], b[1], c[1], d[1]};
-                double sort = (a[2] + b[2] + c[2] + d[2]) / 4;
-                double output = (a[3] + b[3] + c[3] + d[3]) / 4;
-                Color color;
-                int stepIndex = 0;
-                double value = zMin;
-                for (int i = 0; i < customColors.size()-1; i++) {
-                    value += step;
-                    if (output <= value || i == customColors.size()-2) {
-                        stepIndex = i;
-                        break;
-                    }
+            Color color;
+            int stepIndex = 0;
+            double value = zMin;
+            for (int i = 0; i < customColors.size()-1; i++) {
+                value += step;
+                if (output <= value || i == customColors.size()-2) {
+                    stepIndex = i;
+                    break;
                 }
-                double ratio = 1 / step * Math.abs(value - output);
-                if (output > zMax) {
-                    ratio = 0;
-                }
-                color = blend(customColors.get(stepIndex), customColors.get(stepIndex+1), ratio);
-                squares.add(new Square(xEs, ys, sort, color));
             }
-        }
+            double ratio = 1 / step * Math.abs(value - output);
+            if (output > zMax) {
+                ratio = 0;
+            }
+            double[] t = transform(new double[] {rescaleX(forwardPropEntity.getX()), rescaleY(forwardPropEntity.getY()), output * zFactor});
+            double[] x0y0 = new double[] {x(t[0])  - wOffsetLeft*2 - xOffset/2, y(t[1]) - yOffset/2, t[2]};
+            double[] x1y0 = new double[] {x(t[0]) - wOffsetLeft*2 + xOffset/2, y(t[1]) - yOffset/2 , t[2]};
+            double[] x0y1 = new double[] {x(t[0]) - wOffsetLeft*2 - xOffset/2, y(t[1]) + yOffset/2, t[2]};
+            double[] x1y1 = new double[] {x(t[0]) - wOffsetLeft*2 + xOffset/2, y(t[1]) + yOffset/2, t[2]};
+            double[] xPoints = {-x0y0[0], -x1y0[0], -x1y1[0], -x0y1[0]};
+            double[] yPoints = {x0y0[1], x1y0[1], x1y1[1], x0y1[1]};
+            color = blend(customColors.get(stepIndex), customColors.get(stepIndex+1), ratio);   // TODO: make faster
 
-        Comparator<Square> comparator = (Square::compareTo);
-        squares.sort(comparator.reversed());
-        for (Square p : squares) {
+            //color = blend(WHITE, BLACK, 4/t[3]);
+
+            points.add(new Point(xPoints, yPoints, t[3], color));
+        }
+        Comparator<Point> comparator = (Point::compareTo);
+        Collections.sort(points, comparator.reversed());
+        //Collections.reverse(points);
+        for (Point p : points) {
             p.draw();
         }
-
     }
 
-    class Square implements Comparable<Square> {
+    class Point implements Comparable<Point> {
         double[] x;
         double[] y;
         double z;
         Color color;
-        Square(double[] x, double[] y, double z, Color color) {
+        Point(double[] x, double[] y, double z, Color color) {
             this.x = x;
             this.y = y;
             this.z = z;
@@ -222,7 +197,7 @@ public class NN3DPlot extends Plot {
         }
 
         @Override
-        public int compareTo(@NotNull NN3DPlot.Square o) {
+        public int compareTo(@NotNull NN3DPlotOld.Point o) {
             return Double.compare(this.z, o.z);
         }
     }
@@ -315,7 +290,7 @@ public class NN3DPlot extends Plot {
     private double rescaleY(double y) {
         return (y - dataMin[1] + (dataRange[1] * (cachedPadding/2))) / ((1 + cachedPadding) * dataRange[1]) - 0.5;
     }
-/*
+
     class ForwardPropData {
 
         private List<ForwardPropEntity> data = new ArrayList<>();
@@ -328,7 +303,7 @@ public class NN3DPlot extends Plot {
             return data;
         }
 
-    }*/
+    }
 
     class ForwardPropEntity {
 

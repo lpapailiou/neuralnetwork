@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.DepthTest;
 import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -21,6 +22,7 @@ import util.Rectifier;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static javafx.scene.SceneAntialiasing.BALANCED;
+import static javafx.scene.SceneAntialiasing.DISABLED;
 
 public class ThreeDee2Test extends Application {
 
@@ -55,8 +57,8 @@ public class ThreeDee2Test extends Application {
             dBox.setSpacing(10);
             dBox.setPadding(new Insets(20, 20, 20, 20));
             btnContainer.getChildren().add(dBox);
-            double canvasWidth = 350;
-            double canvasHeight = 350;
+            double canvasWidth = 500;
+            double canvasHeight = 500;
             double offset = 80;
             Canvas canvas = new Canvas(canvasWidth + 2 * offset, canvasHeight + 2 * offset);
             GraphicsContext context = canvas.getGraphicsContext2D();
@@ -71,8 +73,8 @@ public class ThreeDee2Test extends Application {
                     .setLearningRate(0.5)
                     .setLearningRateOptimizer(Optimizer.NONE);
             int iter = 200;
-            double resolution = 0.02;
-            double padding = 2;
+            double resolution = 0.2;
+            double padding = 5;
             double step = 0.1;
             double angleStep = 5;
             net.fit(in, out, iter);
@@ -80,7 +82,7 @@ public class ThreeDee2Test extends Application {
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
             System.out.println("3D support? "  +canvas.getDepthTest());
             AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
-            plot.get().setPadding(0,0,0, 0, padding);
+            plot.get().setPadding(0,0,50, 0, padding);
             plot.get().setZoom(7*step);
             plot.get().setZAngle(-0*angleStep);
             plot.get().setXAngle(10*angleStep);
@@ -185,7 +187,7 @@ public class ThreeDee2Test extends Application {
 
             //System.out.println(net);
 
-            primaryStage.setScene(new Scene(root, root.getWidth(), root.getHeight(), true, BALANCED));
+            primaryStage.setScene(new Scene(root, root.getWidth(), root.getHeight()-150, true, BALANCED));
             primaryStage.show();
 
         } catch (Exception e) {

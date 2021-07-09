@@ -76,9 +76,10 @@ public class ThreeDeeTest extends Application {
                     .setRectifier(Rectifier.SIGMOID)
                     .setLearningRate(0.5)
                     .setLearningRateOptimizer(Optimizer.NONE);
-            int iter = 1000;
-            double resolution = 0.5;
-            double padding = 2;
+            int iter = 2000;
+            int trainIter = 10;
+            double resolution = 0.3;
+            double padding = 0;
             double step = 0.1;
             double angleStep = 5;
 
@@ -87,14 +88,14 @@ public class ThreeDeeTest extends Application {
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
             System.out.println("3D support? "  +canvas.getDepthTest());
             AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
-            plot.get().setPadding(0,0,0, 0, padding);
+            plot.get().setPadding(0,0,50, 0, padding);
             plot.get().setZoom(7*step);
             plot.get().setZAngle(-0*angleStep);
             plot.get().setXAngle(10*angleStep);
-            plot.get().plot(net, in, resolution,1,false, heatMap);
             NNMeshGrid plot2 = new NNMeshGrid(context2);
             plot2.setPadding(0,0,50,0,padding);
             plot2.plot(net, in, resolution,1,true,true,true, heatMap);
+            plot(plot, net, resolution, heatMap);
 
             AtomicReference<Double> tz = new AtomicReference<>((double) 7*step);
             AtomicReference<Double> dx = new AtomicReference<>((double) 10*angleStep);
@@ -112,17 +113,17 @@ public class ThreeDeeTest extends Application {
 
             Button train = new Button("TRAIN");
             train.setOnAction(e -> {
-                net.fit(in, out, 1);
-                plot.get().plot(net, in, resolution,1,false, heatMap);
+                net.fit(in, out, trainIter);
+                plot(plot, net, resolution, heatMap);
                 plot2.plot(net, in, resolution,1,true,true,true, heatMap);
             });
             cBox.getChildren().add(train);
             Button btnctz = new Button();
             btnctz.setGraphic(Icon.getPlus());
             btnctz.setOnAction(e -> {
-                tz.updateAndGet(v -> new Double((double) (v - step)));
+                tz.updateAndGet(v -> v - step);
                 plot.get().setZoom(tz.get());
-                plot.get().plot(net, in, resolution,1,false, heatMap);
+                plot(plot, net, resolution, heatMap);
             });
             tBox.getChildren().add(btnctz);
             Button btnctzm = new Button();
@@ -131,35 +132,35 @@ public class ThreeDeeTest extends Application {
             btnctzm.setOnAction(e -> {
                 tz.updateAndGet(v -> new Double((double) (v + step)));
                 plot.get().setZoom(tz.get());
-                plot.get().plot(net, in, resolution,1,false, heatMap);
+                plot(plot, net, resolution, heatMap);
             });
             tBox.getChildren().add(btnctzm);
             Button btncdx = new Button("rotate x +");
             btncdx.setOnAction(e -> {
                 dx.updateAndGet(v -> new Double((double) (v + angleStep)));
                 plot.get().setXAngle(dx.get());
-                plot.get().plot(net, in, resolution,1,false, heatMap);
+                plot(plot, net, resolution, heatMap);
             });
             dBox.getChildren().add(btncdx);
             Button btncdxm = new Button("rotate x -");
             btncdxm.setOnAction(e -> {
                 dx.updateAndGet(v -> new Double((double) (v - angleStep)));
                 plot.get().setXAngle(dx.get());
-                plot.get().plot(net, in, resolution,1,false, heatMap);
+                plot(plot, net, resolution, heatMap);
             });
             dBox.getChildren().add(btncdxm);
             Button btncdy = new Button("rotate y +");
             btncdy.setOnAction(e -> {
                 dy.updateAndGet(v -> new Double((double) (v + angleStep)));
                 plot.get().setYAngle(dy.get());
-                plot.get().plot(net, in, resolution,1,false, heatMap);
+                plot(plot, net, resolution, heatMap);
             });
             dBox.getChildren().add(btncdy);
             Button btncdym = new Button("rotate y -");
             btncdym.setOnAction(e -> {
                 dy.updateAndGet(v -> new Double((double) (v - angleStep)));
                 plot.get().setYAngle(dy.get());
-                plot.get().plot(net, in, resolution,1,false, heatMap);
+                plot(plot, net, resolution, heatMap);
             });
             dBox.getChildren().add(btncdym);
             Button btncdz = new Button("rotate z +");
@@ -167,7 +168,7 @@ public class ThreeDeeTest extends Application {
                 dz.updateAndGet(v -> new Double((double) (v + angleStep)));
                 System.out.println((Double.parseDouble(dz.toString()) % 365));
                 plot.get().setZAngle(dz.get());
-                plot.get().plot(net, in, resolution,1,false, heatMap);
+                plot(plot, net, resolution, heatMap);
             });
             dBox.getChildren().add(btncdz);
             Button btnctdzm = new Button("rotate z -");
@@ -175,7 +176,7 @@ public class ThreeDeeTest extends Application {
                 dz.updateAndGet(v -> new Double((double) (v - angleStep)));
                 System.out.println((Double.parseDouble(dz.toString()) % 365));
                 plot.get().setZAngle(dz.get());
-                plot.get().plot(net, in, resolution,1,false, heatMap);
+                plot(plot, net, resolution, heatMap);
             });
             dBox.getChildren().add(btnctdzm);
 
@@ -198,6 +199,10 @@ public class ThreeDeeTest extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void plot(AtomicReference<NN3DPlot> plot, NeuralNetwork net, double resolution, NNHeatMap heatMap) {
+        plot.get().plot(net, in, resolution,1,true, heatMap);
     }
 
 
