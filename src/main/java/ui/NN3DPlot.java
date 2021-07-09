@@ -171,8 +171,6 @@ public class NN3DPlot extends Plot {
 
             color = blend(WHITE, BLACK, 4/t[3]);
 
-            //context.setFill(color);
-            //context.fillPolygon(xPoints, yPoints, 4);
             points.add(new Point(xPoints, yPoints, t[3], color));
         }
         Comparator<Point> comparator = (Point::compareTo);
