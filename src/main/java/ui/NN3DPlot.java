@@ -167,7 +167,7 @@ public class NN3DPlot extends Plot {
             double[] x1y1 = new double[] {x(t[0]) - wOffsetLeft*2 + xOffset/2, y(t[1]) + yOffset/2, t[2]};
             double[] xPoints = {-x0y0[0], -x1y0[0], -x1y1[0], -x0y1[0]};
             double[] yPoints = {x0y0[1], x1y0[1], x1y1[1], x0y1[1]};
-            color = blend(customColors.get(stepIndex), customColors.get(stepIndex+1), ratio);
+            color = blend(customColors.get(stepIndex), customColors.get(stepIndex+1), ratio);   // TODO: make faster
 
             color = blend(WHITE, BLACK, 4/t[3]);
 
