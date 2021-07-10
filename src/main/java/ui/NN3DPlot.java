@@ -174,8 +174,18 @@ public class NN3DPlot extends Plot {
                 double[] b = pointGrid[ii+1][jj];
                 double[] c = pointGrid[ii+1][jj+1];
                 double[] d = pointGrid[ii][jj+1];
-                double[] xEs = {a[0], b[0], c[0], d[0]};
-                double[] ys = {a[1], b[1], c[1], d[1]};
+                //double[] xEs = a[0] < b[0] ? new double[]{a[0]-1, b[0]+1, c[0]+1, d[0]-1} : new double[]{a[0]+1, b[0]-1, c[0]-1, d[0]+1};
+                //double[] ys = a[1] > c[1] ? new double[]{a[1]+1, b[1]+1, c[1]-1, d[1]-1} : new double[]{a[1]-1, b[1]-1, c[1]+1, d[1]+1};
+                double[] xEs = {a[0] < c[0] ? a[0]-1 : a[0]+1,
+                                b[0] > d[0] ? b[0]+1 : b[0]-1,
+                                c[0] > a[0] ? c[0]+1 : c[0]-1,
+                                d[0] < b[0] ? d[0]-1 : d[0]+1};
+
+                double[] ys =  {a[1] > c[1] ? a[1]+1 : a[1]-1,
+                                b[1] > d[1] ? b[1]+1 : b[1]-1,
+                                c[1] < a[1] ? c[1]-1 : c[1]+1,
+                                d[1] < b[1] ? d[1]-1 : d[1]+1};
+                //double[] ys = {a[1]+1, b[1]+1, c[1]-1, d[1]-1};
                 double sort = (a[2] + b[2] + c[2] + d[2]) / 4;
                 double output = (a[3] + b[3] + c[3] + d[3]) / 4;
                 Color color;
