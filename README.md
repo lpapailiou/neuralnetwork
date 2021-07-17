@@ -333,9 +333,11 @@ Add following snippets to your ``pom.xml`` file to import the library:
         <outputDir>target/classes</outputDir>
         <resourceDir>src/main/resources</resourceDir>
 
-        <!-- plugin versions -->
+        <!-- plugin handling -->
         <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
-        <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>        
+        <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
+        <neuralnetwork.group>nn</neuralnetwork.group>
+        <neuralnetwork.id>neural-network</neuralnetwork.id>        
         <neuralnetwork.version>3.0</neuralnetwork.version>                  <!-- fixed version -->
         <!-- <neuralnetwork.version>LATEST</neuralnetwork.version> -->      <!-- latest version -->
     </properties>
@@ -350,11 +352,11 @@ Add following snippets to your ``pom.xml`` file to import the library:
 
     <dependencies>    
         <!-- maven dependency connecting to .m2 local repository -->
-        <dependency>    
-            <groupId>neuralnetwork</groupId>    
-            <artifactId>neural-network-repo</artifactId>    
-            <version>${neuralnetwork.version}</version>    
-        </dependency>    
+        <dependency>
+            <groupId>${neuralnetwork.group}</groupId>
+            <artifactId>${neuralnetwork.id}</artifactId>
+            <version>${neuralnetwork.version}</version>
+        </dependency> 
     </dependencies>    
     
 Please note the `neuralnetwork.properties` file should be imported as well to your `resources` folder.  
@@ -379,8 +381,8 @@ In case it is not present, you may include following plugin to your `pom.xml` fi
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>neuralnetwork</groupId>
-                                    <artifactId>neural-network-repo</artifactId>
+                                    <groupId>${neuralnetwork.group}</groupId>
+                                    <artifactId>${neuralnetwork.id}</artifactId>
                                     <version>${neuralnetwork.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
