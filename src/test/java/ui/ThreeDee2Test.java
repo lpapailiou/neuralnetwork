@@ -73,8 +73,8 @@ public class ThreeDee2Test extends Application {
                     .setLearningRate(0.5)
                     .setLearningRateOptimizer(Optimizer.NONE);
             int iter = 200;
-            double resolution = 0.2;
-            double padding = 5;
+            double resolution = 0.03;
+            double padding = 1;
             double step = 0.1;
             double angleStep = 5;
             net.fit(in, out, iter);
@@ -160,7 +160,6 @@ public class ThreeDee2Test extends Application {
             Button btncdz = new Button("rotate z +");
             btncdz.setOnAction(e -> {
                 dz.updateAndGet(v -> new Double((double) (v + angleStep)));
-                System.out.println((Double.parseDouble(dz.toString()) % 365));
                 plot.get().setZAngle(dz.get());
                 plot.get().plot(net, in, resolution,1,false, heatMap);
             });
@@ -168,7 +167,6 @@ public class ThreeDee2Test extends Application {
             Button btnctdzm = new Button("rotate z -");
             btnctdzm.setOnAction(e -> {
                 dz.updateAndGet(v -> new Double((double) (v - angleStep)));
-                System.out.println((Double.parseDouble(dz.toString()) % 365));
                 plot.get().setZAngle(dz.get());
                 plot.get().plot(net, in, resolution,1,false, heatMap);
             });

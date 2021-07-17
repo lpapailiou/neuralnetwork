@@ -322,18 +322,38 @@ Just add the jar as external library. Be sure to copy the ``neuralnetwork.proper
 ### From a Maven dependency  
 Add following snippets to your ``pom.xml`` file to import the library:
 
+    <properties>
+        <!-- base properties -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+            
+        <!-- paths -->
+        <main.class>your.main.class</main.class>                            <!-- change this line -->
+        <outputDir>target/classes</outputDir>
+        <resourceDir>src/main/resources</resourceDir>
+
+        <!-- plugin versions -->
+        <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
+        <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>        
+        <neuralnetwork.version>3.0</neuralnetwork.version>                  <!-- fixed version -->
+        <!-- <neuralnetwork.version>LATEST</neuralnetwork.version> -->      <!-- latest version -->
+    </properties>
+
     <repositories>    
+        <!-- download url to sync with online repository -->
         <repository>    
             <id>neuralnetwork</id>    
             <url>https://github.com/lpapailiou/neuralnetwork/raw/master</url>    
         </repository>    
     </repositories>      
-  
+
     <dependencies>    
+        <!-- maven dependency connecting to .m2 local repository -->
         <dependency>    
             <groupId>neuralnetwork</groupId>    
             <artifactId>neural-network-repo</artifactId>    
-            <version>3.0</version>    
+            <version>${neuralnetwork.version}</version>    
         </dependency>    
     </dependencies>    
     
@@ -341,56 +361,63 @@ Please note the `neuralnetwork.properties` file should be imported as well to yo
 In case it is not present, you may include following plugin to your `pom.xml` file:  
 
     <build>
-        <outputDirectory>target/classes</outputDirectory>
-        <resources>
-            <resource>
-                <directory>
-                    src/main/resources
-                </directory>
-            </resource>
-        </resources>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>8</source>
-                        <target>8</target>
-                        <includes>
-                            <include>directory path/*.jar</include>
-                        </includes>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.1.1</version>
-                    <executions>
-                        <execution>
-                            <id>resource-dependencies</id>
-                            <phase>compile</phase>
-                            <goals>
-                                <goal>unpack</goal>
-                            </goals>
-                            <configuration>
-                                <artifactItems>
-                                    <artifactItem>
-                                        <groupId>neuralnetwork</groupId>
-                                        <artifactId>neural-network-repo</artifactId>
-                                        <version>${neuralnetwork.version}</version>
-                                        <type>jar</type>
-                                        <overWrite>true</overWrite>
-                                    </artifactItem>
-                                </artifactItems>
-                                <includes>**/*.properties</includes>
-                                <outputDirectory>${project.basedir}/src/main/resources</outputDirectory>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+        <outputDirectory>${outputDir}</outputDirectory>
+        <resources><resource><directory>${resourceDir}</directory></resource></resources>
+        <plugins>
+            <!-- copies properties file from neural network library to resources folder -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>resource-dependencies</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>neuralnetwork</groupId>
+                                    <artifactId>neural-network-repo</artifactId>
+                                    <version>${neuralnetwork.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                </artifactItem>
+                            </artifactItems>
+                            <includes>**/*.properties</includes>
+                            <outputDirectory>${project.basedir}/${resourceDir}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- creates executable jar file with dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>${maven-assembly-plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${main.class}</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 
 and run `mvn compile` to complete the import of the properties file.
