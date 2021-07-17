@@ -9,12 +9,12 @@ This is a maven library for neural networks in java 8.
     1.4 [Optimizers](#learning-and-mutation-rate-optimizer)  
     1.5 [Parametrization](#parametrization)  
     1.6 [Persistence](#persistence)  
-    1.7 [UI](#ui)  
+    1.7 [UI](#nn.ui)  
 2. [Examples](#examples)  
     2.1 [Constructor of NeuralNetwork](#constructor-of-neuralnetwork)   
     2.2 [Methods of NeuralNetwork](#methods-of-neuralnetwork)   
     2.3 [Supervised learning](#supervised-learning)   
-    2.4 [Genetic algorithm](#genetic-algorithm)   
+    2.4 [Genetic algorithm](#nn.genetic-algorithm)   
     2.5 [Graphic representation](#graphic-representation)   
 3. [Implementation](#implementation)  
     3.1 [From a Jar file](#from-a-jar-file)  
@@ -59,7 +59,7 @@ The parametrization of the neural network can be done as following:
 - neural network instances are fully serializable
 
 ### UI
-With the additional ui package, you may be able to visualize the neural network interactively with a javafx framework.
+With the additional nn.ui package, you may be able to visualize the neural network interactively with a javafx framework.
   
 ## Examples
 ### Constructor of NeuralNetwork
@@ -134,8 +134,8 @@ Fit the neural network model sequentially with according input and expected outp
     neuralNetwork.fit(in, out, 2000);                           // adjustment of model in 2000 iterations
 
 #### Genetic algorithm 
-There are two ways to implement this algorithm. You can either rely on the `genetic` package 
-(see [Genetic algorithm implementation](#genetic-algorithm-implementation)) or do the implementation manually.  
+There are two ways to implement this algorithm. You can either rely on the `nn.genetic` package 
+(see [Genetic algorithm implementation](#nn.genetic-algorithm-implementation)) or do the implementation manually.  
 For manual implementation, the required methods are listed below.
   
 Merge two instances of NeuralNetwork. This will work only, if both neural networks are of the same architecture. 
@@ -198,12 +198,12 @@ Output:
     combo 4: [0.07157249157075309]          // close to 0
 
 ### Genetic algorithm implementation
-The package `genetic` offers a convenient base for implementing the genetic algorithm easily.  
+The package `nn.genetic` offers a convenient base for implementing the nn.genetic algorithm easily.  
 There are two implementations to be taken care of: 
 - `GeneticAlgorithmObject`: may be extended from the abstract class `GeneticAlgorithmObject` or implemented from 
 the interface `IGeneticAlgorithmObject`. It will hold a NeuralNetwork instance, feed its input nodes and react
 to the according outputs. Additionally, it should be able to indicate if the action taken was leading to success or not.
-- `GeneticAlgorithmBatch`: with this class, the genetic algorithm is implemented and executed from.
+- `GeneticAlgorithmBatch`: with this class, the nn.genetic algorithm is implemented and executed from.
 The 'actual machine learning part' is processed within the library, and does not have to be taken care of.
 
 Step one is to create an own class which extends or implements the required functionality:
@@ -253,10 +253,10 @@ Then create an according batch to start doing what you want to do:
 ... and then do whatever you like to do with it.
 
 ### Graphic representation
-With the package `ui` you will get access to the neural network graph. It uses the javafx framework.
+With the package `nn.ui` you will get access to the neural network graph. It uses the javafx framework.
   
 It will build a graph of a specific neural network and is able to visualize its architecture, weight distribution and current
-node values. See here an example (code is available in the `test/java/ui` directory):
+node values. See here an example (code is available in the `test/java/nn.ui` directory):
 
 ![graph of neural network](https://github.com/lpapailiou/neuralnetwork/blob/master/src/main/resources/img/neural_network_graph.png)
 
