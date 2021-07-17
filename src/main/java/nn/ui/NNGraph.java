@@ -44,7 +44,7 @@ public class NNGraph {
     private int[] activeInputNodes;
     private String[] inputNodeLabels;
     private String[] outputNodeLabels;
-    private NNGraphColor colors = new NNGraphColor(WHITESMOKE, BLACK, BLACK, ROYALBLUE.brighter(), GAINSBORO, STEELBLUE, INDIANRED, STEELBLUE.darker(), INDIANRED.darker());
+    private NNGraphColor colors = new NNGraphColor(TRANSPARENT, BLACK, BLACK, ROYALBLUE.brighter(), GAINSBORO, STEELBLUE, INDIANRED, STEELBLUE.darker(), INDIANRED.darker());
     private List<List<GraphNode>> graph = new ArrayList<>();
     private List<List<Double>> nodeValues = new ArrayList<>();
 
@@ -60,7 +60,7 @@ public class NNGraph {
         }
         this.context = context;
         initialWidth = context.getCanvas().getWidth();
-        width = initialWidth;
+        width = initialWidth - radius;
         initialHeight = context.getCanvas().getHeight();
         height = initialHeight;
     }
@@ -300,7 +300,7 @@ public class NNGraph {
         if (top < 0 || right < 0 || bottom < 0 || left < 0) {
             throw new IllegalArgumentException("Padding offset must be greater than 0!");
         }
-        this.width = initialWidth;
+        this.width = initialWidth - radius;
         this.height = initialHeight;
 
         this.width = width - left - right;
