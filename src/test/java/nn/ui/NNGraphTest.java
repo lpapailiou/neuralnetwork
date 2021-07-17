@@ -15,10 +15,7 @@ import nn.neuralnet.NeuralNetwork;
 import nn.ui.color.NNGraphColor;
 import nn.util.Initializer;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import static nn.ui.color.NNColorSupport.randomColor;
 
@@ -77,9 +74,9 @@ public class NNGraphTest extends Application {
             Button btnr = new Button("new neural network");
             btnr.setOnAction(e -> {
                 int[][] config = new int[][]{{2, 5, 8, 5, 2}, {2, 2}, {2, 10, 10, 10, 10, 2}, {2, 3, 4, 5, 4, 3, 2}, {2, 4, 2}, {2, 2, 1, 2, 2}, {2, 4, 8, 16, 8, 4, 2}, {2, 4, 12, 7, 2}, {2, 12, 3, 2}};
-                neuralNetwork[0] = new NeuralNetwork(Initializer.KAIMING, config[new Random().nextInt(config.length)]);
+                int[] configs = config[new Random().nextInt(config.length)];
+                neuralNetwork[0] = new NeuralNetwork(Initializer.KAIMING, configs);
                 graph.setNeuralNetwork(neuralNetwork[0]);
-                graph.setGraphInputNodeCount(2);
                 graph.setInputNodeLabels(new String[]{"a", "b"});
                 //graph.setOutputNodeLabels(null);
             });
@@ -104,7 +101,9 @@ public class NNGraphTest extends Application {
 
     private void drawNeuralNetwork(GraphicsContext context, NeuralNetwork neuralNetwork) {
         graph = new NNGraph(context).setNeuralNetwork(neuralNetwork);
-        graph.setGraphInputNodeCount(3, 0);
+        Set<Integer> inactiveNodes = new HashSet<>();
+        inactiveNodes.add(0);
+        graph.setGraphInputNodeCount(3, inactiveNodes);
         graph.setOutputNodeLabels(new String[]{"0", "1"});
         graph.setInputNodeLabels(new String[]{"(this node is not in use)", "a", "b"});
         graph.setPadding(0, 0, 0, 120);
