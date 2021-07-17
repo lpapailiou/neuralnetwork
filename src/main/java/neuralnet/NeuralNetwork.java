@@ -5,17 +5,15 @@ import util.Initializer;
 import util.Optimizer;
 import util.Rectifier;
 
-import javax.rmi.ssl.SslRMIClientSocketFactory;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 /**
@@ -30,13 +28,12 @@ public class NeuralNetwork implements Serializable {
     private static final long serialVersionUID = 2L;
 
     static {
-        URL path = NeuralNetwork.class.getClassLoader().getResource("neuralnetwork.properties");
-        File file;
-        try {
-            assert path != null;
-            file = Paths.get(path.toURI()).toFile();
+        try (InputStream in = NeuralNetwork.class.getClassLoader().getResourceAsStream("neuralnetwork.properties")) {
+            File file = File.createTempFile("neural_network_properties", ".txt");
+            Files.copy(in, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             PROPERTIES.load(new FileInputStream(file));
-        } catch (URISyntaxException | IOException | FileSystemNotFoundException e) {
+            file.delete();
+        } catch (Exception e) {
             throw new IllegalStateException("Could not access properties file neuralnetwork.properties in local resources folder!", e);
         }
     }
