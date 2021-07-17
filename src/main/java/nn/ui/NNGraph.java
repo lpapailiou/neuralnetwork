@@ -9,10 +9,7 @@ import javafx.scene.text.TextAlignment;
 import nn.neuralnet.NeuralNetwork;
 import nn.ui.color.NNGraphColor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static javafx.scene.paint.Color.*;
 
@@ -432,10 +429,10 @@ public class NNGraph {
      * @param inactiveNodeIndexes the indexes of the input nodes to appear 'switched off'.
      * @return this NNGraph (for chaining).
      */
-    public NNGraph setGraphInputNodeCount(int nodeCount, int... inactiveNodeIndexes) {
+    public NNGraph setGraphInputNodeCount(int nodeCount, Set<Integer> inactiveNodeIndexes) {
         if (nodeCount < neuralNetwork.getConfiguration()[0]) {
             throw new IllegalArgumentException("Node count must be greater or equal to the actual input node count of the neural network!");
-        } else if (nodeCount != neuralNetwork.getConfiguration()[0] + ((inactiveNodeIndexes == null) ? 0 : inactiveNodeIndexes.length)) {
+        } else if (nodeCount != neuralNetwork.getConfiguration()[0] + ((inactiveNodeIndexes == null) ? 0 : inactiveNodeIndexes.size())) {
             throw new IllegalArgumentException("Node count and inactive node indexes do not match the current neural network!");
         }
         int[] inNodes = new int[nodeCount];

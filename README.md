@@ -311,7 +311,8 @@ Now, you can pretend there would be more input nodes and just add them graphical
 total count of input nodes the graph should have and list the indexes of the input nodes which should appear as inactive. 
 
     int totalNodes = 3;
-    int[] inactiveIndexes = new int[]{1};
+    Set<Integer> inactiveIndexes = new HashSet();
+    inactiveIndexes.addAll(0,1);
     graph.setGraphInputNodeCount(totalNodes, inactiveIndexes);
 
 ## Implementation
