@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
-  <groupId>nn</groupId>
+  <groupId>ch.ch.ch.nn</groupId>
   <artifactId>neural-network</artifactId>
   <versioning>
     <release>3.0</release>

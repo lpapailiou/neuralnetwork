@@ -9,12 +9,12 @@ This is a maven library for neural networks in java 8.
     1.4 [Optimizers](#learning-and-mutation-rate-optimizer)  
     1.5 [Parametrization](#parametrization)  
     1.6 [Persistence](#persistence)  
-    1.7 [UI](#nn.ui)  
+    1.7 [UI](#ui)  
 2. [Examples](#examples)  
     2.1 [Constructor of NeuralNetwork](#constructor-of-neuralnetwork)   
     2.2 [Methods of NeuralNetwork](#methods-of-neuralnetwork)   
     2.3 [Supervised learning](#supervised-learning)   
-    2.4 [Genetic algorithm](#nn.genetic-algorithm)   
+    2.4 [Genetic algorithm](#genetic-algorithm)   
     2.5 [Graphic representation](#graphic-representation)   
 3. [Implementation](#implementation)  
     3.1 [From a Jar file](#from-a-jar-file)  
@@ -51,43 +51,61 @@ Rectifiers can be quite sensitive to hyperparameters (e.g. learning rate).
 
 ### Parametrization
 The parametrization of the neural network can be done as following:
-- during initialization (vararg for architecture & chaining of additional parameters)
-- during runtime (according setters)
+- during initialization (vararg for architecture & builder pattern for additional parameters)
 - by `neuralnetwork.properties` in case default values are used constantly
 
 ### Persistence
 - neural network instances are fully serializable
 
 ### UI
-With the additional nn.ui package, you may be able to visualize the neural network interactively with a javafx framework.
+With the additional ui package, you may be able to visualize the neural network interactively with a javafx framework.
   
 ## Examples
 ### Constructor of NeuralNetwork
+The constructor is not directly available. It must be invoked by a nested builder class.  
 Create a neural network with three input nodes and two output nodes:
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(3, 2);
+    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(3, 2).build();
   
 Create a neural network with two input nodes, two hidden layers (4 and 5 nodes) and 6 output nodes:
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 5, 6);
+    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2, 4, 5, 6).build();
   
-Create a neural network adding parameters.
+Create a neural network adding optional parameters.
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(Initializer.RANDOM, 2, 2)    // first parameter is for initialization
-        .setRectifier(Rectifier.SIGMOID)
-        .setLearningRateOptimizer(Optimizer.SGD)
+    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2, 2) 
+        // base settings
+        .setInitializer(Initializer.RANDOM)
+        .setDefaultRectifier(Rectifier.SIGMOID)
+        .setRectifierToLayer(Rectifier.RELU, 0)
+        
+        // supervized learning only
+        .setCostFunction(CostFunction.MSE)
+        .setRegularizer(Recularizer.L1)
+        .setRegularizationLambda(0.2)
+        
+        // learning rate
         .setLearningRate(0.8)
+        .setLearningRateOptimizer(Optimizer.SGD)
         .setLearningRateMomentum(0.005)
-        .setMutationRateOptimizer(Optimizer.SGD)
+        
+        // mutation rate (genetic algorithm only)
         .setMutationRate(0.5)
-        .setMutationRateMomentum(0.07);
+        .setMutationRateOptimizer(Optimizer.SGD)
+        .setMutationRateMomentum(0.07)
+        
+        // validates parameters, then builds and returns NeuralNetwork
+        .build();
+
+As parametrization is optional, the builder will rely on default values if a parameter is not given.
+Default values for parameters can be overwritten in `neuralnetwork.properties`.
 
 ### Methods of NeuralNetwork
 #### Common methods
 Use the neural network to predict a value from a given input array.
 
     double[] in = {1,0.5};                                      // input values
-    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 1);
+    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2, 4, 1).build();
     List<Double> out = neuralNetwork.predict(in);               // prediction
 
 Get a full overview of the actual contents of a neural network by calling the `toString()` method.  
@@ -113,9 +131,9 @@ according PropertyChangeListener:
 Properties can be set by editing the properties file (see details in section [Properties](#properties)). They
 can be also set programmatically. An instance of the neural network will load the properties during initialization.
 
-    String learningRatePropertyValue = NeuralNetwork.getProperty("learning_rate");
+    String learningRatePropertyValue = NeuralNetwork.Builder.getProperty("learning_rate");
     
-    NeuralNetwork.setProperty("rectifier", "sigmoid");
+    NeuralNetwork.Builder.setProperty("rectifier", "sigmoid");
     
 #### Supervised learning
 Fit the neural network model to given input array and the expected output.
@@ -123,31 +141,31 @@ The neural network will return a prediction and adjust accordingly.
 
     double[] in = {1,0.5};                                      // input
     double[] out = {1,0};                                       // expected output
-    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 1);
+    NeuralNetwork neuralNetwork = new Builder.NeuralNetwork(2, 4, 1).build();
     List<Double> prediction = neuralNetwork.fit(in, out);       // prediction and adjustment of model
     
 Fit the neural network model sequentially with according input and expected output sets.
 
     double[] in = {{1,0.5}, {0.2,0.9};                          // input set
     double[] out = {{1,0}, {0,1}};                              // expected output set
-    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4); 
+    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2, 4).build(); 
     neuralNetwork.fit(in, out, 2000);                           // adjustment of model in 2000 iterations
 
 #### Genetic algorithm 
-There are two ways to implement this algorithm. You can either rely on the `nn.genetic` package 
-(see [Genetic algorithm implementation](#nn.genetic-algorithm-implementation)) or do the implementation manually.  
+There are two ways to implement this algorithm. You can either rely on the `genetic` package 
+(see [Genetic algorithm implementation](#genetic-algorithm-implementation)) or do the implementation manually.  
 For manual implementation, the required methods are listed below.
   
 Merge two instances of NeuralNetwork. This will work only, if both neural networks are of the same architecture. 
 Properties / metadata will be copied from the first instance.
 
-    NeuralNetwork neuralNetworkA = new NeuralNetwork(2, 4, 2);
-    NeuralNetwork neuralNetworkB = new NeuralNetwork(2, 4, 2);
+    NeuralNetwork neuralNetworkA = new NeuralNetwork.Builder(2, 4, 2).build();
+    NeuralNetwork neuralNetworkB = new NeuralNetwork.Builder(2, 4, 2).build();
     NeuralNetwork result = NeuralNetwork.merge(neuralNetworkA, neuralNetworkB);
     
 Mutate a neural network according to the current settings.
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 2);
+    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2, 4, 2).build();
     neuralNetwork.mutate();
     
 If you want to decrease the learning rate manually, you may call `decreaseLearningRate()`. Please note you
@@ -155,14 +173,14 @@ should then select another type than `LearningRateOptimizer.NONE` (and according
 As the decreasing learning rate is optional and has to be performed on a neural network instance chosen
 for reproduction only, it has to be called separately.
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 2);
+    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2, 4, 2).build();
     neuralNetwork.mutate();
     // do something
     neuralNetwork.decreaseLerningRate();
 
 Obtain an identical copy of a NeuralNetwork instance.
 
-    NeuralNetwork master = new NeuralNetwork(2, 4, 2);
+    NeuralNetwork master = new NeuralNetwork.Builder(2, 4, 2).build();
     NeuralNetwork copy = master.copy();
     
 ### Supervised learning implementation
@@ -176,11 +194,14 @@ See below a full xor test of the neural network with supervised learning:
     
     // create and configure neural network
     Rectifier rectifier = Rectifier.SIGMOID
-    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 4, 1);
-    neuralNetwork.setRectifier(rectifier).setLearningRate(0.8).setLearningRateOptimizer(LearningRateOptimizer.NONE);
+    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2, 4, 1);
+        .setDefaultRectifier(rectifier)
+        .setLearningRate(0.8)
+        .setLearningRateOptimizer(LearningRateOptimizer.NONE)
+        .build();
     
     // train neural network with the input set, the corresponding expected output set and the training epochs
-    neuralNetwork.train(in, out, 2000);
+    neuralNetwork.fit(in, out, 2000);
     
     // use the trained NeuralNetwork to predict the output values given to the input set
     System.out.println("test with rectifier: " + rectifier.getDescription());
@@ -198,12 +219,12 @@ Output:
     combo 4: [0.07157249157075309]          // close to 0
 
 ### Genetic algorithm implementation
-The package `nn.genetic` offers a convenient base for implementing the nn.genetic algorithm easily.  
+The package `genetic` offers a convenient base for implementing the genetic algorithm easily.  
 There are two implementations to be taken care of: 
 - `GeneticAlgorithmObject`: may be extended from the abstract class `GeneticAlgorithmObject` or implemented from 
 the interface `IGeneticAlgorithmObject`. It will hold a NeuralNetwork instance, feed its input nodes and react
 to the according outputs. Additionally, it should be able to indicate if the action taken was leading to success or not.
-- `GeneticAlgorithmBatch`: with this class, the nn.genetic algorithm is implemented and executed from.
+- `GeneticAlgorithmBatch`: with this class, the genetic algorithm is implemented and executed from.
 The 'actual machine learning part' is processed within the library, and does not have to be taken care of.
 
 Step one is to create an own class which extends or implements the required functionality:
@@ -240,7 +261,7 @@ For more details, see javadoc.
   
 Then create an according batch to start doing what you want to do:  
 
-    NeuralNetwork seed = new NeuralNetwork(4, 8, 4);
+    NeuralNetwork seed = new NeuralNetwork.Builder(4, 8, 4).build();
     int populationSize = 1000;
     int generationCount = 50;
      
@@ -253,10 +274,10 @@ Then create an according batch to start doing what you want to do:
 ... and then do whatever you like to do with it.
 
 ### Graphic representation
-With the package `nn.ui` you will get access to the neural network graph. It uses the javafx framework.
+With the package `ui` you will get access to the neural network graph. It uses the javafx framework.
   
 It will build a graph of a specific neural network and is able to visualize its architecture, weight distribution and current
-node values. See here an example (code is available in the `test/java/nn.ui` directory):
+node values. See here an example (code is available in the `test/java/ui` directory):
 
 ![graph of neural network](https://github.com/lpapailiou/neuralnetwork/blob/master/src/main/resources/img/neural_network_graph.png)
 
@@ -268,7 +289,7 @@ for display, so no graph will appear so far.
 As soon as the object is created, the neural network can be set. As the graph sets a property change listener to the neural
 network, it will react automatically as soon as a prediction was made.
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork(2, 3, 2);
+    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2, 3, 2).build();
     graph.setNeuralNetwork(neuralNetwork);                   // at this point, the graph becomes visible
     
     neuralNetwork.predict(new double[]{1, 0});               // at this point, the graph will react
@@ -337,7 +358,7 @@ Add following snippets to your ``pom.xml`` file to import the library:
         <!-- plugin handling -->
         <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
         <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
-        <neuralnetwork.group>nn</neuralnetwork.group>
+        <neuralnetwork.group>ch.ch.ch.nn</neuralnetwork.group>
         <neuralnetwork.id>neural-network</neuralnetwork.id>        
         <neuralnetwork.version>3.0</neuralnetwork.version>                  <!-- fixed version -->
         <!-- <neuralnetwork.version>LATEST</neuralnetwork.version> -->      <!-- latest version -->
@@ -431,44 +452,51 @@ Below an overview of the `neuralnetwork.properties` file.
     # ************************************************************************************************************ #
     # ***********                                  COMMON PROPERTIES                                   *********** #
     # ************************************************************************************************************ #
-    
     # the initializer function to initialize neural network matrices.
     # available values: static|random|xavier|kaiming
     initializer=random
-    
     # the learning rate must have a value between 0.0 and 1.0.
     learning_rate=0.8
-    
     # the default rectifier as activation function for the neural network.
     # available values: gelu|identity|relu|leaky_relu|sigmoid|sigmoid_accurate|silu|silu_accurate|softplus|tanh.
     rectifier=sigmoid
-    
-    # the optimizer of the learning rate between iterations.
+    # the optimizer for the learning rate between iterations.
     # available values: none|sgd
     learning_rate_optimizer=sgd
-    
     # the learning rate decay as momentum.
     # if learning_rate_optimizer is set to 'none', this value will have no effect.
     # must have a value between 0.0 and 1.0.
-    learning_decay_momentum=0.01
+    learning_rate_momentum=0.01
     
+    # ************************************************************************************************************ #
+    # ***********                               SUPERVISED LEARNING ONLY                               *********** #
+    # ************************************************************************************************************ #
+    # the cost function is the metric for the error of one iteration. Its derivation is the loss.
+    # available values: mse_naive|mse|cross_entropy|exponential|hellinger_distance|kld|gkld|isd
+    cost_function=mse
+    
+    # the regularizer will adapt the penalty by the loss function.
+    # available values: none|l1|l2|elastic
+    regularizer=none
+    
+    # regularization functions may rely on a regularization parameter. this parameter, usually called lambda,
+    # will be controlled by the property regularizer_param.
+    regularizer_param=0
+            
     # ************************************************************************************************************ #
     # ***********                                GENETIC ALGORITHM ONLY                                *********** #
     # ************************************************************************************************************ #
-    
     # the reproduction pool is the count of NeuralNetworks chosen for reproduction to be seeded to
     # the new generation to come. value must not be below 2.
     genetic_reproduction_pool_size=3
-    
     # the mutation rate is the percentage of the mutated components of the neural network matrices.
     # must have a value between 0.0 and 1.0
-    genetic_mutation_rate=0.5
-    
+    mutation_rate=0.5
     # the optimizer for the mutation rate between iterations.
     # available values: none|sgd
     mutation_rate_optimizer=sgd
-    
     # the mutation rate decay as momentum.
     # if mutation_rate_optimizer is set to 'none', this value will have no effect.
     # must have a value between 0.0 and 1.0.
-    mutation_decay_momentum=0.01
+    mutation_rate_momentum=0.01
+
