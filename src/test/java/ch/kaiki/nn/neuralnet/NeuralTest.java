@@ -30,7 +30,7 @@ public class NeuralTest {
             //assertEquals(expected, actual, 0.3);
         }
 
-        //System.out.println(net);
+        System.out.println(net);
     }
 
     public void testNeurons() {

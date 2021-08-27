@@ -182,6 +182,14 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
+    static Matrix fromList(List<Double> list) {
+        Matrix tmp = new Matrix(list.size(), 1);
+        for (int i = 0; i < list.size(); i++) {
+            tmp.data[i][0] = list.get(i);
+        }
+        return tmp;
+    }
+
     static List<Double> asList(Matrix m) {
         List<Double> tmp = new ArrayList<>();
         for (int i = 0; i < m.rows; i++) {

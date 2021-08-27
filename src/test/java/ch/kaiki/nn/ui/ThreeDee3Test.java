@@ -72,7 +72,7 @@ public class ThreeDee3Test extends Application {
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     .setLearningRate(0.5)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iter = 200;
+            int iter = 50;
             double resolution = 0.05;
             double padding = 1;
             double step = 0.1;
@@ -89,7 +89,7 @@ public class ThreeDee3Test extends Application {
             plot.get().plot(net, in, resolution,1,false, heatMap);
             NNMeshGrid plot2 = new NNMeshGrid(context2);
             plot2.setPadding(0,0,50,0,padding);
-            plot2.plot(net, in, resolution,1,true,true,true, heatMap);
+            plot2.plotCost(net, in, resolution,1,true,true,true, heatMap);
 
             AtomicReference<Double> tz = new AtomicReference<>((double) 7*step);
             AtomicReference<Double> dx = new AtomicReference<>((double) 10*angleStep);
@@ -109,7 +109,7 @@ public class ThreeDee3Test extends Application {
             train.setOnAction(e -> {
                 net.fit(in, out, 1);
                 plot.get().plot(net, in, resolution,1,false, heatMap);
-                plot2.plot(net, in, resolution,1,true,true,true, heatMap);
+                plot2.plotCost(net, in, resolution,1,true,true,true, heatMap);
             });
             cBox.getChildren().add(train);
             Button btnctz = new Button();
@@ -143,20 +143,6 @@ public class ThreeDee3Test extends Application {
                 plot.get().plot(net, in, resolution,1,false, heatMap);
             });
             dBox.getChildren().add(btncdxm);
-            Button btncdy = new Button("rotate y +");
-            btncdy.setOnAction(e -> {
-                dy.updateAndGet(v -> new Double((double) (v + angleStep)));
-                plot.get().setYAngle(dy.get());
-                plot.get().plot(net, in, resolution,1,false, heatMap);
-            });
-            dBox.getChildren().add(btncdy);
-            Button btncdym = new Button("rotate y -");
-            btncdym.setOnAction(e -> {
-                dy.updateAndGet(v -> new Double((double) (v - angleStep)));
-                plot.get().setYAngle(dy.get());
-                plot.get().plot(net, in, resolution,1,false, heatMap);
-            });
-            dBox.getChildren().add(btncdym);
             Button btncdz = new Button("rotate z +");
             btncdz.setOnAction(e -> {
                 dz.updateAndGet(v -> new Double((double) (v + angleStep)));

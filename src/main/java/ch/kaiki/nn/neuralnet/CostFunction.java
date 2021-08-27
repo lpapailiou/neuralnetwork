@@ -1,5 +1,7 @@
 package ch.kaiki.nn.neuralnet;
 
+import java.util.List;
+
 public enum CostFunction {
 
     /**
@@ -157,6 +159,10 @@ public enum CostFunction {
 
     public double cost(Matrix actual, Matrix expected) {
         return 0;
+    }
+
+    public double cost(List<Double> actual, List<Double> expected) {
+        return cost(Matrix.fromList(actual), Matrix.fromList(expected));
     }
 
     public Matrix gradient(Matrix actual, Matrix expected) {

@@ -9,6 +9,7 @@ import ch.kaiki.nn.ui.deprecated.BasePlot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static javafx.scene.paint.Color.TRANSPARENT;
@@ -307,7 +308,9 @@ public class NNMeshGrid extends BasePlot {
                 double[] input = {scaleX(x), scaleY(y)};
                 y += stepY;
                 List<Double> output = neuralNetwork.predict(input);
-                data.add(input, output);
+                List<Double> expected = new ArrayList<>();
+                expected.add(1- (Math.abs(x -y)));
+                data.add(input, Collections.singletonList(neuralNetwork.getCostFunction().cost(output, expected)));
             }
             y = stepY / 2;
             x += stepX;
