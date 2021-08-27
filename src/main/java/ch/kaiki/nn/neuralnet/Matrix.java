@@ -285,6 +285,14 @@ public class Matrix implements Serializable {
         }
     }
 
+    void divide(double scalar) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                data[i][j] /= scalar;
+            }
+        }
+    }
+
     void scalarProduct(Matrix m) {
         if (cols != m.cols || rows != m.rows) {
             throw new IllegalArgumentException("wrong input matrix dimensions!");
@@ -355,6 +363,20 @@ public class Matrix implements Serializable {
                 }
             }
         }
+    }
+
+    Matrix dropout(double factor) {
+        Matrix tmp = this.copy();
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (Math.random() < factor) {
+                    tmp.data[i][j] = 0;
+                } else {
+                    continue;
+                }
+            }
+        }
+        return tmp;
     }
 
     double[][] getData() {

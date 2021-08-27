@@ -83,6 +83,7 @@ Create a neural network adding optional parameters.
         .setCostFunction(CostFunction.MSE)
         .setRegularizer(Recularizer.L1)
         .setRegularizationLambda(0.2)
+        .setDropoutFactor(0.5)
         
         // learning rate
         .setLearningRate(0.8)

@@ -25,7 +25,6 @@ public class NeuralNetwork implements Serializable {
 
     private static final long serialVersionUID = 2L;
 
-
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private CostFunction costFunction;
     private Regularizer regularizer = Regularizer.NONE;
@@ -35,7 +34,7 @@ public class NeuralNetwork implements Serializable {
     private List<Layer> layers = new ArrayList<>();
     private List<List<Double>> cachedNodeValues = new ArrayList<>();
     private Initializer initializer;
-    private Rectifier rectifier;
+    private double dropout;
     private Optimizer learningRateOptimizer;
     private double initialLearningRate;
     private double learningRate;
@@ -67,7 +66,7 @@ public class NeuralNetwork implements Serializable {
         this.layers = newLayerSet;
     }
 
-    private void initializeLayers() {
+    private void initializeLayers(Rectifier rectifier) {
         for (int i = 1; i < configuration.length; i++) {
             int fanIn = configuration[i - 1];
             int fanOut = (i == configuration.length - 1) ? 0 : configuration[i + 1];
@@ -124,7 +123,9 @@ public class NeuralNetwork implements Serializable {
             tmp.addBias(layer.bias);
             tmp.activate(layer.rectifier);
         }
-
+        if (dropout > 0) {
+            tmp.divide(dropout);
+        }
         cachedNodeValues.add(Matrix.asList(tmp));
         pcs.firePropertyChange("predict", false, true);
         return Matrix.asList(tmp);
@@ -150,10 +151,19 @@ public class NeuralNetwork implements Serializable {
         // forward propagate and prepare output
         List<Matrix> cachedNodeValueVector = new ArrayList<>();
         Matrix tmp = input;
-        for (Layer layer : layers) {
-            tmp = Matrix.multiply(layer.weight, tmp);               // W x a
+        for (int i = 0; i < layers.size(); i ++) {
+            Layer layer = layers.get(i);
+            boolean dropoutActive = dropout > 0 && i == layers.size() - 1;
+            if (dropoutActive) {
+                tmp = Matrix.multiply(layer.weight.dropout(dropout), tmp);      // W x a
+            } else {
+                tmp = Matrix.multiply(layer.weight, tmp);                       // W x a
+            }
             tmp.addBias(layer.bias);                                // (W x a) + b = z
             tmp.activate(layer.rectifier);                          // activate(z)
+            if (dropoutActive) {
+                tmp.multiply(dropout);
+            }
             cachedNodeValueVector.add(tmp);
         }
 
@@ -184,7 +194,7 @@ public class NeuralNetwork implements Serializable {
             }
 
             // gradient: da(L)/dz(L) (derivation of activation)
-            Matrix gradient = cachedNodeValueVector.get(i).derive(rectifier);
+            Matrix gradient = cachedNodeValueVector.get(i).derive(layers.get(i).rectifier);
             // loss * gradient: dC/da(L) * da(L)/dz(L) (loss * derivation of activation)
             gradient.scalarProduct(loss);
 
@@ -243,21 +253,25 @@ public class NeuralNetwork implements Serializable {
      */
     public NeuralNetwork copy() {
         NeuralNetwork neuralNetwork = new NeuralNetwork(layers);
-        neuralNetwork.initializer = this.initializer;
         neuralNetwork.configuration = this.configuration;
-        neuralNetwork.rectifier = this.rectifier;
+        neuralNetwork.initializer = this.initializer;
+
+        neuralNetwork.costFunction = this.costFunction;
         neuralNetwork.regularizer = this.regularizer;
         neuralNetwork.regularizationLambda = this.regularizationLambda;
-        neuralNetwork.costFunction = this.costFunction;
-        neuralNetwork.learningRateOptimizer = this.learningRateOptimizer;
-        neuralNetwork.learningRateMomentum = this.learningRateMomentum;
+        neuralNetwork.dropout = this.dropout;
+
         neuralNetwork.initialLearningRate = this.initialLearningRate;
         neuralNetwork.learningRate = this.learningRate;
-        neuralNetwork.iterationCount = this.iterationCount;
-        neuralNetwork.mutationRateOptimizer = this.mutationRateOptimizer;
-        neuralNetwork.mutationRateMomentum = this.mutationRateMomentum;
+        neuralNetwork.learningRateOptimizer = this.learningRateOptimizer;
+        neuralNetwork.learningRateMomentum = this.learningRateMomentum;
+
         neuralNetwork.initialMutationRate = this.initialMutationRate;
         neuralNetwork.mutationRate = this.mutationRate;
+        neuralNetwork.mutationRateOptimizer = this.mutationRateOptimizer;
+        neuralNetwork.mutationRateMomentum = this.mutationRateMomentum;
+
+        neuralNetwork.iterationCount = this.iterationCount;
         return neuralNetwork;
     }
 
@@ -333,8 +347,12 @@ public class NeuralNetwork implements Serializable {
      *
      * @return the rectifier.
      */
-    public Rectifier getRectifier() {
-        return rectifier;
+    public Map<Integer,Rectifier> getRectifiers() {
+        Map<Integer, Rectifier> map = new TreeMap<>();
+        for (int i = 0; i < layers.size(); i++) {
+            map.put(i, layers.get(i).rectifier);
+        }
+        return map;
     }
 
     /**
@@ -362,6 +380,14 @@ public class NeuralNetwork implements Serializable {
      */
     public double getRegularizationLambda() {
         return regularizationLambda;
+    }
+
+    /**
+     * Getter for the dropout factor.
+     * @return the dropout factor.
+     */
+    public double getDropoutFactor() {
+        return dropout;
     }
 
     /**
@@ -458,8 +484,11 @@ public class NeuralNetwork implements Serializable {
         sb.append(initializer);
         sb.append(", ");
         sb.append("rectifier: ");
-        sb.append(rectifier.getDescription());
-        sb.append(", ");
+        Map<Integer, Rectifier> rectifierMap = getRectifiers();
+        for (Integer key : rectifierMap.keySet()) {
+            sb.append(rectifierMap.get(key).getDescription());
+            sb.append(", ");
+        }
         sb.append("cost function: ");
         sb.append(costFunction.getDescription());
         sb.append(", ");
@@ -468,6 +497,9 @@ public class NeuralNetwork implements Serializable {
         sb.append(", ");
         sb.append("regularization lambda: ");
         sb.append(regularizationLambda);
+        sb.append(", ");
+        sb.append("dropout factor: ");
+        sb.append(dropout);
         sb.append(", ");
         sb.append("learning rate: ");
         sb.append(learningRate);
@@ -534,6 +566,7 @@ public class NeuralNetwork implements Serializable {
         private CostFunction costFunction = CostFunction.MSE;
         private Regularizer regularizer = Regularizer.NONE;
         private double regularizationLambda = 0;
+        private double dropout = 0;
 
         private double learningRate = 0.8;
         private Optimizer learningRateOptimizer = Optimizer.NONE;
@@ -570,10 +603,6 @@ public class NeuralNetwork implements Serializable {
                 throw new NullPointerException("Initializer must not be null!");
             }
             neuralNetwork.initializer = this.initializer;
-            if (this.rectifier == null) {
-                throw new NullPointerException("Rectifier must not be null!");
-            }
-            neuralNetwork.rectifier = this.rectifier;
             if (this.costFunction == null) {
                 throw new NullPointerException("Cost function must not be null!");
             }
@@ -586,6 +615,10 @@ public class NeuralNetwork implements Serializable {
                 throw new IllegalArgumentException("Regularization lambda must not be within a range of 0.0 and 1.0!");
             }
             neuralNetwork.regularizationLambda = this.regularizationLambda;
+            if (this.dropout < 0.0 || this.dropout > 1.0) {
+                throw new IllegalArgumentException("Dropout factor must not be within a range of 0.0 and 1.0!");
+            }
+            neuralNetwork.dropout = this.dropout;
             if (this.learningRate < 0.0 || this.learningRate > 1.0) {
                 throw new IllegalArgumentException("Learning rate must not be within a range of 0.0 and 1.0!");
             }
@@ -613,7 +646,7 @@ public class NeuralNetwork implements Serializable {
             }
             neuralNetwork.mutationRateMomentum = this.mutationRateMomentum;
 
-            neuralNetwork.initializeLayers();
+            neuralNetwork.initializeLayers(rectifier);
 
             for (Integer index : rectifierMap.keySet()) {
                 if (index > 0 && index < layerParams.length) {
@@ -694,6 +727,16 @@ public class NeuralNetwork implements Serializable {
          */
         public Builder setRegularizationLambda(double regularizationLambda) {
             this.regularizationLambda = regularizationLambda;
+            return this;
+        }
+
+        /**
+         * Setter for the dropout factor.
+         * @param dropout the dropout factor.
+         * @return the Builder.
+         */
+        public Builder setDropoutFactor(double dropout) {
+            this.dropout = dropout;
             return this;
         }
 
@@ -795,6 +838,12 @@ public class NeuralNetwork implements Serializable {
                 this.regularizationLambda = Double.parseDouble(PROPERTIES.getProperty("regularizer_param"));
             } catch (Exception e) {
                 logMissingProperty("regularizer_param", e);
+            }
+
+            try {
+                this.dropout = Double.parseDouble(PROPERTIES.getProperty("dropout_factor"));
+            } catch (Exception e) {
+                logMissingProperty("dropout_factor", e);
             }
 
             try {

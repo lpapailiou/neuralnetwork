@@ -47,7 +47,7 @@ public class CostTest2 extends Application {
 
             //plot2.setTitle("Summed stats of Neural Network");
             plot2.plot(net, BackPropEntity::getAccuracySum, "accuracy", SALMON);
-            plot2.plot(net, BackPropEntity::getPrecisionSum, "precision", SEAGREEN);
+            plot2.plot(net, BackPropEntity::getPrecisionSum, "precisionnnnnnnnnnnnnnnnnnnnnnnnnnn", SEAGREEN);
             plot2.plot(net, BackPropEntity::getRecallSum, "recall", STEELBLUE);
             plot2.setLegendSide(Side.RIGHT);
 ;

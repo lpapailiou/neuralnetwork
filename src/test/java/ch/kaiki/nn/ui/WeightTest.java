@@ -1622,20 +1622,21 @@ public class WeightTest extends Application {
             HBox hbox = null;
             NNPlotColorDeprecated plotColors = new NNPlotColorDeprecated(BLACK, BLACK, STEELBLUE, LIGHTGRAY, STEELBLUE, RED);
 
-            NeuralNetwork net = new NeuralNetwork.Builder(784,  75, 75, 10)
+            NeuralNetwork net = new NeuralNetwork.Builder(784,  32, 32, 10)
                     .setInitializer(Initializer.KAIMING)
-                    .setLearningRate(0.99)
+                    .setLearningRate(0.8)
                     .setDefaultRectifier(Rectifier.SIGMOID)
+                    //.setRectifierToLayer(Rectifier.SIGMOID, 2)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iterations = 10;
+            int iterations = 1000000;
             net.fit(in, out, iterations);
             //System.out.println(net);
 
-            //NNHeatMap color = new NNHeatMap(STEELBLUE, AZURE, YELLOW, ORANGE, CRIMSON);
-            NNHeatMap color = new NNHeatMap(BLACK, WHITE);
+            NNHeatMap color = new NNHeatMap(STEELBLUE, AZURE, ORANGE, CRIMSON);
+            //NNHeatMap color = new NNHeatMap(BLACK, WHITE);
 
             for (int i = 0; i < net.getConfiguration()[1]; i++) {
-                if (i % 15 == 0) {
+                if (i % 16 == 0) {
                     hbox = new HBox();
                     hbox.setSpacing(10);
                     hbox.setPadding(new Insets(20, 0, 20, 20));
@@ -1646,9 +1647,28 @@ public class WeightTest extends Application {
                 plot.setPadding(0, 0, 0, 0, 0);
                 plot.setTitle("weights for col " + i);
                 plot.setColorPalette(plotColors);
-                plot.plotWeights(net, i, 28, 0.9, true, true, false, color);
+                plot.plotWeights(net, 0, i, 28, 0.9, true, true, false, color);
                 //plot.plotConfusionMatrix(net, in, 1, true, true, true, new NNHeatMap(STEELBLUE, AZURE, YELLOW, ORANGE, CRIMSON));
             }
+
+            for (int i = 0; i < net.getConfiguration()[1]; i++) {
+                if (i % 16 == 0) {
+                    hbox = new HBox();
+                    hbox.setSpacing(10);
+                    hbox.setPadding(new Insets(20, 0, 20, 20));
+                    root.getChildren().add(hbox);
+                }
+
+                NNMeshGrid plot = new NNMeshGrid(addCanvas(100, 100, hbox));
+                plot.setPadding(0, 0, 0, 0, 0);
+                plot.setTitle("weights for col " + i);
+                plot.setColorPalette(plotColors);
+                plot.plotWeights(net, 1, i, 28, 0.9, true, true, false, color);
+                //plot.plotConfusionMatrix(net, in, 1, true, true, true, new NNHeatMap(STEELBLUE, AZURE, YELLOW, ORANGE, CRIMSON));
+            }
+
+
+
 
             for (int i = 0; i < in.length; i++) {
                 printPrediction(net, i);

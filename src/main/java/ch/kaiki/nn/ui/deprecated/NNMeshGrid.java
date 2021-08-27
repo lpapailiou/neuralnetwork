@@ -76,8 +76,8 @@ public class NNMeshGrid extends BasePlot {
         padding = cachedPadding;
     }
 
-    public void plotWeights(NeuralNetwork neuralNetwork, int col, int width, double opacity, boolean axes, boolean tickMarks, boolean ticks, NNDataColor dataColor) {
-        data = neuralNetwork.getWeights().get(0);
+    public void plotWeights(NeuralNetwork neuralNetwork, int weightIndex,  int col, int width, double opacity, boolean axes, boolean tickMarks, boolean ticks, NNDataColor dataColor) {
+        data = neuralNetwork.getWeights().get(weightIndex);
 
         xMin = 0;
         xMax = width;
@@ -194,6 +194,105 @@ public class NNMeshGrid extends BasePlot {
 
         ForwardPropData data = new ForwardPropData();
 
+        int iterX = (int) Math.ceil(plotWidth * resolution);
+        int iterY = (int) Math.ceil(plotHeight * resolution);
+        double stepX = 1.0 / iterX;
+        double stepY = 1.0 / iterY;
+        double x = stepX / 2;
+        double y = stepY / 2;
+        double xOffset = Math.ceil(plotWidth / iterX) + 1;
+        double yOffset = Math.ceil(plotHeight / iterY) + 1;
+
+        for (int i = 0; i < iterX; i++) {
+            for (int j = 0; j < iterY; j++) {
+                double[] input = {scaleX(x), scaleY(y)};
+                y += stepY;
+                List<Double> output = neuralNetwork.predict(input);
+                data.add(input, output);
+            }
+            y = stepY / 2;
+            x += stepX;
+        }
+
+        List<ForwardPropEntity> forwardPropEntities = data.get();
+
+        double xMinNext = scaleX(0);
+        double xMaxNext = scaleX(1);
+        double yMinNext = scaleY(0);
+        double yMaxNext = scaleY(1);
+
+        xMin = xMinNext;
+        xMax = xMaxNext;
+        yMin = yMinNext;
+        yMax = yMaxNext;
+/*
+        if (xMin == xMax) {
+            xMin = xMin - 0.5;
+            xMax = xMax + 0.5;
+        }
+        if (yMin == yMax) {
+            yMin = yMin - 0.5;
+            yMax = yMax + 0.5;
+        } */
+
+        double cachedPadding = padding;
+        padding = 0;
+
+        drawBackground();
+        if (configuration[configuration.length - 1] == 1) {
+            if (dataColor.getColors().size() < 2) {
+                throw new IllegalArgumentException("At least 2 data color items must be provided!");
+            }
+            plotBinaryClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
+        } else {
+            if (dataColor.getColors().size() != configuration[configuration.length-1]) {
+                throw new IllegalArgumentException("Count of data color items " + dataColor.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
+            }
+            plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
+        }
+        drawOverlay(opacity);
+        drawAxes(axes, tickMarks, ticks);
+        setTitle(title);
+
+        padding = cachedPadding;
+    }
+
+    public void plotCost(NeuralNetwork neuralNetwork, double[][] in, double resolution, double opacity, boolean axes, boolean tickMarks, boolean ticks, NNDataColor dataColor) {
+        int[] configuration = neuralNetwork.getConfiguration();
+        if (configuration[0] != 2) {
+            throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
+        }
+
+        data = in;
+
+        xMin = Double.MAX_VALUE;
+        xMax = Double.MIN_VALUE;
+        yMin = Double.MAX_VALUE;
+        yMax = Double.MIN_VALUE;
+
+        for (int i = 0; i < in.length; i++) {
+            double xValue = in[i][0];
+            if (xValue < xMin) {
+                xMin = xValue;
+            }
+            if (xValue > xMax) {
+                xMax = xValue;
+            }
+            double yValue = in[i][1];
+            if (yValue < yMin) {
+                yMin = yValue;
+            }
+            if (yValue > yMax) {
+                yMax = yValue;
+            }
+        }
+
+        plotBackgroundColor = TRANSPARENT;
+
+        this.dataColor = dataColor;
+
+        ForwardPropData data = new ForwardPropData();
+//TODO: print cost
         int iterX = (int) Math.ceil(plotWidth * resolution);
         int iterY = (int) Math.ceil(plotHeight * resolution);
         double stepX = 1.0 / iterX;

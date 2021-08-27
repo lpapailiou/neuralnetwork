@@ -37,27 +37,30 @@ public class CostTest extends Application {
             GraphicsContext context2 = canvas2.getGraphicsContext2D();
             root.getChildren().add(canvas2);
 
-            NeuralNetwork net = new NeuralNetwork.Builder(2, 10, 1)
+            NeuralNetwork net1 = new NeuralNetwork.Builder(2, 10, 1)
                     .setInitializer(Initializer.KAIMING)
                     .setLearningRate(0.8)
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
+
+            NeuralNetwork net2 = new NeuralNetwork.Builder(2, 10, 1)
+                    .setInitializer(Initializer.KAIMING)
+                    .setDropoutFactor(0.5)
+                    .setLearningRate(0.8)
+                    .setDefaultRectifier(Rectifier.SIGMOID)
+                    .setLearningRateOptimizer(Optimizer.NONE).build();
             int iter = 500;
-            net.fit(in, out, iter);
+            net1.fit(in, out, iter);
+            net2.fit(in, out, iter);
 
             NNPlot costPlot = new NNPlot(context);
-            costPlot.plotCost(net, false, 0.02);
+            costPlot.plotCost(net1, false, 0);
             costPlot.setTitle("Cost of neural network during " + iter + " iterations");
 
             NNPlot sumPlot = new NNPlot(context2);
-            sumPlot.plotCostSum(net, false, 0);
-            sumPlot.setTitle("Summed cost over " + iter + " iterations");
+            sumPlot.plotCost(net2, false, 0);
+            sumPlot.setTitle("With dropout over " + iter + " iterations");
 
-
-            System.out.println(net.predict(in[0]) + " is 0?");
-            System.out.println(net.predict(in[1]) + " is 1?");
-            System.out.println(net.predict(in[2]) + " is 1?");
-            System.out.println(net.predict(in[3]) + " is 0?");
 
             //System.out.println(net);
 
