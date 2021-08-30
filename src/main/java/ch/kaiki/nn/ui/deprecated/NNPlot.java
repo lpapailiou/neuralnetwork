@@ -24,38 +24,9 @@ public class NNPlot extends BasePlot {
         super(context);
     }
 
-    public void plotCost(NeuralNetwork neuralNetwork, boolean scatter, double smoothing) {
+    public void plotCost(NeuralNetwork neuralNetwork, boolean scatter, double smoothing) {      //TODO; remove
         plot(neuralNetwork, BackPropEntity::getCost, scatter, smoothing);
     }
-
-    public void plotCostSum(NeuralNetwork neuralNetwork, boolean scatter, double smoothing) {
-        plot(neuralNetwork, BackPropEntity::getCostSum, scatter, smoothing);
-    }
-
-    public void plotAccuracy(NeuralNetwork neuralNetwork, boolean scatter, double smoothing) {
-        plot(neuralNetwork, BackPropEntity::getAccuracy, scatter, smoothing);
-    }
-
-    public void plotAccuracySum(NeuralNetwork neuralNetwork, boolean scatter, double smoothing) {
-        plot(neuralNetwork, BackPropEntity::getAccuracySum, scatter, smoothing);
-    }
-
-    public void plotPrecision(NeuralNetwork neuralNetwork, boolean scatter, double smoothing) {
-        plot(neuralNetwork, BackPropEntity::getPrecision, scatter, smoothing);
-    }
-
-    public void plotPrecisionSum(NeuralNetwork neuralNetwork, boolean scatter, double smoothing) {
-        plot(neuralNetwork, BackPropEntity::getPrecisionSum, scatter, smoothing);
-    }
-
-    public void plotRecall(NeuralNetwork neuralNetwork, boolean scatter, double smoothing) {
-        plot(neuralNetwork, BackPropEntity::getRecall, scatter, smoothing);
-    }
-
-    public void plotRecallSum(NeuralNetwork neuralNetwork, boolean scatter, double smoothing) {
-        plot(neuralNetwork, BackPropEntity::getRecallSum, scatter, smoothing);
-    }
-
 
     /**
      *

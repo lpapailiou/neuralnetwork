@@ -1,16 +1,26 @@
 package ch.kaiki.nn.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import ch.kaiki.nn.data.BackPropEntity;
+import ch.kaiki.nn.neuralnet.NeuralNetwork;
+import ch.kaiki.nn.ui.util.Point;
+import ch.kaiki.nn.util.Initializer;
+import ch.kaiki.nn.util.Optimizer;
+import ch.kaiki.nn.util.Rectifier;
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
 import javafx.event.EventHandler;
-import javafx.scene.*;
+import javafx.scene.Group;
+import javafx.scene.PerspectiveCamera;
+import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
 import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -20,10 +30,16 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.function.Function;
+
 import static ch.kaiki.nn.ui.color.NNColorSupport.blend;
 import static javafx.scene.paint.Color.*;
 
-public class Chart3dDemo extends Application {
+public class Chart3d extends Application {
 
     // size of graph
     int size = 400;
@@ -31,172 +47,108 @@ public class Chart3dDemo extends Application {
     // variables for mouse interaction
     private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
-    private final Rotate rotateX = new Rotate(20, Rotate.X_AXIS);
-    private final Rotate rotateY = new Rotate(-45, Rotate.Y_AXIS);
+    double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
+    double[][] out = {{0}, {1}, {1}, {0}};
+
 
     @Override
     public void start(Stage primaryStage) {
         StackPane root = new StackPane();
-        NumberAxis axis = new NumberAxis(10, 20, 0.5);
-        axis.setRotate(60);
-        axis.setTickLabelRotation(-axis.getRotate());
-        root.getChildren().add(axis);
-        axis.setAnimated(true);
-        //axis.lowerBoundProperty().bind();
+        root.setBackground(new Background(new BackgroundFill(TRANSPARENT, null, null)));
 
-        // create axis walls
-        Group cube = createCube(size);
+        NNChart chart = new NNChart(800, 400, true, true, true, 1);
 
-        // initial cube rotation
-        cube.getTransforms().addAll(rotateX, rotateY);
-        /*
-        rotateX.setOnTransformChanged(e -> {
-            double angle = rotateX.getAngle() % 360;
-            System.out.println("angle: " + angle);
-            for (Node node : cube.getChildren()) {
-                if (!(node instanceof Axis)) {
-                    continue;
-                }
-                Axis axis = (Axis) node;
-
-                if (axis.getId().equals("front")) {
-                    axis.setVisible(angle < -85 && angle > 84);
-                }
-                if (axis.getId().equals("left")) {
-                    axis.setVisible(angle < -85 && angle > 84);
-                }
-                if (axis.getId().equals("right")) {
-                    axis.setVisible(angle < -85 && angle > 84);
-                }
-                if (axis.getId().equals("back")) {
-                    axis.setVisible(angle < -85 && angle > 84);
-                }
-                if (axis.getId().equals("top")) {
-                    axis.setVisible(angle < 6 && angle > 173);
-                }
-                if (axis.getId().equals("bottom")) {
-                   axis.setVisible(angle > -7 && angle < -173);
-                    axis.setVisible(angle%2 == 0);
-                }
-
-            }
-        });
-
-        // add objects to scene
-
-        root.getChildren().add(cube);
-
-        // perlin noise
-        float[][] noiseArray = createNoise( size);
-
-        // mesh
-        TriangleMesh mesh = new TriangleMesh();
-
-        // create points for x/z
-        float amplification = 100; // amplification of noise
-
-        for (int x = 0; x < size; x++) {
-            for (int z = 0; z < size; z++) {
-                mesh.getPoints().addAll(x, noiseArray[x][z] * amplification, z);
-            }
-        }
-
-        // texture
-        int length = size;
-        float total = length;
-
-        for (float x = 0; x < length - 1; x++) {
-            for (float y = 0; y < length - 1; y++) {
-
-                float x0 = x / total;
-                float y0 = y / total;
-                float x1 = (x + 1) / total;
-                float y1 = (y + 1) / total;
-
-                mesh.getTexCoords().addAll( //
-                        x0, y0, // 0, top-left
-                        x0, y1, // 1, bottom-left
-                        x1, y1, // 2, top-right
-                        x1, y1 // 3, bottom-right
-                );
-
-
-            }
-        }
-
-        // faces
-        for (int x = 0; x < length - 1; x++) {
-            for (int z = 0; z < length - 1; z++) {
-
-                int tl = x * length + z; // top-left
-                int bl = x * length + z + 1; // bottom-left
-                int tr = (x + 1) * length + z; // top-right
-                int br = (x + 1) * length + z + 1; // bottom-right
-
-                int offset = (x * (length - 1) + z ) * 8 / 2; // div 2 because we have u AND v in the list
-
-                // working
-                mesh.getFaces().addAll(bl, offset + 1, tl, offset + 0, tr, offset + 2);
-                mesh.getFaces().addAll(tr, offset + 2, br, offset + 3, bl, offset + 1);
-
-            }
+        NeuralNetwork net1 = new NeuralNetwork.Builder(2, 10, 1)
+                .setInitializer(Initializer.KAIMING)
+                .setLearningRate(0.8)
+                .setDefaultRectifier(Rectifier.SIGMOID)
+                .setLearningRateOptimizer(Optimizer.NONE).build();
+        int iter = 50;
+        net1.fit(in, out, iter);
+        List<Point> data1 =  new ArrayList<>();
+        SortedMap<Integer, BackPropEntity> rawData = net1.getBackPropData().getMap();
+        Function<BackPropEntity, Double> function = BackPropEntity::getCost;
+        double x = 0;
+        double y = 0;
+        for (Integer key : rawData.keySet()) {
+            x = (double) key;
+            y += function.apply(rawData.get(key));
+            data1.add(new Point(x, y));
+            y = 0;
         }
 
 
-        // material
-        Image diffuseMap = createImage(size, noiseArray);
+        List<Point> data2 =  Arrays.asList(new Point(1,2), new Point(1.5,2), new Point(1,1));
+        List<Point> data3 =  Arrays.asList(new Point(1,345));
 
-        PhongMaterial material = new PhongMaterial();
-        material.setDiffuseMap(diffuseMap);
-        material.setSpecularColor(Color.WHITE);
+        chart.setXAxisLabel("x-Axis");
+        chart.setYAxisLabel("y-Axis");
+        //rotateX.pivotXProperty().bind(Bindings.createDoubleBinding());
+        chart.plot("this is test 1", data1, BLUE);
+        chart.plot("test 2", data2, RED);
+        root.getChildren().addAll(chart);
 
-        // mesh view
-        MeshView meshView = new MeshView(mesh);
-        meshView.setTranslateX(-0.5 * size);
-        meshView.setTranslateZ(-0.5 * size);
-        meshView.setMaterial(material);
-        meshView.setCullFace(CullFace.NONE);
-        meshView.setDrawMode(DrawMode.FILL);
-        meshView.setDepthTest(DepthTest.ENABLE);
-
-        cube.getChildren().addAll(meshView);
-
-        // testing / debugging stuff: show diffuse map on chart
-        ImageView iv = new ImageView(diffuseMap);
-        iv.setTranslateX(-0.5 * size);
-        iv.setTranslateY(-0.10 * size);
-        iv.setRotate(90);
-        iv.setRotationAxis(new Point3D(1, 0, 0));
-        cube.getChildren().add(iv);
-*/
         // scene
-        Scene scene = new Scene(root, 1600, 900, true, SceneAntialiasing.BALANCED);
-        scene.setCamera(new PerspectiveCamera());
+        Scene scene = new Scene(root, 800, 400, true, SceneAntialiasing.DISABLED);
+        chart.setStyle("-fx-border-width: 2;-fx-border-color: red");
+        root.setStyle("-fx-border-width: 2;-fx-border-color: blue");
+        //makeZoomable(root);
+        //makeZoomable(scene, chart);
+
+        PerspectiveCamera camera = new PerspectiveCamera(false);
+        camera.setTranslateZ(-100);
+        camera.setNearClip(0.1);
+        camera.setFarClip(100000);
+        scene.setCamera(camera);
 
         scene.setOnMousePressed(me -> {
             mouseOldX = me.getSceneX();
             mouseOldY = me.getSceneY();
+
         });
         scene.setOnMouseDragged(me -> {
             mousePosX = me.getSceneX();
             mousePosY = me.getSceneY();
-            rotateX.setAngle(rotateX.getAngle() - (mousePosY - mouseOldY));
-            rotateY.setAngle(rotateY.getAngle() + (mousePosX - mouseOldX));
+            chart.getRotateX().setAngle(chart.getRotateX().getAngle() - (mousePosY - mouseOldY));
+            chart.getRotateZ().setAngle(chart.getRotateZ().getAngle() + (mousePosX - mouseOldX));
             mouseOldX = mousePosX;
             mouseOldY = mousePosY;
 
         });
+/*
+        scene.setOnMousePressed(e -> {
+            mousePosX = e.getSceneX();
+            mousePosY = e.getSceneY();
+            data1.add(new Point(mouseOldX, mouseOldY));
+            chart.plot("test 2", data1, RED);
+        });*/
         primaryStage.setResizable(false);
         primaryStage.setScene(scene);
 
-        makeZoomable(root);
 
 
         primaryStage.show();
 
 
     }
-
+    public void makeZoomable(Scene scene, Pane control) {
+        final double MAX_SCALE = 20.0;
+        final double MIN_SCALE = 0.1;
+        scene.addEventFilter(ScrollEvent.ANY, event -> {
+            double delta = 1.2;
+            double scale = control.getScaleX();
+            if (event.getDeltaY() < 0) {
+                scale /= delta;
+            } else {
+                scale *= delta;
+            }
+            scale = clamp(scale, MIN_SCALE, MAX_SCALE);
+            control.setScaleX(scale);
+            System.out.println(control.getScaleX());
+            control.setScaleY(scale);
+            //event.consume();
+        });
+    }
     /**
      * Create texture for uv mapping
      * @param size
@@ -298,38 +250,7 @@ public class Chart3dDemo extends Application {
 
     }
 
-    public void makeZoomable(StackPane control) {
 
-        final double MAX_SCALE = 20.0;
-        final double MIN_SCALE = 0.1;
-
-        control.addEventFilter(ScrollEvent.ANY, new EventHandler<ScrollEvent>() {
-
-            @Override
-            public void handle(ScrollEvent event) {
-
-                double delta = 1.2;
-
-                double scale = control.getScaleX();
-
-                if (event.getDeltaY() < 0) {
-                    scale /= delta;
-                } else {
-                    scale *= delta;
-                }
-
-                scale = clamp(scale, MIN_SCALE, MAX_SCALE);
-
-                control.setScaleX(scale);
-                control.setScaleY(scale);
-
-                event.consume();
-
-            }
-
-        });
-
-    }
 
     /**
      * Create axis walls
@@ -446,13 +367,10 @@ public class Chart3dDemo extends Application {
     }
 
     public static double clamp(double value, double min, double max) {
-
         if (Double.compare(value, min) < 0)
             return min;
-
         if (Double.compare(value, max) > 0)
             return max;
-
         return value;
     }
 

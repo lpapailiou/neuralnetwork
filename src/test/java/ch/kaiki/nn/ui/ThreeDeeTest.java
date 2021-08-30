@@ -74,7 +74,7 @@ public class ThreeDeeTest extends Application {
                     .setLearningRateOptimizer(Optimizer.NONE).build();
             int iter = 2000;
             int trainIter = 10;
-            double resolution = 0.3;
+            double resolution = 0.5;
             double padding = 0;
             double step = 0.1;
             double angleStep = 5;

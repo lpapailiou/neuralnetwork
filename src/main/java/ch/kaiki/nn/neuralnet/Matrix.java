@@ -313,9 +313,19 @@ public class Matrix implements Serializable {
     }
 
     void activate(Rectifier rectifier) {
+        boolean softmax = rectifier == Rectifier.SOFTMAX;
+        double expSum = 0;
+        if (softmax) {
+            expSum = expSum();
+        }
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                double activation = rectifier.activate(data[i][j]);
+                double activation;
+                if (softmax) {
+                    activation = rectifier.activate(data[i][j], expSum);
+                } else {
+                    activation = rectifier.activate(data[i][j]);
+                }
                 if (Double.isNaN(activation)) {
                     throw new ArithmeticException("Activation operation evaluated to NaN!");
                 } else if (Double.isInfinite(activation)) {
@@ -396,6 +406,16 @@ public class Matrix implements Serializable {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 sum += data[i][j];
+            }
+        }
+        return sum;
+    }
+
+    double expSum() {
+        double sum = 0;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                sum += Math.exp(data[i][j]);
             }
         }
         return sum;

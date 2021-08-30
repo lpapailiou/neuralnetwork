@@ -1,5 +1,8 @@
 package ch.kaiki.nn.util;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * The rectifier is the activation function for the nodes of the neural networks. Each type holds a short description,
  * the activation function and the derivation function (the latter is used for supervised learning only).
@@ -70,7 +73,7 @@ public enum Rectifier {
             double step1 = (1 + Math.exp(-value));
             double activation = step0 / step1;
             if (Double.isInfinite(activation)) {
-                System.out.println(step0 + " " + step1);
+                log(this, "Infinite value detected!");
             }
             return activation;
         }
@@ -86,6 +89,7 @@ public enum Rectifier {
                 } else {
                     derivation = Double.MAX_VALUE;
                 }
+                log(this, "Infinite value detected! Derivation is set to " + derivation + ".");
             }
             return derivation;
         }
@@ -114,6 +118,7 @@ public enum Rectifier {
                 } else {
                     derivation = 1;
                 }
+                log(this, "Infinite value detected! Derivation is set to " + derivation + ".");
             }
             return derivation;
         }
@@ -213,6 +218,7 @@ public enum Rectifier {
                 } else {
                     activation = Double.MAX_VALUE;
                 }
+                log(this, "Infinite value detected! Activation is set to: " + activation + ".");
             }
             return activation;
         }
@@ -228,11 +234,53 @@ public enum Rectifier {
                 } else {
                     derivation = 1;
                 }
+                log(this, "Infinite value detected! Derivation is set to: " + derivation + ".");
+            }
+            return derivation;
+        }
+    },
+    /**
+     * The softmax activation function is used for the last layer to approximate probabilities.
+     * formula:    f(x)  = e^x / sum(e^x)
+     * derivation: f(x)' = x * ln(x)
+     */
+    SOFTMAX("Softmax") {
+        @Override
+        public double activate(double value, double sum) {
+            double activation = Math.exp(value) / sum;
+            if (Double.isInfinite(activation)) {
+                if (activation < 0) {
+                    activation = Double.MIN_VALUE;
+                } else {
+                    activation = Double.MAX_VALUE;
+                }
+                log(this, "Infinite value detected! Activation is set to: " + activation + ".");
+            } else if (Double.isNaN(activation)) {
+                activation = 0;
+                log(this, "NaN value detected! Activation is set to: " + activation + ".");
+            }
+            return activation;
+        }
+
+        @Override
+        public double activate(double value) {
+            //throw new IllegalArgumentException("Softmax needs two parameters!");
+            log(this, "Softmax activation would require a second parameter (sum of matrix). Returns the value 1 now.");
+            return 1;
+        }
+
+        @Override
+        public double derive(double value) {
+            double derivation = value * Math.log(value);
+            if (Double.isNaN(derivation)) {
+                derivation = 0;
+                log(this, "NaN value detected! Derivation is set to: " + derivation + ".");
             }
             return derivation;
         }
     };
 
+    private static final Logger LOG = Logger.getLogger("Rectifier logger");
     private final String description;
 
     Rectifier(String description) {
@@ -257,11 +305,24 @@ public enum Rectifier {
     public abstract double activate(double value);
 
     /**
+     * Returns the result of the according activation function.
+     *
+     * @param value the input value x
+     * @param sum the sum of the matrix weights.
+     * @return the result f(x)
+     */
+    public double activate(double value, double sum) { return 0; };
+
+    /**
      * Returns the result of the derivate of the according activation function.
      *
      * @param value the input value x
      * @return the result f(x)'
      */
     public abstract double derive(double value);
+
+    private static void log(Rectifier rectifier, String message) {
+        LOG.log(Level.INFO, rectifier.getDescription() + ": " + message);
+    }
 
 }

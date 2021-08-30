@@ -1,12 +1,10 @@
 package ch.kaiki.nn.ui.deprecated;
 
-import ch.kaiki.nn.ui.deprecated.BasePlot;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNDataColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
-import ch.kaiki.nn.ui.deprecated.Polygon;
 
 import java.util.*;
 

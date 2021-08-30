@@ -25,6 +25,7 @@ public class RectifierTest extends Application {
             int i = 0;
             HBox box = null;
             for (Rectifier rectifier : Rectifier.values()) {
+            //Rectifier rectifier = Rectifier.SOFTMAX;
                 if (i % 5 == 0) {
                     box = new HBox();
                     root.getChildren().add(box);

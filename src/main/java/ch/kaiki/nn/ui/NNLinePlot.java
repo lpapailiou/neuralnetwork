@@ -98,9 +98,10 @@ public class NNLinePlot extends LineChart {
         XYChart.Series<Number, Number> series = new XYChart.Series<>();
         addSeriesListener(series);
         series.setName(name);
+
+
         SortedMap<Integer, BackPropEntity> rawData = neuralNetwork.getBackPropData().getMap();
         int size = rawData.size();
-
         int modulo = (int) (rawData.size() / 100 * smoothing * 100);
         modulo = Math.max(1, modulo);
         int counter = 0;
@@ -139,6 +140,7 @@ public class NNLinePlot extends LineChart {
         for (int i = 0; i < iter; i++) {
             double x = (i - (iter / 2.)) / 10;
             double y = function.apply(x);
+            //System.out.println("x " + x + " y " + y);
             series.getData().add(new XYChart.Data<>(x, y));
         }
         this.getData().add(series);
