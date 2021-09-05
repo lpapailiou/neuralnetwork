@@ -238,7 +238,7 @@ public class Matrix implements Serializable {
         }
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                double value = data[i][j] + m.data[0][j];
+                double value = data[i][j] + m.data[i][j];
                 if (Double.isInfinite(value)) {
                     value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
                 } else if (Double.isNaN(value)) {
@@ -301,7 +301,7 @@ public class Matrix implements Serializable {
         }
     }
 
-    void scalarProduct(Matrix m) {
+    void multiply(Matrix m) {
         if (cols != m.cols || rows != m.rows) {
             throw new IllegalArgumentException("wrong input matrix dimensions!");
         }

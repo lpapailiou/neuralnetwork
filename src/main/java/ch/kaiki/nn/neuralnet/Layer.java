@@ -17,7 +17,7 @@ class Layer implements Serializable {
 
     Layer(Rectifier rectifier, int m, int n) {
         weight = new Matrix(m, n);
-        bias = new Matrix(n, 1);
+        bias = new Matrix(m, 1);
         this.rectifier = rectifier;
     }
 
