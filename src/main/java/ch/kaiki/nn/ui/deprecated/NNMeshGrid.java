@@ -247,7 +247,7 @@ public class NNMeshGrid extends BasePlot {
             plotBinaryClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
         } else {
             if (dataColor.getColors().size() != configuration[configuration.length-1]) {
-                throw new IllegalArgumentException("Count of data color items " + dataColor.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
+                //throw new IllegalArgumentException("Count of data color items " + dataColor.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
             }
             plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
         }

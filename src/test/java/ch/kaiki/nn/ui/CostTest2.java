@@ -28,7 +28,7 @@ public class CostTest2 extends Application {
             VBox root = new VBox();
             root.setSpacing(10);
             root.setPadding(new Insets(20, 20, 20, 20));
-            NNLinePlot plot1 = new NNLinePlot(root, 1000, 400, true, true, true, 0.02);
+            NNLinePlot plot1 = new NNLinePlot(root, 1000, 400, true, true, true, 0);
             NNLinePlot plot2 = new NNLinePlot(root, 1000,400, true, true, true, 0);
 
             NeuralNetwork net = new NeuralNetwork.Builder(2, 10, 1)

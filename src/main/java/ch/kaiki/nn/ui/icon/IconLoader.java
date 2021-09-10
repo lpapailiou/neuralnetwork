@@ -3,8 +3,18 @@ package ch.kaiki.nn.ui.icon;
 import javafx.scene.Group;
 import javafx.scene.shape.SVGPath;
 
+// https://fontawesome.com/license
 
-public class Icon {
+public class IconLoader {
+
+    public static Group getArrowUp() {
+        SVGPath path = new SVGPath();
+        //path.setContent(IconLoader.class.getResource("arrow-up-solid.svg").toExternalForm());
+        path.setScaleX(0.05);
+        path.setScaleY(0.05);
+        Group group = new Group(path);
+        return group;
+    }
 
     public static Group getPlus() {
         SVGPath path = new SVGPath();

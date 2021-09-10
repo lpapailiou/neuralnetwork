@@ -65,7 +65,7 @@ public class NNDataConverter {
     }
 
     // decision boundary
-    public static List<double[][][]> getDecisionBoundaryGrids(NeuralNetwork neuralNetwork, double minX, double maxX, double minY, double maxY, int iterX, int iterY) {
+    public static List<double[][][]> getDecisionBoundaryGrids(NeuralNetwork neuralNetwork, double minX, double maxX, double minY, double maxY, int iterX, int iterY, double zFactor) {
         int[] configuration = neuralNetwork.getConfiguration();
         int gridCount = configuration[configuration.length-1];
 
@@ -77,15 +77,15 @@ public class NNDataConverter {
         double stepY = Math.abs(maxY - minY) / iterX;
         double x = minX;
         double y = minY;
-
-        for (int i = 0; i <= iterX; i++) {
-            for (int j = 0; j <= iterY; j++) {
+        for (int i = 0; i < iterX; i++) {
+            for (int j = 0; j < iterY; j++) {
                 double[] input = {x, y};
                 y += stepY;
                 List<Double> output = neuralNetwork.predict(input);
-                for (int k = 0; k < gridCount; k++) {
+                for (int k = 0; k < output.size(); k++) {
                     double[][][] grid = gridList.get(k);
-                    grid[i][j] = new double[]{input[0], input[1], output.get(k)};
+                    double out = output.get(k);
+                    grid[i][j] = new double[]{input[0], input[1], out * zFactor};
                 }
             }
             y = minY;

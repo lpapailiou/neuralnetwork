@@ -40,7 +40,7 @@ public abstract class BasePlot {
     private double hOffsetBottom = 20;
     private double plotLineWidth = 1.5;
     private double gridLineWidth = 0.5;
-    private Color backgroundColor = TRANSPARENT;
+    Color backgroundColor = TRANSPARENT;
     Color plotBackgroundColor = blend(LIGHTSKYBLUE, backgroundColor, 0.2);
     private Color plotAxisColor = LIGHTSKYBLUE.darker();
     private Color plotGridColor = LIGHTSKYBLUE;

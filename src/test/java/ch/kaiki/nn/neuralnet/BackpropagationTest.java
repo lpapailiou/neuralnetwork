@@ -8,6 +8,9 @@ import java.util.List;
 
 public class BackpropagationTest {
 
+    double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
+    double[][] out = {{0}, {1}, {1}, {0}};
+
     @Test
     public void backpropagationTest() {
         Rectifier rectifier = Rectifier.SIGMOID;
@@ -45,7 +48,7 @@ public class BackpropagationTest {
             System.out.println("error: " + error);
             Matrix gradient = steps.get(i).derive(rectifier);
             System.out.println("derived: " + steps.get(i));
-            gradient.scalarProduct(error);
+            gradient.multiply(error);
             System.out.println("gradient 1: " + gradient);
             gradient.multiply(0.8);
             System.out.println("gradient 2: " + gradient);

@@ -145,6 +145,8 @@ public class NeuralNetwork implements Serializable {
             throw new NullPointerException("inputNodes and expectedOutputNodes are required!");
         } else if (inputNodes.length != configuration[0]) {
             throw new IllegalArgumentException("input node count does not match neural network configuration! received " + inputNodes.length + " instead of " + configuration[0] + " input nodes.");
+        } else if (expectedOutputNodes.length != configuration[configuration.length-1]) {
+            throw new IllegalArgumentException("output node count does not match neural network configuration! received " + expectedOutputNodes.length + " instead of " + configuration[configuration.length-1] + " output nodes.");
         }
 
         Matrix input = Matrix.fromArray(inputNodes);

@@ -85,7 +85,7 @@ public class MatrixTest {
         Matrix b = new Matrix(dm);
         Matrix e = new Matrix(de);
         a.print();
-        a.scalarProduct(b);
+        a.multiply(b);
         a.print();
         assertEquals(a, e);
     }

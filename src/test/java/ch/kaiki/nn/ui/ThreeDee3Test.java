@@ -4,7 +4,7 @@ import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNHeatMap;
 import ch.kaiki.nn.ui.deprecated.NN3DPlot;
 import ch.kaiki.nn.ui.deprecated.NNMeshGrid;
-import ch.kaiki.nn.ui.icon.Icon;
+import ch.kaiki.nn.ui.icon.IconLoader;
 import ch.kaiki.nn.util.Initializer;
 import ch.kaiki.nn.util.Optimizer;
 import ch.kaiki.nn.util.Rectifier;
@@ -113,7 +113,7 @@ public class ThreeDee3Test extends Application {
             });
             cBox.getChildren().add(train);
             Button btnctz = new Button();
-            btnctz.setGraphic(Icon.getPlus());
+            btnctz.setGraphic(IconLoader.getPlus());
             btnctz.setOnAction(e -> {
                 tz.updateAndGet(v -> new Double((double) (v - step)));
                 plot.get().setZoom(tz.get());
@@ -121,7 +121,7 @@ public class ThreeDee3Test extends Application {
             });
             tBox.getChildren().add(btnctz);
             Button btnctzm = new Button();
-            btnctzm.setGraphic(Icon.getMinus());
+            btnctzm.setGraphic(IconLoader.getMinus());
             btnctzm.setScaleShape(true);
             btnctzm.setOnAction(e -> {
                 tz.updateAndGet(v -> new Double((double) (v + step)));

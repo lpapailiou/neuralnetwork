@@ -1,7 +1,13 @@
 package ch.kaiki.nn.ui;
 
+import ch.kaiki.nn.neuralnet.NeuralNetwork;
+import ch.kaiki.nn.ui.color.NNHeatMap;
 import ch.kaiki.nn.ui.deprecated.NN3DPlot;
 import ch.kaiki.nn.ui.deprecated.NNMeshGrid;
+import ch.kaiki.nn.ui.icon.IconLoader;
+import ch.kaiki.nn.util.Initializer;
+import ch.kaiki.nn.util.Optimizer;
+import ch.kaiki.nn.util.Rectifier;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.DepthTest;
@@ -13,21 +19,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.color.NNHeatMap;
-import ch.kaiki.nn.ui.icon.IconLoader;
-import ch.kaiki.nn.util.Initializer;
-import ch.kaiki.nn.util.Optimizer;
-import ch.kaiki.nn.util.Rectifier;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 import static javafx.scene.SceneAntialiasing.BALANCED;
 
-public class ThreeDeeTest extends Application {
+public class ThreeDeeTestMulticlass extends Application {
 
-    double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
-    double[][] out = {{0}, {1}, {1}, {0}};
+    double[][] in = {{0.1, 2.2}, {0.2, 0.22}, {0.3, 0.1}, {0.4, 0.7}, {0.5, 0.8}, {0.45, 0.9}, {0.8, 0.1}, {0.9, 0.15}, {0.8, 0.2}, {0.5, 4.55}};
+    double[][] out = {{1, 0, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -60,7 +60,7 @@ public class ThreeDeeTest extends Application {
             double canvasWidth = 350;
             double canvasHeight = 350;
             double offset = 80;
-            Canvas canvas = new Canvas(canvasWidth + 2 * offset, canvasHeight + 2 * offset);
+            Canvas canvas = new Canvas(canvasWidth + 2 * offset, (canvasHeight + 2 * offset));
             GraphicsContext context = canvas.getGraphicsContext2D();
 
             Canvas canvas2 = new Canvas(canvasWidth + 2 * offset, canvasWidth + 2 * offset);
@@ -68,13 +68,13 @@ public class ThreeDeeTest extends Application {
             graphBox.getChildren().add(canvas2);
             graphBox.getChildren().add(canvas);
 
-            NeuralNetwork net = new NeuralNetwork.Builder( 2, 10, 1).setInitializer(Initializer.KAIMING)
+            NeuralNetwork net = new NeuralNetwork.Builder( 2, 10, 4).setInitializer(Initializer.KAIMING)
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     .setLearningRate(0.5)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iter = 2000;
-            int trainIter = 10;
-            double resolution = 0.1;
+            int iter = 0;
+            int trainIter = 100;
+            double resolution = 0.05;
             double padding = 0;
             double step = 0.1;
             double angleStep = 5;
