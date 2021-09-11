@@ -22,10 +22,12 @@ public class NN3DPlot extends BasePlot {
     private double[] dataRange = {0,0};
     private double[][] matrix;
     private double cachedPadding;
-    private double zoom;
-    private double xAngle;
+    private double zoom = 0.743;
+    private double xAngle = 68;
     private double yAngle;
-    private double zAngle;
+    private double zAngle = 46;
+
+    // x 68.0 z: 46.0, zoom: 0.7430083706879997
     private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
     double zMin = Double.MAX_VALUE;
@@ -33,13 +35,13 @@ public class NN3DPlot extends BasePlot {
     int iterX;
     int iterY;
     NeuralNetwork neuralNetwork;
-
+    boolean keepDimensions = false;
 
     boolean snapBack = false;
     public NN3DPlot(GraphicsContext context) {
         super(context);
         matrix = getProjectionMatrix();
-
+        // TODO: turn on antialiasing
         context.getCanvas().setOnMouseEntered(e -> {
             context.getCanvas().setStyle("-fx-cursor: move;");
         });
@@ -134,7 +136,11 @@ public class NN3DPlot extends BasePlot {
     private void processData() {
         int[] configuration = neuralNetwork.getConfiguration();
         iterX = (int) Math.ceil(plotWidth * resolution);
-        iterY = iterX; //(int) Math.ceil(plotHeight * resolution);
+        if (keepDimensions) {
+            iterY = (int) Math.ceil(plotHeight * resolution);
+        } else {
+            iterY = iterX;
+        }
         ForwardPropEntity[][] data = new ForwardPropEntity[iterX+1][iterY+1];
 
         double stepX = 1.0 / iterX;
@@ -180,11 +186,7 @@ public class NN3DPlot extends BasePlot {
     double step;
     List<double[][][]> gridList = new ArrayList<>();
 
-    private void render() {
-        matrix = getProjectionMatrix();
-       // System.out.println("x rotation: " + xAngle + ", z rotateion: " + zAngle);
-        clear();
-
+    private List<Face> getFaces() {
         double offsetFactor = 0.05;
         double xCubeOffset = Math.abs(xMax-xMin) * offsetFactor;
         double yCubeOffset = Math.abs(yMax-yMin) * offsetFactor;
@@ -197,46 +199,36 @@ public class NN3DPlot extends BasePlot {
         double zMinCube = zMin - zCubeOffset;
         double zMaxCube = zMax + zCubeOffset;
 
-        double[] d0 = transform(new double[] {xMinCube, yMinCube, zMinCube});
-        double[] d1 = transform(new double[] {xMinCube, yMaxCube, zMinCube});
-        double[] d2 = transform(new double[] {xMaxCube, yMaxCube, zMinCube});
-        double[] d3 = transform(new double[] {xMaxCube, yMinCube, zMinCube});
-        double[] d4 = transform(new double[] {xMinCube, yMinCube, zMaxCube});
-        double[] d5 = transform(new double[] {xMinCube, yMaxCube, zMaxCube});
-        double[] d6 = transform(new double[] {xMaxCube, yMaxCube, zMaxCube});
-        double[] d7 = transform(new double[] {xMaxCube, yMinCube, zMaxCube});
-        double[] d8 = transform(new double[] {Math.abs(xMaxCube-xMinCube)/2+xMinCube, Math.abs(yMaxCube-yMinCube)/2+yMinCube, Math.abs(zMaxCube - zMinCube)/2+ zMinCube});
+        double[] d0 = new double[] {xMinCube, yMinCube, zMinCube};
+        double[] d1 = new double[] {xMinCube, yMaxCube, zMinCube};
+        double[] d2 = new double[] {xMaxCube, yMaxCube, zMinCube};
+        double[] d3 = new double[] {xMaxCube, yMinCube, zMinCube};
+        double[] d4 = new double[] {xMinCube, yMinCube, zMaxCube};
+        double[] d5 = new double[] {xMinCube, yMaxCube, zMaxCube};
+        double[] d6 = new double[] {xMaxCube, yMaxCube, zMaxCube};
+        double[] d7 = new double[] {xMaxCube, yMinCube, zMaxCube};
 
         List<Face> faces = new ArrayList<>();
-        faces.add(new Face("bottom", new double[]{d0[0], d3[0], d2[0], d1[0]}, new double[]{d0[1], d3[1], d2[1], d1[1]}, d0[3]+d3[3]+d2[3]+d1[3]));
-        faces.add(new Face("right", new double[]{d2[0], d6[0], d7[0], d3[0]}, new double[]{d2[1], d6[1], d7[1], d3[1]}, d2[3]+d6[3]+d7[3]+d3[3]));
-        faces.add(new Face("left", new double[]{d0[0], d1[0], d5[0], d4[0]}, new double[]{d0[1], d1[1], d5[1], d4[1]}, d0[3]+d1[3]+d5[3]+d4[3]));
-        faces.add(new Face("back", new double[]{d1[0], d2[0], d6[0], d5[0]}, new double[]{d1[1], d2[1], d6[1], d5[1]}, d1[3]+d2[3]+d6[3]+d5[3]));
-        faces.add(new Face("front", new double[]{d0[0], d3[0], d7[0], d4[0]}, new double[]{d0[1], d3[1], d7[1], d4[1]}, d0[3]+d3[3]+d7[3]+d4[3]));
-        faces.add(new Face("top", new double[]{d4[0], d5[0], d6[0], d7[0]}, new double[]{d4[1], d5[1], d6[1], d7[1]}, d4[3]+d5[3]+d6[3]+d7[3]));
+        Color background = NNColorSupport.blend(LIGHTGRAY, TRANSPARENT, 0.4);
+        Color grid = GREY;
+        Color axis = TRANSPARENT;
+        faces.add(new Face("bottom", d0, d3, d2, d1, background, grid, axis));
+        faces.add(new Face("right", d3, d7, d6, d2, background, grid, axis));
+        faces.add(new Face("left", d0, d4, d5, d1, background, grid, axis));
+        faces.add(new Face("back", d1, d2, d6, d5, background, grid, axis));
+        faces.add(new Face("front", d0, d3, d7, d4, background, grid, axis));
+        faces.add(new Face("top", d4, d7, d6, d5, background, grid, axis));
         Collections.sort(faces, Comparator.comparingDouble(f -> f.z));
-        context.setFill(BLACK);
+        return faces;
+    }
+
+    private void render() {
+        matrix = getProjectionMatrix();
+        clear();
+        List<Face> faces = getFaces();
         for (int i = faces.size()-1; i > 2; i--) {
-            Face face = faces.get(i);
-            context.fillPolygon(face.x, face.y, 4);
+            faces.get(i).draw();
         }
-
-        List<double[]> dotList = new ArrayList<>();
-        dotList.addAll(Arrays.asList(d0, d1, d2, d3, d4, d5, d6, d7));
-
-
-        /*
-        // orientation points
-        context.setFill(RED);
-        double radius = 10;
-        context.fillOval(d8[0]-radius/2, d8[1]-radius/2, radius,radius);
-        for (double[] dot : dotList) {
-            context.fillOval(dot[0]-radius/2, dot[1]-radius/2, radius, radius);
-        }
-        radius = 7;
-        context.setFill(GREEN);
-        context.fillOval(plotWidth/2-radius/2, plotHeight/2-radius/2, radius,radius);
-        */
 
         List<double[][][]> gridData = getBaseGrid(gridList.size());
         for (int i = 0; i < gridData.size(); i++) {
@@ -281,11 +273,183 @@ public class NN3DPlot extends BasePlot {
         double z;
         double[] x;
         double[] y;
-        Face(String id, double[] x, double[] y, double z) {
+
+        double[] a;
+        double[] b;
+        double[] c;
+        double[] d;
+
+        double[] t0;
+        double[] t1;
+        double[] t2;
+        double[] t3;
+
+        Color gridBackgroundColor;
+        Color gridColor;
+        Color axisColor;
+        double gridStrokeWidth = 0.5;
+        double axisStrokeWidht = 0.5;
+        double zeroLineStrokeWidth = 0.5;
+
+        Face(String id, double[] a, double[] b, double[] c, double[] d, Color gridBackgroundColor, Color gridColor, Color axisColor) {
             this.id = id;
-            this.x = x;
-            this.y = y;
-            this.z = z;
+            this.a = a;
+            this.b = b;
+            this.c = c;
+            this.d = d;
+            this.gridBackgroundColor = gridBackgroundColor;
+            this.gridColor = gridColor;
+            this.axisColor = axisColor;
+            transform();
+        }
+
+        void transform() {
+            t0 = NN3DPlot.this.transform(a);
+            t1 = NN3DPlot.this.transform(b);
+            t2 = NN3DPlot.this.transform(c);
+            t3 = NN3DPlot.this.transform(d);
+            z = t0[3]+t1[3]+t2[3]+t3[3];
+        }
+
+        void draw() {
+            x = new double[]{t0[0], t1[0], t2[0], t3[0]};
+            y = new double[]{t0[1], t1[1], t2[1], t3[1]};
+            NN3DPlot.this.context.setFill(gridBackgroundColor);
+            NN3DPlot.this.context.fillPolygon(x, y, 4);
+
+            double min1;
+            double max1;
+            double min2;
+            double max2;
+            double cnst = 0;
+
+            switch (id) {
+                case "bottom":
+                case "top":
+                    min1 = a[0];
+                    max1 = b[0];
+                    min2 = b[1];
+                    max2 = c[1];
+                    cnst = a[2];
+                    break;
+                case "left":
+                case "right":
+                    min1 = a[2];
+                    max1 = b[2];
+                    min2 = b[1];
+                    max2 = c[1];
+                    cnst = a[0];
+                    break;
+                case "front":
+                case "back":
+                default:
+                    min1 = a[0];
+                    max1 = b[0];
+                    min2 = b[2];
+                    max2 = c[2];
+                    cnst = a[1];
+            }
+
+            NN3DPlot.this.context.setStroke(gridColor);
+
+            double range1 = Math.abs(max1 - min1);
+            double range2 = Math.abs(max2 - min2);
+            double step1 = NN3DPlot.this.getInterval(range1, 1000);
+            double v1 = max1 - (max1 % max1) - max1;
+            int tickCount1 = (int) (range1 / step1) + 2;
+            for (int i = 0; i < tickCount1; i++) {
+                if (i > 0) {
+                    v1 += step1;
+                }
+                if (v1 < min1 || v1 > max1) {
+                    continue;
+                }
+
+                if (v1 == 0) {
+                    NN3DPlot.this.context.setLineWidth(zeroLineStrokeWidth);
+
+                } else {
+                    NN3DPlot.this.context.setLineWidth(gridStrokeWidth);
+                }
+
+                double[] start;
+                double[] end;
+                switch (id){
+                    case "top":
+                    case "bottom":
+                        start = NN3DPlot.this.transform(new double[]{v1, min2, cnst});
+                        end = NN3DPlot.this.transform(new double[]{v1, max2, cnst});
+                        break;
+                    case "left":
+                    case "right":
+                        start = NN3DPlot.this.transform(new double[]{cnst, min2, v1});
+                        end = NN3DPlot.this.transform(new double[]{cnst, max2, v1});
+                        break;
+                    case "front":
+                    case "back":
+                    default:
+                        start = NN3DPlot.this.transform(new double[]{v1, cnst, min2});
+                        end = NN3DPlot.this.transform(new double[]{v1, cnst, max2});
+                }
+                NN3DPlot.this.context.strokeLine(start[0], start[1], end[0], end[1]);
+                if (start[2] > end[2]) {
+                    NN3DPlot.this.context.strokeText(String.valueOf(v1), end[0]+10, end[1]+10);
+                } else {
+                    NN3DPlot.this.context.strokeText(String.valueOf(v1), start[0]-10, start[1]-10);
+                }
+            }
+            double step2 = NN3DPlot.this.getInterval(range2, 1000);
+            double v2 = max2 - (max2 % max2) - max2;
+            int tickCount2 = (int) (range2 / step2) + 2;
+            for (int i = 0; i < tickCount2; i++) {
+                if (i > 0) {
+                    v2 += step2;
+                }
+                if (v2 < min2 || v2 > max2) {
+                    continue;
+                }
+
+                if (v2 == 0) {
+                    NN3DPlot.this.context.setLineWidth(zeroLineStrokeWidth);
+
+                } else {
+                    NN3DPlot.this.context.setLineWidth(gridStrokeWidth);
+                }
+
+                double[] start;
+                double[] end;
+                switch (id){
+                    case "top":
+                    case "bottom":
+                        start = NN3DPlot.this.transform(new double[]{min1, v2, cnst});
+                        end = NN3DPlot.this.transform(new double[]{max1, v2, cnst});
+                        break;
+                    case "left":
+                    case "right":
+                        start = NN3DPlot.this.transform(new double[]{cnst, v2, min1});
+                        end = NN3DPlot.this.transform(new double[]{cnst, v2, max1});
+                        break;
+                    case "front":
+                    case "back":
+                    default:
+                        start = NN3DPlot.this.transform(new double[]{min1, cnst, v2});
+                        end = NN3DPlot.this.transform(new double[]{max1, cnst, v2});
+                }
+                NN3DPlot.this.context.strokeLine(start[0], start[1], end[0], end[1]);
+                if (start[2] > end[2]) {
+                    NN3DPlot.this.context.strokeText(String.valueOf(v2), end[0], end[1]);
+                } else {
+                    NN3DPlot.this.context.strokeText(String.valueOf(v2), start[0], start[1]);
+                }
+
+            }
+            NN3DPlot.this.context.setLineWidth(axisStrokeWidht);
+            NN3DPlot.this.context.setStroke(axisColor);
+            NN3DPlot.this.context.strokeLine(t0[0], t0[1], t1[0], t1[1]);
+            NN3DPlot.this.context.strokeLine(t1[0], t1[1], t2[0], t2[1]);
+            NN3DPlot.this.context.strokeLine(t2[0], t2[1], t3[0], t3[1]);
+            NN3DPlot.this.context.strokeLine(t3[0], t3[1], t0[0], t0[1]);
+
         }
 
     }
@@ -437,7 +601,6 @@ public class NN3DPlot extends BasePlot {
         int gridCount = configuration[configuration.length-1];
 
         List<double[][][]> gridList = getBaseGrid(gridCount);
-        //double stretchFactor = Math.abs(maxX-minX)/Math.abs(maxY-minY);
         double stepX = Math.abs(maxX - minX) / iterX;
         double stepY = Math.abs(maxY - minY) / iterX;
         double x = minX;
@@ -477,26 +640,40 @@ public class NN3DPlot extends BasePlot {
         double zRange = Math.abs(zMax - zMin);
         double xTranslate = xRange / 2 - xMin;
         double yTranslate = yRange / 2 - yMin;
-        double zOffset = zRange/2 + zMin;                      // TODO
+        double zOffset = zRange/2 + zMin;                      // TODO?
 
 
         double viewPortFactor = (plotHeight/plotWidth);
         boolean keepAsCube = true;
 
+
         double[][] m = scale(1,1, 1/zRange);                                     // 0. prepare z
 
         m = multiply(translate(-(xRange-xTranslate),-(yRange-yTranslate), -zOffset), m);   // 1. center
-        m = multiply(scale(1,1/yRange*xRange, 0.5), m);                          // 2. clamp y to x and normalize z
+        if (keepDimensions) {
+            m = multiply(scale(1, 1, 0.5), m);                  // 2. normalize z
+        } else {
+            m = multiply(scale(1, 1 / yRange * xRange, 0.5), m);                  // 2. clamp y to x and normalize z
+        }
         m = multiply(rotate, m);                                                           // 3. rotate
         m = multiply(translate(0,0, -zoom), m);                                     // 4. zoom
         m = multiply(xReflect(), m);                                                       // 5. reflect on x-axis
         m = multiply(project, m);                                                          // 6. project
-        if (keepAsCube) {
+        if (keepAsCube && !keepDimensions) {
             m = multiply(translate(-(xRange / 2), xRange / 2 * viewPortFactor, 0), m);                        // 7. transform back
             m = multiply(scale(1 / xRange * plotWidth, 1 / xRange * plotWidth, 1 / Math.abs(xMax - zMin)), m);     // 8. adjust to plot dimensions
         } else {
-            m = multiply(translate(-(xRange / 2), xRange / 2, 0), m);                        // 7. transform back
-            m = multiply(scale(1 / xRange * plotWidth, 1 / xRange * plotWidth * viewPortFactor, 1 / Math.abs(xMax - zMin)), m);     // 8. adjust to plot dimensions
+
+            double yFactor;
+            if (keepDimensions) {
+                m = multiply(translate(-(xRange / 2), yRange / 2, 0), m);                        // 7. transform back
+                yFactor = 1 / yRange * plotHeight;
+                viewPortFactor = 1;
+            } else {
+                m = multiply(translate(-(xRange / 2), xRange / 2, 0), m);                        // 7. transform back
+                yFactor = 1 / xRange * plotWidth;
+            }
+            m = multiply(scale(1 / xRange * plotWidth, yFactor* viewPortFactor, 1 / Math.abs(xMax - zMin)), m);     // 8. adjust to plot dimensions
         }
         m = multiply(scale(-1,1,1), m);                                           // 9. switch x
 

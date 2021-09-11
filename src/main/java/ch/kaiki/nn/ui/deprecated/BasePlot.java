@@ -275,6 +275,14 @@ public abstract class BasePlot {
         context.strokeLine(x1, y1, x2, y2);
     }
 
+
+    protected double getInterval(double range, double threshold) {
+        if (range <= threshold) {
+            return calculateIntervalSmall(range);
+        }
+        return calculateIntervalLarge(range);
+    }
+
     private double calculateIntervalSmall(double range) {
         double x = Math.pow(10.0, Math.floor(Math.log10(range)));
         if (range / x >= 5) {

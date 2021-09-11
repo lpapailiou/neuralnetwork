@@ -26,7 +26,7 @@ import static javafx.scene.SceneAntialiasing.BALANCED;
 
 public class ThreeDeeTestMulticlass extends Application {
 
-    double[][] in = {{0.1, 2.2}, {0.2, 0.22}, {0.3, 0.1}, {0.4, 0.7}, {0.5, 0.8}, {0.45, 0.9}, {0.8, 0.1}, {0.9, 0.15}, {0.8, 0.2}, {0.5, 4.55}};
+    double[][] in = {{0.1, 2.2}, {0.2, 0.22}, {0.3, 0.1}, {0.4, 0.7}, {0.5, 0.8}, {0.45, 0.9}, {0.8, 0.1}, {0.9, 0.15}, {0.8, 0.2}, {0.5, 1.55}};
     double[][] out = {{1, 0, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 
     @Override
@@ -74,7 +74,7 @@ public class ThreeDeeTestMulticlass extends Application {
                     .setLearningRateOptimizer(Optimizer.NONE).build();
             int iter = 0;
             int trainIter = 100;
-            double resolution = 0.05;
+            double resolution = 0.1;
             double padding = 0;
             double step = 0.1;
             double angleStep = 5;
