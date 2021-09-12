@@ -261,7 +261,7 @@ public abstract class BasePlot {
         context.fillText(formatTickLabel(number), x, y);
     }
 
-    private String formatTickLabel(double value) {
+    protected String formatTickLabel(double value) {
         double formatted = Double.parseDouble(df.format(value));
         if (formatted % 1 == 0) {
             return Integer.toString((int) formatted);
