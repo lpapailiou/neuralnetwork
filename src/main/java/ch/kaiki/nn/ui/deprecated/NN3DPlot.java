@@ -298,7 +298,14 @@ public class NN3DPlot extends BasePlot {
                 yMax = yValue;
             }
         }
-
+        double xPadding = Math.abs(xMax-xMin) * 2;
+        double yPadding = Math.abs(yMax-yMin) * 2;
+        double xOffset = ((xPadding - Math.abs(xMax-xMin))) / 2;
+        double yOffset = ((yPadding - Math.abs(yMax-yMin))) / 2;
+        xMin = xMin - xOffset;
+        xMax = xMax + xOffset;
+        yMin = yMin - yOffset;
+        yMax = yMax + yOffset;
         dataMin = new double[] {xMin, yMin};
         dataRange = new double[] {Math.abs(xMax-xMin), Math.abs(yMax-yMin)};
     }
