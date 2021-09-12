@@ -30,9 +30,9 @@ public class Grid {
     private double zeroLineStrokeWidth = 1;
 
     private boolean showSecondZAxis = true;
-    private boolean keepDimensions;
+    private boolean visualizeAsCube;
 
-    public Grid(NN3DPlot plot, String id, double[] a, double[] b, double[] c, double[] d, Color gridBackgroundColor, Color gridColor, Color axisColor, boolean keepDimensions) {
+    public Grid(NN3DPlot plot, String id, double[] a, double[] b, double[] c, double[] d, Color gridBackgroundColor, Color gridColor, Color axisColor, boolean visualizeAsCube) {
         this.plot = plot;
         this.id = id;
         this.a = a;
@@ -42,7 +42,7 @@ public class Grid {
         this.gridBackgroundColor = gridBackgroundColor;
         this.gridColor = gridColor;
         this.axisColor = axisColor;
-        this.keepDimensions = keepDimensions;
+        this.visualizeAsCube = visualizeAsCube;
         transform();
     }
 
@@ -285,14 +285,14 @@ public class Grid {
     }
 
     private double getOffset1(double range1, double range2) {
-        if (keepDimensions) {
+        if (!visualizeAsCube) {
             return Math.min(range1, range2) * 0.1;
         }
         return range2 * 0.1;
     }
 
     private double getOffset2(double range1, double range2) {
-        if (keepDimensions) {
+        if (!visualizeAsCube) {
             return Math.min(range1, range2) * 0.1;
         }
         return range1 * 0.1;

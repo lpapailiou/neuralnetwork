@@ -60,8 +60,8 @@ public class ThreeDeeTestMulticlass extends Application {
             double canvasHeight = 350;
             double offset = 80;
 
-            double canW = canvasWidth*1.5 + 2 * offset;
-            double canH = canvasHeight*1 + 2 * offset;
+            double canW = canvasWidth*1 + 2 * offset;
+            double canH = canvasHeight*1.5 + 2 * offset;
             Canvas canvas = new Canvas(canW, canH);
             GraphicsContext context = canvas.getGraphicsContext2D();
 

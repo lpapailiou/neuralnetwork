@@ -137,7 +137,7 @@ public class NN3DPlot extends BasePlot {
     private void processData() {
         int[] configuration = neuralNetwork.getConfiguration();
         iterX = (int) Math.ceil(plotWidth * resolution);
-        if (keepDimensions) {
+        if (!visualizeAsCube) {
             if (snapToViewPort) {
                 iterY = (int) Math.ceil(plotHeight * resolution);
             } else {
@@ -207,12 +207,12 @@ public class NN3DPlot extends BasePlot {
         Color background = BLACK; //NNColorSupport.blend(LIGHRGRAY, TRANSPARENT, 0.4);
         Color grid = LIMEGREEN;
         Color axis = RED;
-        faces.add(new Grid(this, "bottom", d0, d3, d2, d1, background, grid, axis, keepDimensions));
-        faces.add(new Grid(this, "right", d3, d7, d6, d2, background, grid, axis, keepDimensions));
-        faces.add(new Grid(this, "left", d0, d4, d5, d1, background, grid, axis, keepDimensions));
-        faces.add(new Grid(this, "back", d1, d2, d6, d5, background, grid, axis, keepDimensions));
-        faces.add(new Grid(this, "front", d0, d3, d7, d4, background, grid, axis, keepDimensions));
-        faces.add(new Grid(this, "top", d4, d7, d6, d5, background, grid, axis, keepDimensions));
+        faces.add(new Grid(this, "bottom", d0, d3, d2, d1, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, "right", d3, d7, d6, d2, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, "left", d0, d4, d5, d1, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, "back", d1, d2, d6, d5, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, "front", d0, d3, d7, d4, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, "top", d4, d7, d6, d5, background, grid, axis, visualizeAsCube));
         Collections.sort(faces, Comparator.comparingDouble(Grid::getZ));
         return faces;
     }
@@ -298,8 +298,8 @@ public class NN3DPlot extends BasePlot {
                 yMax = yValue;
             }
         }
-        double xPadding = Math.abs(xMax-xMin) * 2;
-        double yPadding = Math.abs(yMax-yMin) * 2;
+        double xPadding = Math.abs(xMax-xMin) * 5;
+        double yPadding = Math.abs(yMax-yMin) * 5;
         double xOffset = ((xPadding - Math.abs(xMax-xMin))) / 2;
         double yOffset = ((yPadding - Math.abs(yMax-yMin))) / 2;
         xMin = xMin - xOffset;
@@ -453,9 +453,58 @@ public class NN3DPlot extends BasePlot {
     }
 
     // --------------------------------------------- matrix op ---------------------------------------------
-    boolean keepDimensions = false;
-    boolean snapToViewPort = false;
+    boolean visualizeAsCube = false;
+    boolean snapToViewPort = false;     // TODO: only has effect when keepDimensions = true;
     private double[][] getProjectionMatrix() {
+        double[] camera = {0,0,-1};
+        double[][] project = multiply(centralProjection(), baseProjection(camera));
+        double[][] rotate = lift(multiply(multiply(xRotation(xAngle), yRotation(yAngle)), zRotation(zAngle)));
+
+        double xRange = Math.abs(xMax - xMin);
+        double yRange = Math.abs(yMax - yMin);
+        double zRange = Math.abs(zMax - zMin);
+        double xTranslate = xRange / 2 - xMin;
+        double yTranslate = yRange / 2 - yMin;
+        double zOffset = zRange/2 + zMin;                      // TODO?
+
+        double viewPortFactor = (plotHeight/plotWidth);
+
+        double[][] m = scale(1,1, 1/zRange);                                     // 0. prepare z
+
+        m = multiply(translate(-(xRange-xTranslate),-(yRange-yTranslate), -zOffset), m);   // 1. center
+        if (!visualizeAsCube && !snapToViewPort) {
+            m = multiply(scale(1/xRange, 1/xRange, 0.5), m);                  // 2. normalize z
+        } else {
+            m = multiply(scale(1/xRange, (1/xRange)*(1 / yRange * xRange), 0.5), m);                  // 2. clamp y to x and normalize z
+        }
+        m = multiply(rotate, m);                                                           // 3. rotate
+        m = multiply(translate(0,0, -zoom), m);                                     // 4. zoom
+        m = multiply(xReflect(), m);                                                       // 5. reflect on x-axis
+        m = multiply(project, m);                                                          // 6. project
+        if (visualizeAsCube) {
+            m = multiply(translate(-(0.5), 0.5 * viewPortFactor, 0), m);                        // 7. transform back
+            m = multiply(scale(plotWidth, plotWidth, 1 / Math.abs(xMax - zMin)), m);     // 8. adjust to plot dimensions
+        } else {
+            double xFactor;
+            double yFactor;
+            if (snapToViewPort) {    // TODO snapToViewport
+                double scale = (viewPortFactor); //plotWidth/plotHeight; //1/viewPortFactor;
+                m = multiply(translate(-(0.5), 0.5 / scale, 0), m);                        // 7. transform back
+                xFactor = plotWidth * 1;
+                yFactor = plotHeight * scale;
+            } else {
+                m = multiply(translate(-(0.5), 0.5 * viewPortFactor, 0), m);                        // 7. transform back
+                xFactor = plotWidth;
+                yFactor = plotWidth;
+            }
+            m = multiply(scale(xFactor, yFactor, 1 / zRange), m);     // 8. adjust to plot dimensions
+        }
+        m = multiply(scale(-1,1,1), m);                                           // 9. flip x
+
+        return m;
+
+
+        /*
         double[] camera = {0,0,-1};
         double[][] project = multiply(centralProjection(), baseProjection(camera));
         double[][] rotate = lift(multiply(multiply(xRotation(xAngle), yRotation(yAngle)), zRotation(zAngle)));
@@ -475,7 +524,7 @@ public class NN3DPlot extends BasePlot {
         if (keepDimensions && !snapToViewPort) {
             m = multiply(scale(1, 1, 0.5), m);                  // 2. normalize z
         } else {
-            m = multiply(scale(1, 1 / yRange * xRange, 0.5), m);                  // 2. clamp y to x and normalize z
+            m = multiply(scale(1, (1 / yRange * xRange), 0.5), m);                  // 2. clamp y to x and normalize z
         }
         m = multiply(rotate, m);                                                           // 3. rotate
         m = multiply(translate(0,0, -zoom), m);                                     // 4. zoom
@@ -497,11 +546,13 @@ public class NN3DPlot extends BasePlot {
                 xFactor = 1 / xRange * plotWidth;
                 yFactor = 1 / xRange * plotWidth;
             }
-            m = multiply(scale(xFactor, yFactor, 1 / Math.abs(xMax - zMin)), m);     // 8. adjust to plot dimensions
+            m = multiply(scale(xFactor, yFactor, 1 / zRange), m);     // 8. adjust to plot dimensions
         }
-        m = multiply(scale(-1,1,1), m);                                           // 9. switch x
+        m = multiply(scale(-1,1,1), m);                                           // 9. flip x
 
         return m;
+        */
+
     }
 
     public double[] transform(double[] v) {
@@ -510,17 +561,44 @@ public class NN3DPlot extends BasePlot {
 
     public double[][] xRotation(double angle) {
         angle = Math.toRadians(angle);
-        return new double[][]{{1, 0, 0}, {0, Math.cos(angle), Math.sin(angle)}, {0, -Math.sin(angle), Math.cos(angle)}};
+        return new double[][]{{1, 0, 0},
+                            {0, Math.cos(angle), Math.sin(angle)},
+                            {0, -Math.sin(angle), Math.cos(angle)}};
     }
 
     public double[][] yRotation(double angle) {
         angle = Math.toRadians(angle);
-        return new double[][]{{Math.cos(angle), 0, -Math.sin(angle)}, {0, 1, 0}, {Math.sin(angle), 0, Math.cos(angle)}};
+        return new double[][]{{Math.cos(angle), 0, -Math.sin(angle)},
+                            {0, 1, 0},
+                            {Math.sin(angle), 0, Math.cos(angle)}};
     }
 
     public double[][] zRotation(double angle) {
         angle = Math.toRadians(angle);
-        return new double[][]{{Math.cos(angle), -Math.sin(angle), 0}, {Math.sin(angle), Math.cos(angle), 0}, {0, 0, 1}};
+        return new double[][]{{Math.cos(angle), -Math.sin(angle), 0},
+                            {Math.sin(angle), Math.cos(angle), 0},
+                            {0, 0, 1}};
+    }
+
+    public double[][] translate(double x, double y, double z) {
+        return new double[][] {{1,0,0,x},
+                {0,1,0,y},
+                {0,0,1,z},
+                {0,0,0,1}};
+    }
+
+    public double[][] scale(double x, double y, double z) {
+        return new double[][] {{x,0,0,0},
+                {0,y,0,0},
+                {0,0,z,0},
+                {0,0,0,1}};
+    }
+
+    public double[][] xReflect() {
+        return new double[][] {{1,0,0,0},
+                {0,-1,0,0},
+                {0,0,1,0},
+                {0,0,0,1}};
     }
 
     public double[][] multiply(double[][] a, double[][] b) {     // outer arr is line
@@ -570,17 +648,7 @@ public class NN3DPlot extends BasePlot {
         return new double[] {v[0]/val, v[1]/val, v[2]/val, val};
     }
 
-    public double[][] translate(double x, double y, double z) {
-        return new double[][] {{1,0,0,x}, {0,1,0,y}, {0,0,1,z}, {0,0,0,1}};
-    }
 
-    public double[][] scale(double x, double y, double z) {
-        return new double[][] {{x,0,0,0}, {0,y,0,0}, {0,0,z,0}, {0,0,0,1}};
-    }
-
-    public double[][] xReflect() {
-        return new double[][] {{1,0,0,0}, {0,-1,0,0}, {0,0,1,0}, {0,0,0,1}};
-    }
 
     public double[][] add(double[][] a, double[][] b) {
         if (a.length != b.length || a[0].length != b[0].length) {
