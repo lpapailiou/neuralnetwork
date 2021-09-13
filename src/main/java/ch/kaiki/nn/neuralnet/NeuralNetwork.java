@@ -652,7 +652,7 @@ public class NeuralNetwork implements Serializable {
             neuralNetwork.initializeLayers(rectifier);
 
             for (Integer index : rectifierMap.keySet()) {
-                if (index > 0 && index < layerParams.length) {
+                if (index > 0 && index < layerParams.length-1) {
                     Rectifier rectifier = rectifierMap.get(index);
                     if (rectifier != null) {
                         neuralNetwork.layers.get(index).rectifier = rectifierMap.get(index);
@@ -697,6 +697,16 @@ public class NeuralNetwork implements Serializable {
          */
         public Builder setRectifierToLayer(Rectifier rectifier, int layerIndex) {
             rectifierMap.put(layerIndex, rectifier);
+            return this;
+        }
+
+        /**
+         * Method allowing to set a specific rectifier for the last layer.
+         * @param rectifier the rectifier to set.
+         * @return the Builder.
+         */
+        public Builder setLastLayerRectifier(Rectifier rectifier) {
+            rectifierMap.put(layerParams.length-2, rectifier);
             return this;
         }
 

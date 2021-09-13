@@ -1,4 +1,4 @@
-package ch.kaiki.nn.ui.util;
+package ch.kaiki.nn.ui.deprecated;
 
 import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
@@ -10,6 +10,7 @@ public class NNDataConverter {
 
     private NNDataConverter() { }
 
+    // cost, accuracy, etc.
     public static double[][] getBackPropData(NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function) {
         SortedMap<Integer, BackPropEntity> rawData = neuralNetwork.getBackPropData().getMap();
         double[][] result = new double[rawData.size()][2];
@@ -64,7 +65,7 @@ public class NNDataConverter {
         return result;
     }
 
-    // decision boundary
+    // decision boundary -> done
     public static List<double[][][]> getDecisionBoundaryGrids(NeuralNetwork neuralNetwork, double minX, double maxX, double minY, double maxY, int iterX, int iterY, double zFactor) {
         int[] configuration = neuralNetwork.getConfiguration();
         int gridCount = configuration[configuration.length-1];

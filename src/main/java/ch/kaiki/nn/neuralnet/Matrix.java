@@ -9,12 +9,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This is a helper class to build the layers of the neural network.
  */
 public class Matrix implements Serializable {
 
+    private static final Logger LOG = Logger.getLogger("Matrix logger");
     private static final long serialVersionUID = 2L;
     private double[][] data;
     private int rows;
@@ -119,12 +122,15 @@ public class Matrix implements Serializable {
                     double sideB = b.data[k][j];
                     if ((Double.isInfinite(sideA) && sideB == 0) || (Double.isInfinite(sideB) && sideA == 0)) {
                         sum = 0;
+                        log("Multiplication evaluated to Infinity! Value converted to zero, as one of the operands was zero.");
                     } else {
                         sum += sideA * sideB;
                     }
                     if (Double.isInfinite(sum)) {
                         sum = sum < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                        log("Multiplication of " + sideA + " and " + sideB + " evaluated to Infinity! Value converted to " + sum);
                     } else if (Double.isNaN(sum)) {
+                        log("Multiply operation evaluated to NaN!");
                         throw new ArithmeticException("Multiply operation evaluated to NaN!");
                     }
                 }
@@ -224,7 +230,9 @@ public class Matrix implements Serializable {
                 double value = sideA + sideB;
                 if (Double.isInfinite(value)) {
                     value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                    log("Addition operation evaluated to Infinity! Value converted to " + value);
                 } else if (Double.isNaN(value)) {
+                    log("Bias addition evaluated to NAN!");
                     throw new ArithmeticException("Addition operation evaluated to NaN");
                 }
                 data[i][j] = value;
@@ -241,7 +249,9 @@ public class Matrix implements Serializable {
                 double value = data[i][j] + m.data[i][j];
                 if (Double.isInfinite(value)) {
                     value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                    log("Bias addition evaluated to Infinity! Value converted to " + value);
                 } else if (Double.isNaN(value)) {
+                    log("Bias addition evaluated to NAN!");
                     throw new ArithmeticException("Bias addition evaluated to NaN");
                 }
                 data[i][j] = value;
@@ -260,7 +270,9 @@ public class Matrix implements Serializable {
                 double value = sideA - sideB;
                 if (Double.isInfinite(value)) {
                     value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                    log("Bias addition evaluated to Infinity! Value converted to " + value);
                 } else if (Double.isNaN(value)) {
+                    log("Bias addition evaluated to NAN!");
                     throw new ArithmeticException("Addition operation evaluated to NaN");
                 }
                 data[i][j] = value;
@@ -277,7 +289,9 @@ public class Matrix implements Serializable {
                 double value = data[i][j] - m.data[0][j];
                 if (Double.isInfinite(value)) {
                     value = value < 0 ? Double.MIN_VALUE : Double.MAX_VALUE;
+                    log("Bias addition evaluated to Infinity! Value converted to " + value);
                 } else if (Double.isNaN(value)) {
+                    log("Bias addition evaluated to NAN!");
                     throw new ArithmeticException("Bias addition evaluated to NaN");
                 }
                 data[i][j] = value;
@@ -327,8 +341,10 @@ public class Matrix implements Serializable {
                     activation = rectifier.activate(data[i][j]);
                 }
                 if (Double.isNaN(activation)) {
+                    log("Activation operation evaluated to NaN!");
                     throw new ArithmeticException("Activation operation evaluated to NaN!");
                 } else if (Double.isInfinite(activation)) {
+                    log("Activation operation evaluated to Infinity!");
                     throw new ArithmeticException("Activation operation evaluated to Infinity!");
                 }
                 data[i][j] = activation;
@@ -342,8 +358,10 @@ public class Matrix implements Serializable {
             for (int j = 0; j < cols; j++) {
                 double derivation = rectifier.derive(data[i][j]);
                 if (Double.isNaN(derivation)) {
+                    log("Derivation operation evaluated to NaN!");
                     throw new ArithmeticException("Derivation operation evaluated to NaN!");
                 } else if (Double.isInfinite(derivation)) {
+                    log("Derivation operation evaluated to Infinity!");
                     throw new ArithmeticException("Derivation operation evaluated to Infinity!");
                 }
                 tmp.data[i][j] = derivation;
@@ -464,4 +482,7 @@ public class Matrix implements Serializable {
         return this.toString().equals(o.toString());
     }
 
+    private static void log(String message) {
+        LOG.log(Level.INFO, message);
+    }
 }

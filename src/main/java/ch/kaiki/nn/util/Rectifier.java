@@ -199,8 +199,7 @@ public enum Rectifier {
                 step1 = 0;
             }
             double step2 = 0.5;
-            double derivation = step0 + step1 + step2;
-            return derivation;
+            return step0 + step1 + step2;
         }
     },
     /**

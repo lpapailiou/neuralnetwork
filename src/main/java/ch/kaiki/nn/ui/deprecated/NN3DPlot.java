@@ -17,9 +17,7 @@ import static ch.kaiki.nn.ui.color.NNColorSupport.blend;
 public class NN3DPlot extends BasePlot {
 
     private NNDataColor dataColor;
-    private double[][] data;
-    private double[] dataMin = {0,0};
-    private double[] dataRange = {0,0};
+
     private double[][] matrix;
     private double cachedPadding;
     private double zoom = 0.743;
@@ -36,6 +34,8 @@ public class NN3DPlot extends BasePlot {
     int iterY;
     NeuralNetwork neuralNetwork;
 
+    private boolean visualizeAsCube = true;
+    private boolean snapToViewPort = false;
 
     boolean snapBack = false;
     public NN3DPlot(GraphicsContext context) {
@@ -93,7 +93,7 @@ public class NN3DPlot extends BasePlot {
 
         context.getCanvas().setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.SECONDARY) {
-                double newResolution = resolution + 0.1;
+                double newResolution = resolution + 0.01;
                 if (resolution <= 1 && newResolution <= 1) {
                     resolution = newResolution;
                     processData();
@@ -169,10 +169,7 @@ public class NN3DPlot extends BasePlot {
             if (cachedPadding < 1) {
                 zFactor = 0.5;
             }
-            if (dataColor instanceof NNHeatMap && ((NNHeatMap) dataColor).isScaled()) {
-                zMin = ((NNHeatMap) dataColor).getMin();
-                zMax = ((NNHeatMap) dataColor).getMax();
-            }
+
             step = Math.abs(zMax - zMin) / (customColors.size()-1);
             gridList = getDecisionBoundaryGrids(neuralNetwork, xMin, xMax, yMin, yMax, iterX+1, iterY+1, 1);
             render();
@@ -194,6 +191,7 @@ public class NN3DPlot extends BasePlot {
         double yMaxCube = yMax + yCubeOffset;
         double zMinCube = zMin - zCubeOffset;
         double zMaxCube = zMax + zCubeOffset;
+
         double[] d0 = new double[] {xMinCube, yMinCube, zMinCube};
         double[] d1 = new double[] {xMinCube, yMaxCube, zMinCube};
         double[] d2 = new double[] {xMaxCube, yMaxCube, zMinCube};
@@ -204,17 +202,45 @@ public class NN3DPlot extends BasePlot {
         double[] d7 = new double[] {xMaxCube, yMinCube, zMaxCube};
 
         List<Grid> faces = new ArrayList<>();
-        Color background = BLACK; //NNColorSupport.blend(LIGHRGRAY, TRANSPARENT, 0.4);
-        Color grid = LIMEGREEN;
-        Color axis = RED;
-        faces.add(new Grid(this, "bottom", d0, d3, d2, d1, background, grid, axis, visualizeAsCube));
-        faces.add(new Grid(this, "right", d3, d7, d6, d2, background, grid, axis, visualizeAsCube));
-        faces.add(new Grid(this, "left", d0, d4, d5, d1, background, grid, axis, visualizeAsCube));
-        faces.add(new Grid(this, "back", d1, d2, d6, d5, background, grid, axis, visualizeAsCube));
-        faces.add(new Grid(this, "front", d0, d3, d7, d4, background, grid, axis, visualizeAsCube));
-        faces.add(new Grid(this, "top", d4, d7, d6, d5, background, grid, axis, visualizeAsCube));
+        Color background = NNColorSupport.blend(LIGHTGRAY, TRANSPARENT, 0.4);
+        Color grid = GRAY;
+        Color axis = DARKGRAY;
+        faces.add(new Grid(this, GridFace.BOTTOM, d0, d3, d2, d1, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, GridFace.RIGHT, d3, d7, d6, d2, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, GridFace.LEFT, d0, d4, d5, d1, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, GridFace.BACK, d1, d2, d6, d5, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, GridFace.FRONT, d0, d3, d7, d4, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, GridFace.TOP, d4, d7, d6, d5, background, grid, axis, visualizeAsCube));
         Collections.sort(faces, Comparator.comparingDouble(Grid::getZ));
         return faces;
+    }
+    Map<String, Integer> classMap = new HashMap<>();
+    double[][] inData;
+    double[][] outData;
+    public void showInputData(double[][] in, double[][] out) {
+        inData = in;
+        outData = out;
+        classMap = new HashMap<>();
+        for (int i = 0; i < in.length; i++) {
+            String key = Arrays.toString(out[i]);
+            int index;
+            if (classMap.containsKey(key)) {
+                index = classMap.get(key);
+            } else {
+                index = classMap.size();
+                classMap.put(key, index);
+            }
+            double[] t = transform(new double[] {in[i][0], in[i][1], 1});
+            Color color = customColors.get(index);
+            double radius = 8;
+            context.setFill(color.invert());
+            context.fillOval(t[0]-radius/2, t[1]-radius/2, radius, radius);
+            radius = 6;
+            context.setFill(color);
+            context.fillOval(t[0]-radius/2, t[1]-radius/2, radius, radius);
+        }
+
+
     }
 
     private void render() {
@@ -258,25 +284,16 @@ public class NN3DPlot extends BasePlot {
             p.draw();
         }
 
-        for (int i = 0; i < inputData.length; i++) {
-            double[] d = inputData[i];
-            double[] t = transform(new double[] {d[0], d[1], 1});
-            context.setFill(RED.invert());
-            double radius = 10;
-            context.fillOval(t[0]-radius/2, t[1]-radius/2, radius, radius);
-            context.setFill(RED);
-            radius = 8;
-            context.fillOval(t[0]-radius/2, t[1]-radius/2, radius, radius);
-
+        if (classMap.size() > 0) {
+            showInputData(inData, outData);
         }
+
         drawAxes(true, false, false);
 
     }
 
 
     private void prepareRanges(double[][] in) {
-        data = in;
-
         xMin = Double.MAX_VALUE;
         xMax = Double.MIN_VALUE;
         yMin = Double.MAX_VALUE;
@@ -298,24 +315,24 @@ public class NN3DPlot extends BasePlot {
                 yMax = yValue;
             }
         }
-        double xPadding = Math.abs(xMax-xMin) * 5;
-        double yPadding = Math.abs(yMax-yMin) * 5;
+        double padding = 1.5;
+        double xPadding = Math.abs(xMax-xMin) * padding;
+        double yPadding = Math.abs(yMax-yMin) * padding;
         double xOffset = ((xPadding - Math.abs(xMax-xMin))) / 2;
         double yOffset = ((yPadding - Math.abs(yMax-yMin))) / 2;
         xMin = xMin - xOffset;
         xMax = xMax + xOffset;
         yMin = yMin - yOffset;
         yMax = yMax + yOffset;
-        dataMin = new double[] {xMin, yMin};
-        dataRange = new double[] {Math.abs(xMax-xMin), Math.abs(yMax-yMin)};
+
+
     }
 
     // TODO: check where text alignment gets messed up
 
     private List<Polygon> getPolygons(int iterI, int iterJ, double zMin, double zMax, double[][][] pointGrid, double step, double index, List<Color> customColors) {
         List<Polygon> squares = new ArrayList<>();
-        double sortMin = Double.MAX_VALUE;
-        double sortMax = Double.MIN_VALUE;
+
         for (int i = 0; i < iterI-1; i++) {
             for (int j = 0; j < iterJ-1; j++) {
                 double[] a = pointGrid[i][j];
@@ -337,13 +354,13 @@ public class NN3DPlot extends BasePlot {
                         d[1] < b[1] ? d[1]+neg : d[1]+pos};
 
 
+                double zSum = (a[3] + b[3] + c[3] + d[3]) / 4;
+                if (zSum < zMin || zSum > zMax) {
+                    // continue;        // TODO: check if really helpful
+                }
+
                 double sort = (a[2] + b[2] + c[2] + d[2]) / 4;
-                if (sort < sortMin) {
-                    sortMin = sort;
-                }
-                if (sort > sortMax) {
-                    sortMax = sort;
-                }
+
                 double output = (a[3] + b[3] + c[3] + d[3]) / 4;
                 Color color;
                 if (customColors.size() > 2) {
@@ -449,12 +466,16 @@ public class NN3DPlot extends BasePlot {
             y = minY;
             x += stepX;
         }
+
+        if (dataColor instanceof NNHeatMap && ((NNHeatMap) dataColor).isScaled()) {
+            zMin = ((NNHeatMap) dataColor).getMin();
+            zMax = ((NNHeatMap) dataColor).getMax();
+        }
         return gridList;
     }
 
     // --------------------------------------------- matrix op ---------------------------------------------
-    boolean visualizeAsCube = false;
-    boolean snapToViewPort = false;     // TODO: only has effect when keepDimensions = true;
+
     private double[][] getProjectionMatrix() {
         double[] camera = {0,0,-1};
         double[][] project = multiply(centralProjection(), baseProjection(camera));
@@ -465,143 +486,91 @@ public class NN3DPlot extends BasePlot {
         double zRange = Math.abs(zMax - zMin);
         double xTranslate = xRange / 2 - xMin;
         double yTranslate = yRange / 2 - yMin;
-        double zOffset = zRange/2 + zMin;                      // TODO?
+        double zTranslate = zRange / 2 - zMin;
+        double zOffset = zRange/2 + zMin;
+     //   System.out.println("xRange: " + xRange + ", yRange: " + yRange + ", zRange: " + zRange);
+        double viewPortFactor = snapToViewPort ? 1 : (plotHeight/plotWidth);
+        double yFactorBefore = (visualizeAsCube || snapToViewPort) ? (1 / yRange * xRange) : 1;
+        double yFactorAfter = snapToViewPort ? plotHeight : plotWidth;
 
-        double viewPortFactor = (plotHeight/plotWidth);
-
-        double[][] m = scale(1,1, 1/zRange);                                     // 0. prepare z
-
-        m = multiply(translate(-(xRange-xTranslate),-(yRange-yTranslate), -zOffset), m);   // 1. center
-        if (!visualizeAsCube && !snapToViewPort) {
-            m = multiply(scale(1/xRange, 1/xRange, 0.5), m);                  // 2. normalize z
-        } else {
-            m = multiply(scale(1/xRange, (1/xRange)*(1 / yRange * xRange), 0.5), m);                  // 2. clamp y to x and normalize z
-        }
+        double[][] m = scale(1,1, 1);                                     // 0. start with identity matrix for better readability
+        m = multiply(translate(-(xRange-xTranslate),-(yRange-yTranslate), -(zRange-zTranslate)), m);   // 1. center
+        m = multiply(scale(1/xRange, (1/xRange) * yFactorBefore, 1/zRange*0.5), m);       // 2. normalize z (and clamp y to x)
         m = multiply(rotate, m);                                                           // 3. rotate
         m = multiply(translate(0,0, -zoom), m);                                     // 4. zoom
         m = multiply(xReflect(), m);                                                       // 5. reflect on x-axis
         m = multiply(project, m);                                                          // 6. project
-        if (visualizeAsCube) {
-            m = multiply(translate(-(0.5), 0.5 * viewPortFactor, 0), m);                        // 7. transform back
-            m = multiply(scale(plotWidth, plotWidth, 1 / Math.abs(xMax - zMin)), m);     // 8. adjust to plot dimensions
-        } else {
-            double xFactor;
-            double yFactor;
-            if (snapToViewPort) {    // TODO snapToViewport
-                double scale = (viewPortFactor); //plotWidth/plotHeight; //1/viewPortFactor;
-                m = multiply(translate(-(0.5), 0.5 / scale, 0), m);                        // 7. transform back
-                xFactor = plotWidth * 1;
-                yFactor = plotHeight * scale;
-            } else {
-                m = multiply(translate(-(0.5), 0.5 * viewPortFactor, 0), m);                        // 7. transform back
-                xFactor = plotWidth;
-                yFactor = plotWidth;
-            }
-            m = multiply(scale(xFactor, yFactor, 1 / zRange), m);     // 8. adjust to plot dimensions
-        }
+        m = multiply(translate(-(0.5), 0.5 * viewPortFactor, 0), m);                 // 7. transform back
+        //m = multiply(scale(plotWidth, yFactorAfter, 1 / zRange), m);                    // 8. adjust to plot dimensions
+        m = multiply(scale(plotWidth, yFactorAfter, 1), m);                    // 8. adjust to plot dimensions
         m = multiply(scale(-1,1,1), m);                                           // 9. flip x
-
         return m;
-
-
-        /*
-        double[] camera = {0,0,-1};
-        double[][] project = multiply(centralProjection(), baseProjection(camera));
-        double[][] rotate = lift(multiply(multiply(xRotation(xAngle), yRotation(yAngle)), zRotation(zAngle)));
-
-        double xRange = Math.abs(xMax - xMin);
-        double yRange = Math.abs(yMax - yMin);
-        double zRange = Math.abs(zMax - zMin);
-        double xTranslate = xRange / 2 - xMin;
-        double yTranslate = yRange / 2 - yMin;
-        double zOffset = zRange/2 + zMin;                      // TODO?
-
-        double viewPortFactor = (plotHeight/plotWidth);
-
-        double[][] m = scale(1,1, 1/zRange);                                     // 0. prepare z
-
-        m = multiply(translate(-(xRange-xTranslate),-(yRange-yTranslate), -zOffset), m);   // 1. center
-        if (keepDimensions && !snapToViewPort) {
-            m = multiply(scale(1, 1, 0.5), m);                  // 2. normalize z
-        } else {
-            m = multiply(scale(1, (1 / yRange * xRange), 0.5), m);                  // 2. clamp y to x and normalize z
-        }
-        m = multiply(rotate, m);                                                           // 3. rotate
-        m = multiply(translate(0,0, -zoom), m);                                     // 4. zoom
-        m = multiply(xReflect(), m);                                                       // 5. reflect on x-axis
-        m = multiply(project, m);                                                          // 6. project
-        if (!keepDimensions) {
-            m = multiply(translate(-(xRange / 2), xRange / 2 * viewPortFactor, 0), m);                        // 7. transform back
-            m = multiply(scale(1 / xRange * plotWidth, 1 / xRange * plotWidth, 1 / Math.abs(xMax - zMin)), m);     // 8. adjust to plot dimensions
-        } else {
-            double xFactor;
-            double yFactor;
-            if (snapToViewPort) {    // TODO snapToViewport
-                double scale = (yRange/xRange)*(viewPortFactor)/(xRange); //plotWidth/plotHeight; //1/viewPortFactor;
-                m = multiply(translate(-(xRange / 2), yRange / 2 / scale, 0), m);                        // 7. transform back
-                xFactor = 1 / xRange * plotWidth;
-                yFactor = 1 / yRange * plotHeight * scale;
-            } else {
-                m = multiply(translate(-(xRange / 2), xRange / 2 * viewPortFactor, 0), m);                        // 7. transform back
-                xFactor = 1 / xRange * plotWidth;
-                yFactor = 1 / xRange * plotWidth;
-            }
-            m = multiply(scale(xFactor, yFactor, 1 / zRange), m);     // 8. adjust to plot dimensions
-        }
-        m = multiply(scale(-1,1,1), m);                                           // 9. flip x
-
-        return m;
-        */
-
     }
 
     public double[] transform(double[] v) {
         return lower(multiply(matrix, lift(v)));
     }
 
-    public double[][] xRotation(double angle) {
+    private double[][] lift(double[][] m) {
+        return new double[][] {{m[0][0], m[0][1], m[0][2], 0}, {m[1][0], m[1][1], m[1][2], 0}, {m[2][0], m[2][1], m[2][2], 0}, {0, 0, 0, 1}};
+    }
+
+    private double[] lift(double[] v) {
+        double zMin = 4;
+        return new double[] {v[0]*zMin, v[1]*zMin, v[2]*zMin, zMin};
+    }
+
+    private double[] lower(double[] v) {
+        double val = v[3];
+        if (val == 0) {
+            val = 0.001;
+        }
+        return new double[] {v[0]/val, v[1]/val, v[2]/val, val};
+    }
+
+    private double[][] xRotation(double angle) {
         angle = Math.toRadians(angle);
         return new double[][]{{1, 0, 0},
-                            {0, Math.cos(angle), Math.sin(angle)},
-                            {0, -Math.sin(angle), Math.cos(angle)}};
+                                {0, Math.cos(angle), Math.sin(angle)},
+                                {0, -Math.sin(angle), Math.cos(angle)}};
     }
 
-    public double[][] yRotation(double angle) {
+    private double[][] yRotation(double angle) {
         angle = Math.toRadians(angle);
         return new double[][]{{Math.cos(angle), 0, -Math.sin(angle)},
-                            {0, 1, 0},
-                            {Math.sin(angle), 0, Math.cos(angle)}};
+                                {0, 1, 0},
+                                {Math.sin(angle), 0, Math.cos(angle)}};
     }
 
-    public double[][] zRotation(double angle) {
+    private double[][] zRotation(double angle) {
         angle = Math.toRadians(angle);
         return new double[][]{{Math.cos(angle), -Math.sin(angle), 0},
-                            {Math.sin(angle), Math.cos(angle), 0},
-                            {0, 0, 1}};
+                                {Math.sin(angle), Math.cos(angle), 0},
+                                {0, 0, 1}};
     }
 
-    public double[][] translate(double x, double y, double z) {
+    private double[][] translate(double x, double y, double z) {
         return new double[][] {{1,0,0,x},
-                {0,1,0,y},
-                {0,0,1,z},
-                {0,0,0,1}};
+                                {0,1,0,y},
+                                {0,0,1,z},
+                                {0,0,0,1}};
     }
 
-    public double[][] scale(double x, double y, double z) {
+    private double[][] scale(double x, double y, double z) {
         return new double[][] {{x,0,0,0},
-                {0,y,0,0},
-                {0,0,z,0},
-                {0,0,0,1}};
+                                {0,y,0,0},
+                                {0,0,z,0},
+                                {0,0,0,1}};
     }
 
-    public double[][] xReflect() {
+    private double[][] xReflect() {
         return new double[][] {{1,0,0,0},
-                {0,-1,0,0},
-                {0,0,1,0},
-                {0,0,0,1}};
+                                {0,-1,0,0},
+                                {0,0,1,0},
+                                {0,0,0,1}};
     }
 
-    public double[][] multiply(double[][] a, double[][] b) {     // outer arr is line
+    private double[][] multiply(double[][] a, double[][] b) {     // outer arr is line
         double[][] tmp = new double[a.length][b[0].length];
         for (int i = 0; i < tmp.length; i++) {
             for (int j = 0; j < tmp[0].length; j++) {
@@ -630,25 +599,6 @@ public class NN3DPlot extends BasePlot {
         }
         return tmp;
     }
-
-    public double[][] lift(double[][] m) {
-        return new double[][] {{m[0][0], m[0][1], m[0][2], 0}, {m[1][0], m[1][1], m[1][2], 0}, {m[2][0], m[2][1], m[2][2], 0}, {0, 0, 0, 1}};
-    }
-
-    public double[] lift(double[] v) {
-        double zMin = 4;
-        return new double[] {v[0]*zMin, v[1]*zMin, v[2]*zMin, zMin};
-    }
-
-    public double[] lower(double[] v) {
-        double val = v[3];
-        if (val == 0) {
-            val = 0.001;
-        }
-        return new double[] {v[0]/val, v[1]/val, v[2]/val, val};
-    }
-
-
 
     public double[][] add(double[][] a, double[][] b) {
         if (a.length != b.length || a[0].length != b[0].length) {
@@ -685,7 +635,6 @@ public class NN3DPlot extends BasePlot {
         return new double[] {-v[0], -v[1], -v[2]};
     }
 
-
     double[][] baseProjection(double[] vector) {
         double[] p = divide(vector , norm(vector));
         double[] n = negate(p);
@@ -701,19 +650,16 @@ public class NN3DPlot extends BasePlot {
         return new double[][] {{1,0,0,0},{0,1,0,0},{0,0,0,0},{0,0,1/zMin,1}};
     }
 
-    public void setZoom(double zoom) {
+    private void setZoom(double zoom) {
         this.zoom = zoom;
         matrix = getProjectionMatrix();
     }
-    public void setXAngle(double xAngle) {
+    private void setXAngle(double xAngle) {
         this.xAngle = xAngle % 360;
         matrix = getProjectionMatrix();
     }
-    public void setYAngle(double yAngle) {
-        this.yAngle = yAngle % 360;
-        matrix = getProjectionMatrix();
-    }
-    public void setZAngle(double zAngle) {
+
+    private void setZAngle(double zAngle) {
         this.zAngle = zAngle % 360;
         matrix = getProjectionMatrix();
     }

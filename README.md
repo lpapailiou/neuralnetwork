@@ -78,6 +78,7 @@ Create a neural network adding optional parameters.
         .setInitializer(Initializer.RANDOM)
         .setDefaultRectifier(Rectifier.SIGMOID)
         .setRectifierToLayer(Rectifier.RELU, 0)
+        .setLastLayerRectifier(Rectifier.SOFTMAX)
         
         // supervized learning only
         .setCostFunction(CostFunction.MSE)

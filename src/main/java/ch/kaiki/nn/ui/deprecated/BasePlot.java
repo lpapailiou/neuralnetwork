@@ -262,6 +262,10 @@ public abstract class BasePlot {
     }
 
     protected String formatTickLabel(double value) {
+        if (Double.isNaN(value) || Double.isInfinite(value)){
+            return "" + value;
+        }
+
         double formatted = Double.parseDouble(df.format(value));
         if (formatted % 1 == 0) {
             return Integer.toString((int) formatted);

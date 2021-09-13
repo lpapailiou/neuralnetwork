@@ -82,9 +82,7 @@ public class ThreeDee2Test extends Application {
             System.out.println("3D support? "  +canvas.getDepthTest());
             AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
             plot.get().setPadding(0,0,50, 0, padding);
-            plot.get().setZoom(7*step);
-            plot.get().setZAngle(-0*angleStep);
-            plot.get().setXAngle(10*angleStep);
+
             plot.get().plot(net, in, resolution,1,false, heatMap);
             NNMeshGrid plot2 = new NNMeshGrid(context2);
             plot2.setPadding(0,0,50,0,padding);
