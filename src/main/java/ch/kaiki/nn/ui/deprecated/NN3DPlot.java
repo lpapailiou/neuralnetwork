@@ -232,6 +232,9 @@ public class NN3DPlot extends BasePlot {
             }
             double[] t = transform(new double[] {in[i][0], in[i][1], 1});
             Color color = customColors.get(index);
+            if (out[i].length == 1 && index != 0) {
+                color = customColors.get(customColors.size()-1);
+            }
             double radius = 8;
             context.setFill(color.invert());
             context.fillOval(t[0]-radius/2, t[1]-radius/2, radius, radius);
