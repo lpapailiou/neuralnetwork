@@ -83,7 +83,7 @@ public class ThreeDeeTest extends Application {
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
             System.out.println("3D support? "  +canvas.getDepthTest());
             AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
-            plot.get().setPadding(0,0,0, 0, padding);
+            plot.get().setPadding(padding);
             /*
             plot.get().setZoom(7*step);
             plot.get().setZAngle(-0*angleStep);

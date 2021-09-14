@@ -281,7 +281,7 @@ With the package `ui` you will get access to the neural network graph. It uses t
 It will build a graph of a specific neural network and is able to visualize its architecture, weight distribution and current
 node values. See here an example (code is available in the `test/java/ui` directory):
 
-![graph of neural network](https://github.com/lpapailiou/neuralnetwork/blob/master/src/main/resources/img/neural_network_graph.png)
+![graph of neural network](src/main/resources/img/neural_network_graph.png)
 
 The graph can be initialized with an available GraphicsContext object only. At this point, no neural network is available yet
 for display, so no graph will appear so far.
@@ -337,6 +337,10 @@ total count of input nodes the graph should have and list the indexes of the inp
     Set<Integer> inactiveIndexes = new HashSet();
     inactiveIndexes.addAll(0,1);
     graph.setGraphInputNodeCount(totalNodes, inactiveIndexes);
+    
+More visualization possibilities will come in 2d and 3d, focusing on visualization and monitoring of the neural network performance.  
+![gif of multiclass plot<](src/main/resources/img/decision_boundary_3dplot.gif)    
+
 
 ## Implementation
 ### From a Jar file

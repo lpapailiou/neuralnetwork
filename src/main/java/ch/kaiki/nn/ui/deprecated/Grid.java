@@ -7,40 +7,42 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 
 public class Grid {
-    private NN3DPlot plot;
+    private final NN3DPlot plot;
     private final GridFace face;
     private double[] x;
     private double[] y;
     private double z;
 
-    private double[] a;
-    private double[] b;
-    private double[] c;
-    private double[] d;
+    private final double[] a;
+    private final double[] b;
+    private final double[] c;
+    private final double[] d;
 
     private double[] t0;
     private double[] t1;
     private double[] t2;
     private double[] t3;
 
-    private Color gridBackgroundColor;
-    private Color gridColor;
-    private Color zeroLineColor;
-    private Color axisColor;
-    private Color tickColor;
-    private Color tickLabelColor;
-    private Color axisLabelColor;
+    private final Color gridBackgroundColor;
+    private final Color gridColor;
+    private final Color zeroLineColor;
+    private final Color axisColor;
+    private final Color tickColor;
+    private final Color tickLabelColor;
+    private final Color axisLabelColor;
+
+    private final String[] axisLabels;
 
     private final double TICK_MARK_OFFSET = 6;
     private final double TICK_LABEL_OFFSET = 20;
     private final double AXIS_LABEL_OFFSET = 40;
 
-    private double tickStrokeWidth = 1.5;
-    private double gridStrokeWidth = 0.5;
-    private double axisStrokeWidth = 1.5;
-    private double zeroLineStrokeWidth = 1;
+    private final double tickStrokeWidth = 1.5;
+    private final double gridStrokeWidth = 0.5;
+    private final double axisStrokeWidth = 1.5;
+    private final double zeroLineStrokeWidth = 1;
 
-    public Grid(NN3DPlot plot, GridFace face, double[] a, double[] b, double[] c, double[] d, Color gridBackgroundColor, Color gridColor, Color axisColor) {
+    public Grid(NN3DPlot plot, GridFace face, double[] a, double[] b, double[] c, double[] d, Color gridBackgroundColor, Color gridColor, Color axisColor, String[] axisLabels) {
         this.plot = plot;
         this.face = face;
         this.a = a;
@@ -54,6 +56,7 @@ public class Grid {
         this.tickColor = axisColor;
         this.tickLabelColor = axisColor;
         this.axisLabelColor = axisColor;
+        this.axisLabels = axisLabels;
         initialTransformation();
     }
 
@@ -117,22 +120,22 @@ public class Grid {
                 indexMap1 = new int[] {0,2,1};
                 indexMap2 = new int[] {2,0,1};
                 hasDecoration1 = false;
-                label2 = "z-Axis";      // second z-Axis
+                label2 = axisLabels[2];      // second z-Axis
                 break;
             case LEFT:
             case RIGHT:
                 indexMap1 = new int[] {2,1,0};
                 indexMap2 = new int[] {1,2,0};
                 hasDecoration2 = false;
-                label1 = "z-Axis";
+                label1 = axisLabels[2];
                 break;
             case TOP:
             case BOTTOM:
             default:
                 indexMap1 = new int[] {0,1,2};
                 indexMap2 = new int[] {1,0,2};
-                label1 = "x-Axis";
-                label2 = "y-Axis";
+                label1 = axisLabels[0];
+                label2 = axisLabels[1];
                 break;
         }
 

@@ -81,7 +81,7 @@ public class ThreeDee3Test extends Application {
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
             System.out.println("3D support? "  +canvas.getDepthTest());
             AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
-            plot.get().setPadding(0,0,50, 0, padding);
+            plot.get().setPadding(padding);
 
             plot.get().plot(net, in, resolution,1,false, heatMap);
             NNMeshGrid plot2 = new NNMeshGrid(context2);

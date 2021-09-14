@@ -72,7 +72,7 @@ public class ThreeDeeTestMulticlass extends Application {
             graphBox.getChildren().add(canvas2);
             graphBox.getChildren().add(canvas);
 //# available values: gelu|identity|relu|leaky_relu|sigmoid|sigmoid_accurate|silu|silu_accurate|softplus|tanh|softmax.
-            NeuralNetwork net = new NeuralNetwork.Builder( 2, 5,5, 4).setInitializer(Initializer.KAIMING)
+            NeuralNetwork net = new NeuralNetwork.Builder( 2, 16,16, 4).setInitializer(Initializer.KAIMING)
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     .setLastLayerRectifier(Rectifier.TANH)
                     .setLearningRate(0.5)
@@ -80,7 +80,7 @@ public class ThreeDeeTestMulticlass extends Application {
             int iter = 0;
             int trainIter = 100;
             double resolution = 0.02;
-            double padding = 0;
+            double padding = 1.2;
 
 
             net.fit(in, out, iter);
@@ -89,7 +89,9 @@ public class ThreeDeeTestMulticlass extends Application {
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
             System.out.println("3D support? "  +canvas.getDepthTest());
             AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
-            plot.get().setPadding(0,0,0, 0, padding);
+            plot.get().setPadding(padding);
+            plot.get().setAxisLabels("x-Axis", "y-Axis", "z-Axis");
+            plot.get().setTitle("Decision boundary visualizaiton 3D");
 
             NNMeshGrid plot2 = new NNMeshGrid(context2);
             plot2.setPadding(0,0,50,0,padding);
