@@ -1,6 +1,9 @@
 package ch.kaiki.nn.ui.deprecated;
 
 import ch.kaiki.nn.ui.color.NNColorSupport;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.ScrollEvent;
@@ -8,6 +11,7 @@ import javafx.scene.paint.Color;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNDataColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
+import javafx.util.Duration;
 
 import java.util.*;
 
@@ -20,19 +24,17 @@ public class NN3DPlot extends BasePlot {
 
     private double[][] matrix;
     private double cachedPadding;
-    private double zoom = 0.743;
+    private double zoom = 1;
     private double xAngle = 68;
-    private double yAngle;
     private double zAngle = 46;
 
-    // x 68.0 z: 46.0, zoom: 0.7430083706879997
     private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
-    double zMin = Double.MAX_VALUE;
-    double zMax = Double.MIN_VALUE;
-    int iterX;
-    int iterY;
-    NeuralNetwork neuralNetwork;
+    private double zMin = Double.MAX_VALUE;
+    private double zMax = Double.MIN_VALUE;
+    private int iterX;
+    private int iterY;
+    private NeuralNetwork neuralNetwork;
 
     private boolean visualizeAsCube = true;
     private boolean snapToViewPort = false;
@@ -40,7 +42,7 @@ public class NN3DPlot extends BasePlot {
     boolean snapBack = false;
     public NN3DPlot(GraphicsContext context) {
         super(context);
-        matrix = getProjectionMatrix();
+        setProjectionMatrix();
         // TODO: turn on antialiasing
         context.getCanvas().setOnMouseEntered(e -> {
             context.getCanvas().setStyle("-fx-cursor: move;");
@@ -57,8 +59,8 @@ public class NN3DPlot extends BasePlot {
         context.getCanvas().setOnMouseDragged(e -> {
             mousePosX = e.getSceneX();
             mousePosY = e.getSceneY();
-            setXAngle(xAngle - (mousePosY - mouseOldY));
-            setZAngle(zAngle + (mousePosX - mouseOldX));
+            this.xAngle = (xAngle - (mousePosY - mouseOldY)) % 360;
+            this.zAngle = (zAngle + (mousePosX - mouseOldX)) % 360;
             mouseOldX = mousePosX;
             mouseOldY = mousePosY;
             if (snapBack && initResolution != resolution) {
@@ -70,6 +72,14 @@ public class NN3DPlot extends BasePlot {
             e.consume();
         });
 
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(100), e -> {
+            //this.xAngle = (xAngle + 1) % 360;
+            this.zAngle = (zAngle + 0.5) % 360;
+            render();
+        }));
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.play();
+
         final double MAX_SCALE = 10;
         final double MIN_SCALE = 0.1;
         context.getCanvas().addEventFilter(ScrollEvent.ANY, e -> {
@@ -80,8 +90,7 @@ public class NN3DPlot extends BasePlot {
             } else {
                 scale *= delta;
             }
-            scale = clamp(scale, MIN_SCALE, MAX_SCALE);
-            setZoom(scale);
+            this.zoom = clamp(scale, MIN_SCALE, MAX_SCALE);
             if (snapBack && initResolution != resolution) {
                 resolution = initResolution;
                 processData();
@@ -107,9 +116,9 @@ public class NN3DPlot extends BasePlot {
 
     }
 
-    double resolution;
-    double initResolution;
-    double[][] inputData;
+    private double resolution;
+    private double initResolution;
+    private double[][] inputData;
     public void plot(NeuralNetwork neuralNetwork, double[][] in, double resolution, double opacity, boolean axes, NNDataColor dataColor) {
         clear();
         int[] configuration = neuralNetwork.getConfiguration();
@@ -121,21 +130,33 @@ public class NN3DPlot extends BasePlot {
         this.initResolution = resolution;
         this.resolution = resolution;
         prepareRanges(in);
-        plotBackgroundColor = BLACK;
-        cachedPadding = padding;
-        this.dataColor = dataColor;
 
+        this.dataColor = dataColor;
+        backgroundColor = BLACK;
+        plotBackgroundColor = BLACK;
         processData();
 
         drawOverlay(opacity);
         drawAxes(axes, false, false);
         setTitle(title);
 
-        padding = cachedPadding;
     }
 
     private void processData() {
         int[] configuration = neuralNetwork.getConfiguration();
+        if (configuration[configuration.length - 1] == 1) {
+            if (dataColor.getColors().size() < 2) {
+                throw new IllegalArgumentException("At least 2 data color items must be provided!");
+            }
+        } else {
+            if (dataColor.getColors().size() < configuration[configuration.length-1]) {
+                throw new IllegalArgumentException("Data color items " + dataColor.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
+            }
+        }
+
+        customColors = dataColor.getColors();
+        drawBackground();
+
         iterX = (int) Math.ceil(plotWidth * resolution);
         if (!visualizeAsCube) {
             if (snapToViewPort) {
@@ -147,40 +168,16 @@ public class NN3DPlot extends BasePlot {
             iterY = iterX;
         }
 
-        padding = 0;
-
-        drawBackground();
-        if (configuration[configuration.length - 1] == 1) {
-            if (dataColor.getColors().size() < 2) {
-                throw new IllegalArgumentException("At least 2 kaiki.ch.kaiki.nn.data color items must be provided!");
-            }
-            //plotBinaryClassifierDecisionBoundaries(data, iterX+1, iterY+1, minZ, maxZ);
-        } else {
-            if (dataColor.getColors().size() != configuration[configuration.length-1]) {
-                //throw new IllegalArgumentException("Data color items " + dataColor.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
-            }
-            //plotMultiClassClassifierDecisionBoundaries(forwardPropEntities, xOffset, yOffset);
-        }
-
-        if(true){
-
-            customColors = dataColor.getColors();
-            double zFactor =  1 / (cachedPadding+1);
-            if (cachedPadding < 1) {
-                zFactor = 0.5;
-            }
-
-            step = Math.abs(zMax - zMin) / (customColors.size()-1);
-            gridList = getDecisionBoundaryGrids(neuralNetwork, xMin, xMax, yMin, yMax, iterX+1, iterY+1, 1);
-            render();
-        }
+        step = Math.abs(zMax - zMin) / (customColors.size()-1);
+        gridList = getDecisionBoundaryGrids(neuralNetwork, xMin, xMax, yMin, yMax, iterX+1, iterY+1, 1);
+        render();
     }
-    List<Color> customColors;
-    double step;
-    List<double[][][]> gridList = new ArrayList<>();
+    private List<Color> customColors;
+    private double step;
+    private List<double[][][]> gridList = new ArrayList<>();
 
     private List<Grid> getFaces() {
-        double offsetFactor = 0.05;
+        double offsetFactor = 0.05;     // data is 90% of the cube size
         double xCubeOffset = Math.abs(xMax-xMin) * offsetFactor;
         double yCubeOffset = Math.abs(yMax-yMin) * offsetFactor;
         double zCubeOffset = Math.abs(zMax-zMin) * offsetFactor;
@@ -205,18 +202,18 @@ public class NN3DPlot extends BasePlot {
         Color background = NNColorSupport.blend(LIGHTGRAY, TRANSPARENT, 0.4);
         Color grid = GRAY;
         Color axis = DARKGRAY;
-        faces.add(new Grid(this, GridFace.BOTTOM, d0, d3, d2, d1, background, grid, axis, visualizeAsCube));
-        faces.add(new Grid(this, GridFace.RIGHT, d3, d7, d6, d2, background, grid, axis, visualizeAsCube));
-        faces.add(new Grid(this, GridFace.LEFT, d0, d4, d5, d1, background, grid, axis, visualizeAsCube));
-        faces.add(new Grid(this, GridFace.BACK, d1, d2, d6, d5, background, grid, axis, visualizeAsCube));
-        faces.add(new Grid(this, GridFace.FRONT, d0, d3, d7, d4, background, grid, axis, visualizeAsCube));
-        faces.add(new Grid(this, GridFace.TOP, d4, d7, d6, d5, background, grid, axis, visualizeAsCube));
+        faces.add(new Grid(this, GridFace.BOTTOM, d0, d3, d2, d1, background, grid, axis));
+        faces.add(new Grid(this, GridFace.RIGHT, d3, d7, d6, d2, background, grid, axis));
+        faces.add(new Grid(this, GridFace.LEFT, d0, d4, d5, d1, background, grid, axis));
+        faces.add(new Grid(this, GridFace.BACK, d1, d2, d6, d5, background, grid, axis));
+        faces.add(new Grid(this, GridFace.FRONT, d0, d3, d7, d4, background, grid, axis));
+        faces.add(new Grid(this, GridFace.TOP, d4, d7, d6, d5, background, grid, axis));
         Collections.sort(faces, Comparator.comparingDouble(Grid::getZ));
         return faces;
     }
-    Map<String, Integer> classMap = new HashMap<>();
-    double[][] inData;
-    double[][] outData;
+    private Map<String, Integer> classMap = new HashMap<>();
+    private double[][] inData;
+    private double[][] outData;
     public void showInputData(double[][] in, double[][] out) {
         inData = in;
         outData = out;
@@ -230,7 +227,7 @@ public class NN3DPlot extends BasePlot {
                 index = classMap.size();
                 classMap.put(key, index);
             }
-            double[] t = transform(new double[] {in[i][0], in[i][1], 1});
+            double[] t = transform(new double[] {in[i][0], in[i][1], zMax});
             Color color = customColors.get(index);
             if (out[i].length == 1 && index != 0) {
                 color = customColors.get(customColors.size()-1);
@@ -247,8 +244,8 @@ public class NN3DPlot extends BasePlot {
     }
 
     private void render() {
-        matrix = getProjectionMatrix();
-        clear();
+        setProjectionMatrix();
+        drawBackground();
         List<Grid> faces = getFaces();
         for (int i = faces.size()-1; i > 2; i--) {
             faces.get(i).draw();
@@ -345,8 +342,8 @@ public class NN3DPlot extends BasePlot {
 
                 //double pos = 0.5;
                 //double neg = -0.5;
-                double pos = 0;
-                double neg = -0;
+                double pos = 0.1;
+                double neg = -0.1;
                 double[] xEs = {a[0] < c[0] ? a[0]+neg : a[0]+pos,
                         b[0] > d[0] ? b[0]+pos : b[0]+neg,
                         c[0] > a[0] ? c[0]+pos : c[0]+neg,
@@ -479,10 +476,10 @@ public class NN3DPlot extends BasePlot {
 
     // --------------------------------------------- matrix op ---------------------------------------------
 
-    private double[][] getProjectionMatrix() {
+    private void setProjectionMatrix() {
         double[] camera = {0,0,-1};
         double[][] project = multiply(centralProjection(), baseProjection(camera));
-        double[][] rotate = lift(multiply(multiply(xRotation(xAngle), yRotation(yAngle)), zRotation(zAngle)));
+        double[][] rotate = lift(multiply(xRotation(xAngle), zRotation(zAngle)));
 
         double xRange = Math.abs(xMax - xMin);
         double yRange = Math.abs(yMax - yMin);
@@ -490,24 +487,22 @@ public class NN3DPlot extends BasePlot {
         double xTranslate = xRange / 2 - xMin;
         double yTranslate = yRange / 2 - yMin;
         double zTranslate = zRange / 2 - zMin;
-        double zOffset = zRange/2 + zMin;
      //   System.out.println("xRange: " + xRange + ", yRange: " + yRange + ", zRange: " + zRange);
         double viewPortFactor = snapToViewPort ? 1 : (plotHeight/plotWidth);
         double yFactorBefore = (visualizeAsCube || snapToViewPort) ? (1 / yRange * xRange) : 1;
         double yFactorAfter = snapToViewPort ? plotHeight : plotWidth;
 
-        double[][] m = scale(1,1, 1);                                     // 0. start with identity matrix for better readability
+        double[][] m = scale(1,1, 1);                                                   // 0. start with identity matrix for better readability
         m = multiply(translate(-(xRange-xTranslate),-(yRange-yTranslate), -(zRange-zTranslate)), m);   // 1. center
         m = multiply(scale(1/xRange, (1/xRange) * yFactorBefore, 1/zRange*0.5), m);       // 2. normalize z (and clamp y to x)
-        m = multiply(rotate, m);                                                           // 3. rotate
-        m = multiply(translate(0,0, -zoom), m);                                     // 4. zoom
-        m = multiply(xReflect(), m);                                                       // 5. reflect on x-axis
-        m = multiply(project, m);                                                          // 6. project
-        m = multiply(translate(-(0.5), 0.5 * viewPortFactor, 0), m);                 // 7. transform back
-        //m = multiply(scale(plotWidth, yFactorAfter, 1 / zRange), m);                    // 8. adjust to plot dimensions
-        m = multiply(scale(plotWidth, yFactorAfter, 1), m);                    // 8. adjust to plot dimensions
-        m = multiply(scale(-1,1,1), m);                                           // 9. flip x
-        return m;
+        m = multiply(rotate, m);                                                                // 3. rotate
+        m = multiply(translate(0,0, -zoom), m);                                             // 4. zoom
+        m = multiply(xReflect(), m);                                                            // 5. reflect on x-axis
+        m = multiply(project, m);                                                               // 6. project
+        m = multiply(translate(-(0.5), 0.5 * viewPortFactor, 0), m);                        // 7. transform back
+        m = multiply(scale(plotWidth, yFactorAfter, 1), m);                                     // 8. adjust to plot dimensions
+        m = multiply(scale(-1,1,1), m);                                                 // 9. flip x
+        matrix = m;
     }
 
     public double[] transform(double[] v) {
@@ -653,19 +648,6 @@ public class NN3DPlot extends BasePlot {
         return new double[][] {{1,0,0,0},{0,1,0,0},{0,0,0,0},{0,0,1/zMin,1}};
     }
 
-    private void setZoom(double zoom) {
-        this.zoom = zoom;
-        matrix = getProjectionMatrix();
-    }
-    private void setXAngle(double xAngle) {
-        this.xAngle = xAngle % 360;
-        matrix = getProjectionMatrix();
-    }
-
-    private void setZAngle(double zAngle) {
-        this.zAngle = zAngle % 360;
-        matrix = getProjectionMatrix();
-    }
 
 }
 

@@ -25,10 +25,10 @@ import static javafx.scene.SceneAntialiasing.BALANCED;
 
 public class ThreeDeeTestMulticlass extends Application {
 
-    //double[][] in = {{0.1, 2.2}, {0.2, 0.22}, {0.3, 0.1}, {0.4, 0.7}, {0.5, 0.8}, {0.45, 0.9}, {0.8, 0.1}, {0.9, 0.15}, {0.8, 0.2}, {0.5, 1.55}};
-    //double[][] out = {{1, 0, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
-    double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
-    double[][] out = {{0}, {1}, {1}, {0}};
+   double[][] in = {{0.1, 2.2}, {0.2, 0.22}, {0.3, 0.1}, {0.4, 0.7}, {0.5, 0.8}, {0.45, 0.9}, {0.8, 0.1}, {0.9, 0.15}, {0.8, 0.2}, {0.5, 1.55}};
+    double[][] out = {{1, 0, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+    //double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
+    //double[][] out = {{0}, {1}, {1}, {0}};
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -72,7 +72,7 @@ public class ThreeDeeTestMulticlass extends Application {
             graphBox.getChildren().add(canvas2);
             graphBox.getChildren().add(canvas);
 //# available values: gelu|identity|relu|leaky_relu|sigmoid|sigmoid_accurate|silu|silu_accurate|softplus|tanh|softmax.
-            NeuralNetwork net = new NeuralNetwork.Builder( 2, 5,5, 1).setInitializer(Initializer.KAIMING)
+            NeuralNetwork net = new NeuralNetwork.Builder( 2, 5,5, 4).setInitializer(Initializer.KAIMING)
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     .setLastLayerRectifier(Rectifier.TANH)
                     .setLearningRate(0.5)
