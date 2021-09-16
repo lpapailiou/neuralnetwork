@@ -8,15 +8,15 @@ import javafx.scene.paint.Color;
  */
 public class NNGraphColor {
 
-    private Color backgroundColor;
-    private Color nodeColor;
-    private Color lineColor;
-    private Color flashedNodeColor;
-    private Color inactiveInputNodeColor;
-    private Color upperAccentNodeColor;
-    private Color lowerAccentNodeColor;
-    private Color upperAccentWeightColor;
-    private Color lowerAccentWeightColor;
+    private final Color backgroundColor;
+    private final Color nodeColor;
+    private final Color lineColor;
+    private final Color flashedNodeColor;
+    private final Color inactiveInputNodeColor;
+    private final Color upperAccentNodeColor;
+    private final Color lowerAccentNodeColor;
+    private final Color upperAccentWeightColor;
+    private final Color lowerAccentWeightColor;
 
     /**
      * Tho colors of this color palette can be passed by the constructor only.

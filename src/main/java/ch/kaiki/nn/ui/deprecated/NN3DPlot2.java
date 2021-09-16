@@ -1,6 +1,8 @@
 package ch.kaiki.nn.ui.deprecated;
 
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
+import ch.kaiki.nn.ui.NNDataConverter;
+import ch.kaiki.nn.ui.Polygon;
 import ch.kaiki.nn.ui.color.NNDataColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
 import javafx.scene.canvas.GraphicsContext;
@@ -11,7 +13,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import static ch.kaiki.nn.ui.color.NNColorSupport.blend;
+import static ch.kaiki.nn.ui.color.NNColor.blend;
 import static javafx.scene.paint.Color.TRANSPARENT;
 
 public class NN3DPlot2 extends BasePlot {
@@ -138,7 +140,7 @@ public class NN3DPlot2 extends BasePlot {
             squares.sort(comparator.reversed());
             for (Polygon p : squares) {
                 //p.draw(STEELBLUE.brighter(), STEELBLUE.darker(), sortMin, sortMax);
-                p.draw();
+                p.render();
             }
         }
         }
@@ -201,7 +203,7 @@ public class NN3DPlot2 extends BasePlot {
         squares.sort(comparator.reversed());
         for (Polygon p : squares) {
             //p.draw(STEELBLUE.brighter(), STEELBLUE.darker(), sortMin, sortMax);
-            p.draw();
+            p.render();
         }
 
 

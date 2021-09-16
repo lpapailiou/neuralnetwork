@@ -6,7 +6,7 @@ import java.text.DecimalFormat;
 
 import static javafx.scene.paint.Color.TRANSPARENT;
 
-public interface NNColorSupport {
+public interface NNColor {
 
     DecimalFormat df = new DecimalFormat("#.###");
 
@@ -15,7 +15,7 @@ public interface NNColorSupport {
     }
 
     static Color blend(Color c1, Color c2, double ratio) {
-        if (ratio > 1.0) {
+        if (ratio > 1.0 || Double.isNaN(ratio) || Double.isInfinite(ratio)) {
             ratio = 1;
         } else if (ratio < 0.0) {
             ratio = 0;

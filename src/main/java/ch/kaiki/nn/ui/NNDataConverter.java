@@ -1,4 +1,4 @@
-package ch.kaiki.nn.ui.deprecated;
+package ch.kaiki.nn.ui;
 
 import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;

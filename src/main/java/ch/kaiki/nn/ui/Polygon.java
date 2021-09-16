@@ -1,4 +1,4 @@
-package ch.kaiki.nn.ui.deprecated;
+package ch.kaiki.nn.ui;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static ch.kaiki.nn.ui.color.NNColor.blend;
 
-public class Polygon implements Comparable<Polygon> {
+public class Polygon implements SortableSeriesData {
     private GraphicsContext context;
     private double[] x;
     private double[] y;
@@ -19,7 +19,9 @@ public class Polygon implements Comparable<Polygon> {
         this.z = z;
         this.color = color;
     }
-    public void draw() {
+
+    @Override
+    public void render() {
         context.setFill(color);
         context.fillPolygon(x, y, 4);
     }
@@ -43,7 +45,7 @@ public class Polygon implements Comparable<Polygon> {
     }
 
     @Override
-    public int compareTo(@NotNull Polygon o) {
-        return Double.compare(this.z, o.z);
+    public double getZ() {
+        return z;
     }
 }

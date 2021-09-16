@@ -2,14 +2,10 @@ package ch.kaiki.nn.ui.deprecated;
 
 import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.color.NNColorSupport;
+import ch.kaiki.nn.ui.color.NNColor;
 import ch.kaiki.nn.util.Rectifier;
-import ch.kaiki.nn.data.BackPropEntity;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.color.NNColorSupport;
-import ch.kaiki.nn.util.Rectifier;
 
 import java.util.Map;
 import java.util.SortedMap;
@@ -49,7 +45,7 @@ public class NNPlot extends BasePlot {
             drawBackground();
             drawGrid(true);
         } else {
-            plotDataColor = NNColorSupport.randomColor(false);
+            plotDataColor = NNColor.randomColor(false);
         }
         int smooth = (int) (smoothing * 100);
         smooth = Math.max(smooth, 1);
@@ -108,11 +104,11 @@ public class NNPlot extends BasePlot {
             //drawGrid(true);
             drawCross();
         } else {
-            plotDataColor = NNColorSupport.randomColor(false);
+            plotDataColor = NNColor.randomColor(false);
         }
         Color cache = plotDataColor;
         if (showDerivation) {
-            plotDataColor = NNColorSupport.blend(plotDataColor, plotBackgroundColor, 0.4);
+            plotDataColor = NNColor.blend(plotDataColor, plotBackgroundColor, 0.4);
             plotData(derivationData, false, 1);
         }
         plotDataColor = cache;

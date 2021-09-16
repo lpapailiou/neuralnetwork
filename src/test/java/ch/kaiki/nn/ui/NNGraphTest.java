@@ -17,7 +17,7 @@ import ch.kaiki.nn.util.Initializer;
 
 import java.util.*;
 
-import static ch.kaiki.nn.ui.color.NNColorSupport.randomColor;
+import static ch.kaiki.nn.ui.color.NNColor.randomColor;
 
 public class NNGraphTest extends Application {
 

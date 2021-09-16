@@ -1,6 +1,7 @@
-package ch.kaiki.nn.ui;
+package ch.kaiki.nn.ui.deprecated;
 
 import ch.kaiki.nn.ui.util.*;
+import ch.kaiki.nn.ui.util.Series;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.geometry.*;
 import javafx.scene.DepthTest;
@@ -239,7 +240,7 @@ public class NNChart extends BorderPane {
     }
 
     public void plot(String name, List<Point> data, Color color) {
-        Series series = new Series(name, data, color);
+        ch.kaiki.nn.ui.util.Series series = new Series(name, data, color);
         if (this.getRight() == null) {
             this.setRight(labelBox);
         }

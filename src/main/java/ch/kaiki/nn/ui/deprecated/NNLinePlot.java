@@ -1,13 +1,8 @@
-package ch.kaiki.nn.ui;
+package ch.kaiki.nn.ui.deprecated;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.StringProperty;
-import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.Group;
 import javafx.scene.Node;
-import javafx.scene.chart.Axis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -15,13 +10,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.color.NNPlotColor;
+import ch.kaiki.nn.ui.color.NNChartColor;
 
 import java.util.*;
 import java.util.function.Function;
 
 import static javafx.scene.paint.Color.*;
-import static ch.kaiki.nn.ui.color.NNColorSupport.blend;
+import static ch.kaiki.nn.ui.color.NNColor.blend;
 
 public class NNLinePlot extends LineChart {
 
@@ -82,15 +77,15 @@ public class NNLinePlot extends LineChart {
         handleParent(parent);
     }
 
-    public NNLinePlot(Pane parent, double width, double height, boolean showTicks, boolean showGrid, boolean showLegend, double smoothing, NNPlotColor colorPalette) {
+    public NNLinePlot(Pane parent, double width, double height, boolean showTicks, boolean showGrid, boolean showLegend, double smoothing, NNChartColor colorPalette) {
         this(parent, width, height, showTicks, showGrid, showLegend, smoothing);
         this.backgroundColor = colorPalette.getBackgroundColor();
-        this.plotBackgroundColor = colorPalette.getPlotBackgroundColor();
+        this.plotBackgroundColor = colorPalette.getBackgroundColor();
         this.axisColor = colorPalette.getAxisColor();
-        this.gridColor = colorPalette.getGridColor();
-        this.tickColor = colorPalette.getTickColor();
-        this.gridColor = colorPalette.getGridColor();
-        this.textColor = colorPalette.getTextColor();
+        this.gridColor = colorPalette.getGridLineColor();
+        this.tickColor = colorPalette.getTickMarkColor();
+        this.gridColor = colorPalette.getGridLineColor();
+        this.textColor = colorPalette.getLabelColor();
     }
 
     public void plot(NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color) {

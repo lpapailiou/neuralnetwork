@@ -254,7 +254,7 @@ public class NeuralNetwork implements Serializable {
      *
      * @return an identical copy of this instance
      */
-    public NeuralNetwork copy() {
+    public NeuralNetwork copy() {       // TODO: add copy function which allows to change stuff
         NeuralNetwork neuralNetwork = new NeuralNetwork(layers);
         neuralNetwork.configuration = this.configuration;
         neuralNetwork.initializer = this.initializer;

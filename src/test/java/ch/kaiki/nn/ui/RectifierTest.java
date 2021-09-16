@@ -1,5 +1,6 @@
 package ch.kaiki.nn.ui;
 
+import ch.kaiki.nn.ui.deprecated.NNLinePlot;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
@@ -8,8 +9,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.util.Rectifier;
-
-import java.util.function.Function;
 
 public class RectifierTest extends Application {
 

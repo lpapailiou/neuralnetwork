@@ -10,7 +10,7 @@ import javafx.scene.text.TextAlignment;
 
 import java.text.DecimalFormat;
 
-import static ch.kaiki.nn.ui.color.NNColorSupport.blend;
+import static ch.kaiki.nn.ui.color.NNColor.blend;
 import static javafx.scene.paint.Color.*;
 
 /**

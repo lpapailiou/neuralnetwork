@@ -1,21 +1,17 @@
 package ch.kaiki.nn.ui.util;
 
-import ch.kaiki.nn.ui.NNChart;
+import ch.kaiki.nn.ui.deprecated.NNChart;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.*;
 import javafx.scene.chart.Axis;
 import javafx.scene.chart.NumberAxis;
-import javafx.scene.control.Button;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Sphere;
-import javafx.scene.transform.Rotate;
-import javafx.scene.transform.Transform;
 
 import java.util.*;
 

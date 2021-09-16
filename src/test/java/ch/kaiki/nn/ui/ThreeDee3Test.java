@@ -2,7 +2,6 @@ package ch.kaiki.nn.ui;
 
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNHeatMap;
-import ch.kaiki.nn.ui.deprecated.NN3DPlot;
 import ch.kaiki.nn.ui.deprecated.NNMeshGrid;
 import ch.kaiki.nn.util.Initializer;
 import ch.kaiki.nn.util.Optimizer;
@@ -80,10 +79,10 @@ public class ThreeDee3Test extends Application {
             NNHeatMap heatMap = new NNHeatMap(0,1,Color.STEELBLUE, Color.TURQUOISE, Color.YELLOW, Color.CRIMSON);
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
             System.out.println("3D support? "  +canvas.getDepthTest());
-            AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
-            plot.get().setPadding(padding);
+            AtomicReference<NN3DChart> plot = new AtomicReference<>(new NN3DChart(context));
+            plot.get().setInnerDataPadding(padding);
 
-            plot.get().plot(net, in, resolution,1,false, heatMap);
+            plot.get().plotDecisionBoundaries(net, in, heatMap, resolution);
             NNMeshGrid plot2 = new NNMeshGrid(context2);
             plot2.setPadding(0,0,50,0,padding);
             plot2.plotCost(net, in, resolution,1,true,true,true, heatMap);
@@ -92,7 +91,7 @@ public class ThreeDee3Test extends Application {
             Button train = new Button("TRAIN");
             train.setOnAction(e -> {
                 net.fit(in, out, 1);
-                plot.get().plot(net, in, resolution,1,false, heatMap);
+                plot.get().plotDecisionBoundaries(net, in, heatMap, resolution);
                 plot2.plotCost(net, in, resolution,1,true,true,true, heatMap);
             });
             cBox.getChildren().add(train);

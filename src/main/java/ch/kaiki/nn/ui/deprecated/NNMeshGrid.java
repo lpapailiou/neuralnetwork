@@ -5,7 +5,6 @@ import javafx.scene.paint.Color;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNDataColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
-import ch.kaiki.nn.ui.deprecated.BasePlot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static javafx.scene.paint.Color.TRANSPARENT;
-import static ch.kaiki.nn.ui.color.NNColorSupport.blend;
+import static ch.kaiki.nn.ui.color.NNColor.blend;
 
 public class NNMeshGrid extends BasePlot {
 

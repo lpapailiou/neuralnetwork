@@ -1,6 +1,5 @@
 package ch.kaiki.nn.ui;
 
-import ch.kaiki.nn.ui.deprecated.NN3DPlot;
 import ch.kaiki.nn.ui.deprecated.NNMeshGrid;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -67,11 +66,11 @@ public class ThreeDeeTest extends Application {
             graphBox.getChildren().add(canvas2);
             graphBox.getChildren().add(canvas);
 
-            NeuralNetwork net = new NeuralNetwork.Builder( 2, 10, 1).setInitializer(Initializer.KAIMING)
+            NeuralNetwork net = new NeuralNetwork.Builder( 2, 32,32,32, 1).setInitializer(Initializer.KAIMING)
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     .setLearningRate(0.5)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iter = 2000;
+            int iter = 100;
             int trainIter = 10;
             double resolution = 0.1;
             double padding = 0;
@@ -82,8 +81,9 @@ public class ThreeDeeTest extends Application {
             NNHeatMap heatMap = new NNHeatMap(0,1,Color.STEELBLUE, Color.TURQUOISE, Color.YELLOW, Color.CRIMSON);
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
             System.out.println("3D support? "  +canvas.getDepthTest());
-            AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
-            plot.get().setPadding(padding);
+            AtomicReference<NN3DChart> plot = new AtomicReference<>(new NN3DChart(context));
+            plot.get().setInnerDataPadding(padding);
+            plot.get().enableMouseInteraction();
             /*
             plot.get().setZoom(7*step);
             plot.get().setZAngle(-0*angleStep);
@@ -111,8 +111,8 @@ public class ThreeDeeTest extends Application {
         }
     }
 
-    private void plot(AtomicReference<NN3DPlot> plot, NeuralNetwork net, double resolution, NNHeatMap heatMap) {
-        plot.get().plot(net, in, resolution,1,true, heatMap);
+    private void plot(AtomicReference<NN3DChart> plot, NeuralNetwork net, double resolution, NNHeatMap heatMap) {
+        plot.get().plotDecisionBoundaries(net, in, out, true, heatMap, resolution);
     }
 
 

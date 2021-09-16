@@ -6,7 +6,7 @@ import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NNDataColor implements NNColorSupport {
+public class NNDataColor implements NNColor {
 
     private List<Color> colors = new ArrayList<>();
 

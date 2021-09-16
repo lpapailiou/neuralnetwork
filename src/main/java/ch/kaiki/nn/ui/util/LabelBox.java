@@ -1,6 +1,5 @@
 package ch.kaiki.nn.ui.util;
 
-import ch.kaiki.nn.ui.NNChart;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;

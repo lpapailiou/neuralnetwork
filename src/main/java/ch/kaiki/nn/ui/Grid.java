@@ -1,13 +1,19 @@
-package ch.kaiki.nn.ui.deprecated;
+package ch.kaiki.nn.ui;
 
+import ch.kaiki.nn.ui.color.NNChartColor;
+import ch.kaiki.nn.ui.util.GridFace;
+import javafx.geometry.VPos;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
 
 public class Grid {
-    private final NN3DPlot plot;
+    private final BaseChart chart;
     private final GridFace face;
     private double[] x;
     private double[] y;
@@ -23,56 +29,65 @@ public class Grid {
     private double[] t2;
     private double[] t3;
 
-    private final Color gridBackgroundColor;
-    private final Color gridColor;
-    private final Color zeroLineColor;
     private final Color axisColor;
-    private final Color tickColor;
+    private final Color gridBackgroundColor;
+    private final Color gridLineColor;
+    private final Color zeroLineColor;
+    private final Color tickMarkColor;
     private final Color tickLabelColor;
-    private final Color axisLabelColor;
+    private final Color labelColor;
 
     private final String[] axisLabels;
 
-    private final double TICK_MARK_OFFSET = 6;
-    private final double TICK_LABEL_OFFSET = 20;
-    private final double AXIS_LABEL_OFFSET = 40;
+    private static final double TICK_MARK_OFFSET = 6;
+    private static final double TICK_LABEL_OFFSET = 20;
+    private static final double AXIS_LABEL_OFFSET = 40;
 
-    private final double tickStrokeWidth = 1.5;
-    private final double gridStrokeWidth = 0.5;
-    private final double axisStrokeWidth = 1.5;
-    private final double zeroLineStrokeWidth = 1;
+    private final double tickStrokeWidth = 1.2;
+    private final double gridStrokeWidth = 0.3;
+    private final double axisStrokeWidth = 1.2;
+    private final double zeroLineStrokeWidth = 0.8;
 
-    public Grid(NN3DPlot plot, GridFace face, double[] a, double[] b, double[] c, double[] d, Color gridBackgroundColor, Color gridColor, Color axisColor, String[] axisLabels) {
-        this.plot = plot;
+    private boolean is2D;
+
+    public Grid(BaseChart chart, GridFace face, double[] a, double[] b, double[] c, double[] d, NNChartColor chartColors, String[] axisLabels) {
+        this.chart = chart;
+        this.is2D = chart instanceof NN2DChart;
         this.face = face;
         this.a = a;
         this.b = b;
         this.c = c;
         this.d = d;
-        this.gridBackgroundColor = gridBackgroundColor;
-        this.gridColor = gridColor;
-        this.zeroLineColor = gridColor;
-        this.axisColor = axisColor;
-        this.tickColor = axisColor;
-        this.tickLabelColor = axisColor;
-        this.axisLabelColor = axisColor;
+
+        this.axisColor = chartColors.getAxisColor();
+        this.gridBackgroundColor = chartColors.getGridBackgroundColor();
+        this.gridLineColor = chartColors.getGridLineColor();
+        this.zeroLineColor = chartColors.getZeroLineColor();
+        this.tickMarkColor = chartColors.getTickMarkColor();
+        this.tickLabelColor = chartColors.getTickLabelColor();
+        this.labelColor = chartColors.getLabelColor();
+
         this.axisLabels = axisLabels;
         initialTransformation();
     }
 
     private void initialTransformation() {
-        t0 = plot.transform(a);
-        t1 = plot.transform(b);
-        t2 = plot.transform(c);
-        t3 = plot.transform(d);
+        t0 = chart.transform(a);
+        t1 = chart.transform(b);
+        t2 = chart.transform(c);
+        t3 = chart.transform(d);
         z = t0[3]+t1[3]+t2[3]+t3[3];
     }
 
-    void draw() {
+    void render() {
         x = new double[]{t0[0], t1[0], t2[0], t3[0]};
         y = new double[]{t0[1], t1[1], t2[1], t3[1]};
-        plot.context.setFill(gridBackgroundColor);
-        plot.context.fillPolygon(x, y, 4);
+
+        // grid background
+        if (chart.showGridContent) {
+            chart.context.setFill(gridBackgroundColor);
+            chart.context.fillPolygon(x, y, 4);
+        }
 
         double min1;
         double max1;
@@ -145,47 +160,51 @@ public class Grid {
         // first grid axis
         double offsetTickStart = min2-range2;
         double offsetTickEnd = max2+range2;
-        boolean isStartZSmallerEqual = drawGrid(range1, range2, min1, max1, min2, max2, cnst, offsetTickStart, offsetTickEnd, indexMap1, hasDecoration1);
-        if (hasDecoration1) {
-            double[] center = getTransformedVector(indexMap1, range1/2 + min1, isStartZSmallerEqual ? min2 : max2, cnst);
-            double[] labelPos = getTransformedVector(indexMap1, range1/2 + min1, isStartZSmallerEqual ? offsetTickStart : offsetTickEnd, cnst);
+        boolean isStartZSmaller = drawGrid(range1, range2, min1, max1, min2, max2, cnst, offsetTickStart, offsetTickEnd, indexMap1, hasDecoration1);
+        if (hasDecoration1 && chart.showAxisLabels) {
+            double[] center = getTransformedVector(indexMap1, range1/2 + min1, isStartZSmaller ? min2 : max2, cnst);
+            double[] labelPos = getTransformedVector(indexMap1, range1/2 + min1, isStartZSmaller ? offsetTickStart : offsetTickEnd, cnst);
             GridFace filter = (face == GridFace.LEFT || face == GridFace.RIGHT) ? GridFace.RIGHT : null;
-            double angle = getAngle(isStartZSmallerEqual, t0, t1, t2, t3, filter);
+            double angle = getAngle(isStartZSmaller, t0, t1, t2, t3, filter);
             drawAxisLabel(center, labelPos, angle, label1);
         }
 
         // second grid axis
         offsetTickStart = min1 - range1;
         offsetTickEnd = max1 + range1;
-        isStartZSmallerEqual = drawGrid(range2, range1, min2, max2, min1, max1, cnst, offsetTickStart, offsetTickEnd, indexMap2, hasDecoration2);
-        if (hasDecoration2) {
-            double[] center = getTransformedVector(indexMap2, range2/2 + min2, isStartZSmallerEqual ? min1 : max1, cnst);
-            double[] labelPos = getTransformedVector(indexMap2, range2/2 + min2, isStartZSmallerEqual ? offsetTickStart : offsetTickEnd, cnst);
+        isStartZSmaller = drawGrid(range2, range1, min2, max2, min1, max1, cnst, offsetTickStart, offsetTickEnd, indexMap2, hasDecoration2);
+        if (hasDecoration2 && chart.showAxisLabels) {
+            double[] center = getTransformedVector(indexMap2, range2/2 + min2, isStartZSmaller ? min1 : max1, cnst);
+            double[] labelPos = getTransformedVector(indexMap2, range2/2 + min2, isStartZSmaller ? offsetTickStart : offsetTickEnd, cnst);
             GridFace filter = (face == GridFace.FRONT || face == GridFace.BACK) ? GridFace.BACK : null;
-            double angle = getAngle(isStartZSmallerEqual, t3, t0, t1, t2, filter);
+            double angle = getAngle(isStartZSmaller, t3, t0, t1, t2, filter);
+            if ((face == GridFace.BOTTOM || face == GridFace.TOP) && is2D) {      // 2d hack
+                angle += 180;
+            }
             drawAxisLabel(center, labelPos, angle, label2);
         }
 
         // axis aka border of grid
-        plot.context.setLineWidth(axisStrokeWidth);
-        plot.context.setStroke(axisColor);
-        plot.context.strokeLine(t0[0], t0[1], t1[0], t1[1]);
-        plot.context.strokeLine(t1[0], t1[1], t2[0], t2[1]);
-        plot.context.strokeLine(t2[0], t2[1], t3[0], t3[1]);
-        plot.context.strokeLine(t3[0], t3[1], t0[0], t0[1]);
+        chart.context.setLineWidth(axisStrokeWidth);
+        chart.context.setStroke(axisColor);
+        chart.context.strokeLine(t0[0], t0[1], t1[0], t1[1]);
+        chart.context.strokeLine(t1[0], t1[1], t2[0], t2[1]);
+        chart.context.strokeLine(t2[0], t2[1], t3[0], t3[1]);
+        chart.context.strokeLine(t3[0], t3[1], t0[0], t0[1]);
 
     }
 
     private void drawAxisLabel(double[] center, double[] labelPos, double angle, String label) {
-        labelPos = getScaledVector(center, labelPos, AXIS_LABEL_OFFSET);
+        double offset = chart.showTickMarkLabels ? AXIS_LABEL_OFFSET : AXIS_LABEL_OFFSET - TICK_LABEL_OFFSET;
+        labelPos = getScaledVector(center, labelPos, offset);
         drawLabel(label, labelPos, angle);
     }
 
     private boolean drawGrid(double range, double rangeO, double min, double max, double minO, double maxO, double cnst, double offsetTickStart, double offsetTickEnd, int[] indexMap, boolean hasDecoration) {
-        double intervalStep = plot.getInterval(range, 1000);
+        double intervalStep = chart.getInterval(range, 1000);
         double value = min - (min % intervalStep) - intervalStep;
         int tickCount = (int) (range / intervalStep) + 3;
-        boolean isStartZSmallerEqual = true;
+        boolean isStartZSmaller = true;
         for (int i = 0; i < tickCount; i++) {
             if (i > 0) {
                 value += intervalStep;
@@ -196,43 +215,52 @@ public class Grid {
 
             double[] start = getTransformedVector(indexMap, value, minO, cnst);
             double[] end = getTransformedVector(indexMap, value, maxO, cnst);
-            isStartZSmallerEqual = start[3] <= end[3];
+            isStartZSmaller = ((face == GridFace.BOTTOM || face == GridFace.TOP) && is2D) ? start[3] <= end[3] : start[3] < end[3];
 
             // grid line
-            if (Double.parseDouble(String.format("%.2f", value)) == 0) {
-                plot.context.setStroke(zeroLineColor);
-                plot.context.setLineWidth(zeroLineStrokeWidth);
-            } else {
-                plot.context.setStroke(gridColor);
-                plot.context.setLineWidth(gridStrokeWidth);
+            if (chart.showGridContent) {
+                if (Double.parseDouble(String.format("%.2f", value)) == 0) {
+                    chart.context.setStroke(zeroLineColor);
+                    chart.context.setLineWidth(zeroLineStrokeWidth);
+                } else {
+                    chart.context.setStroke(gridLineColor);
+                    chart.context.setLineWidth(gridStrokeWidth);
+                }
+                chart.context.strokeLine(start[0], start[1], end[0], end[1]);
             }
-            plot.context.strokeLine(start[0], start[1], end[0], end[1]);
 
 
             if (hasDecoration) {
-                double[] center = getTransformedVector(indexMap, value, isStartZSmallerEqual ? minO : maxO, cnst);
-                double[] tickLabel = getTransformedVector(indexMap, value, isStartZSmallerEqual ? offsetTickStart : offsetTickEnd, cnst);
+                double[] center = getTransformedVector(indexMap, value, isStartZSmaller ? minO : maxO, cnst);
+                double[] tickLabel = getTransformedVector(indexMap, value, isStartZSmaller ? offsetTickStart : offsetTickEnd, cnst);
                 tickLabel = getScaledVector(center, tickLabel, TICK_LABEL_OFFSET);
 
-                double[] tickStart = isStartZSmallerEqual ? getTransformedVector(indexMap, value, offsetTickStart, cnst) : end;
-                double[] tickEnd = isStartZSmallerEqual ? start : getTransformedVector(indexMap, value, offsetTickEnd, cnst);
-                if (isStartZSmallerEqual) {
+                double[] tickStart = isStartZSmaller ? getTransformedVector(indexMap, value, offsetTickStart, cnst) : end;
+                double[] tickEnd = isStartZSmaller ? start : getTransformedVector(indexMap, value, offsetTickEnd, cnst);
+                if (isStartZSmaller) {
                     tickStart = getScaledVector(center, tickStart, TICK_MARK_OFFSET);
                 } else {
                     tickEnd = getScaledVector(center, tickEnd, TICK_MARK_OFFSET);
                 }
 
                 // tick mark
-                plot.context.setLineWidth(tickStrokeWidth);
-                plot.context.setStroke(tickColor);
-                plot.context.strokeLine(tickStart[0], tickStart[1], tickEnd[0], tickEnd[1]);
+                if (chart.showTickMarks) {
+                    chart.context.setLineWidth(tickStrokeWidth);
+                    chart.context.setStroke(tickMarkColor);
+                    chart.context.strokeLine(tickStart[0], tickStart[1], tickEnd[0], tickEnd[1]);
+                }
 
                 // tick label
-                plot.context.setFill(tickLabelColor);
-                plot.context.fillText(plot.formatTickLabel(value), tickLabel[0], tickLabel[1]);
+                if (chart.showTickMarkLabels) {
+                    chart.context.setTextAlign(TextAlignment.CENTER);
+                    chart.context.setTextBaseline(VPos.CENTER);
+                    chart.context.setFill(tickLabelColor);
+                    chart.context.fillText(chart.formatTickLabel(value), tickLabel[0], tickLabel[1]);
+                    chart.context.setTextBaseline(VPos.BASELINE);
+                }
             }
         }
-        return isStartZSmallerEqual;
+        return isStartZSmaller;
     }
 
     private double[] getTransformedVector(int[] indexMap, double value, double range, double constant) {
@@ -240,7 +268,7 @@ public class Grid {
         result[indexMap[0]] = value;
         result[indexMap[1]] = range;
         result[indexMap[2]] = constant;
-        return plot.transform(result);
+        return chart.transform(result);
     }
 
     private double getAngle(boolean isStartZSmallerEqual, double[] a, double[] b, double[] c, double[] d, GridFace filter) {
@@ -268,15 +296,17 @@ public class Grid {
     }
 
     private void drawLabel(String text, double[] position, double angle) {
-        Font font = plot.context.getFont();
-        plot.context.setFont(new Font(null, 15));
-        plot.context.setTextAlign(TextAlignment.CENTER);
-        plot.context.setFill(axisLabelColor);
-        plot.context.transform(new Affine(new Rotate(-angle, position[0],position[1])));
-        plot.context.fillText(text, position[0], position[1]);
-        plot.context.transform(new Affine(new Rotate(angle, position[0],position[1])));
-        plot.context.setFont(font);
-        //plot.context.fillText(text, position[0], position[1]);        // label without rotation
+        Font font = chart.context.getFont();
+        chart.context.setFont(new Font(null, 15));
+        chart.context.setTextAlign(TextAlignment.CENTER);
+        chart.context.setTextBaseline(VPos.CENTER);
+        chart.context.setFill(labelColor);
+        chart.context.transform(new Affine(new Rotate(-angle, position[0],position[1])));
+        chart.context.fillText(text, position[0], position[1]);
+        chart.context.transform(new Affine(new Rotate(angle, position[0],position[1])));
+        chart.context.setFont(font);
+        chart.context.setTextBaseline(VPos.BASELINE);
+        //chart.context.fillText(text, position[0], position[1]);        // label without rotation
     }
 
     public double getZ() {
