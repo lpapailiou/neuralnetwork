@@ -1,8 +1,10 @@
 package ch.kaiki.nn.ui;
 
+import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNChartColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
+import javafx.application.Platform;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
@@ -12,6 +14,7 @@ import javafx.scene.text.TextAlignment;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import static ch.kaiki.nn.ui.color.NNColor.blend;
 import static javafx.scene.paint.Color.*;
@@ -42,7 +45,8 @@ public abstract class BaseChart {
     protected Color backgroundColor;
     protected Color axisColor;
     protected Color labelColor;
-
+    protected double legendWidth;
+    protected final static double OFFSET_BASE = 5;
     protected String title;
 
     protected boolean showBorder = false;
@@ -60,10 +64,10 @@ public abstract class BaseChart {
         this.context = context;
         width = context.getCanvas().getWidth();
         height = context.getCanvas().getHeight();
-        //NNChartColor chartColors = new NNChartColor(BLACK, TRANSPARENT, DARKGRAY, TRANSPARENT, TRANSPARENT, DARKGRAY, DARKGRAY, DARKGRAY);
-        NNChartColor chartColors = new NNChartColor(BLACK, blend(LIGHTGRAY, TRANSPARENT, 0.4), DARKGRAY, GRAY, GRAY, DARKGRAY, DARKGRAY, DARKGRAY);
+        NNChartColor chartColors = new NNChartColor(TRANSPARENT, TRANSPARENT, DARKGRAY, LIGHTGRAY, LIGHTGRAY, DARKGRAY, DARKGRAY, DARKGRAY);
+        //NNChartColor chartColors = new NNChartColor(TRANSPARENT, blend(LIGHTGRAY, TRANSPARENT, 0.25), DARKGRAY, GRAY, GRAY, DARKGRAY, GRAY, GRAY);
         setChartColors(chartColors);
-        clear();
+        invalidate();
     }
 
     // --------------------------------------------- functional setters ---------------------------------------------
@@ -116,6 +120,10 @@ public abstract class BaseChart {
 
     public void showGrid(boolean showGrid) {
         this.showGrid = showGrid;
+    }
+
+    public void showGridContent(boolean showGridContent) {
+        this.showGridContent = showGridContent;
     }
 
     public void setChartColors(NNChartColor colors) {
@@ -182,6 +190,73 @@ public abstract class BaseChart {
         return mode;
     }
 // --------------------------------------------- plots ---------------------------------------------
+public void plotLine(NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color, double smoothing) {
+        if (smoothing < 0) {    // TODO: improve exception handling
+            throw new IllegalArgumentException("Smoothing must be equal to or greater than 0.0!");
+        }
+    xAngle = 0;
+    zAngle = 0;
+    zoom = 1;
+    boolean clear = false;
+    Series id = null;
+    for (Series s : series) {
+        if (s instanceof DecisionBoundarySeries) {
+            clear = true;
+        }
+    }
+    if (clear) {
+        series.clear();
+    }
+    LineSeries scatterSeries = new LineSeries(this, neuralNetwork, function, name, color, smoothing);
+    int index = -1;
+    for (int i = 0; i < series.size(); i++) {
+        if (series.get(i) instanceof LineSeries) {
+            List<String> oName = series.get(i).getName();
+            if (oName.contains(name)) {
+                index = i;
+                break;
+            }
+        }
+    }
+    if (index == -1) {
+        series.add(scatterSeries);
+    } else {
+        series.set(index, scatterSeries);
+    }
+    invalidate();
+}
+    public void scatter(NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color) {
+        xAngle = 0;
+        zAngle = 0;
+        zoom = 1;
+        boolean clear = false;
+        Series id = null;
+        for (Series s : series) {
+            if (s instanceof DecisionBoundarySeries) {
+                clear = true;
+            }
+        }
+        if (clear) {
+            series.clear();
+        }
+        ScatterSeries scatterSeries = new ScatterSeries(this, neuralNetwork, function, name, color, 0);
+        int index = -1;
+        for (int i = 0; i < series.size(); i++) {
+            if (series.get(i) instanceof ScatterSeries) {
+                List<String> oName = series.get(i).getName();
+                if (oName.contains(name)) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        if (index == -1) {
+            series.add(scatterSeries);
+        } else {
+            series.set(index, scatterSeries);
+        }
+        invalidate();
+    }
 
     public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, NNHeatMap heatMap, double resolution) {
         plotDecisionBoundaries(neuralNetwork, inputData, null, false, null, heatMap, resolution);
@@ -190,36 +265,52 @@ public abstract class BaseChart {
         plotDecisionBoundaries(neuralNetwork, inputData, outputData, showData, null, heatMap, resolution);
     }
 
-    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] showLegend, NNHeatMap heatMap, double resolution) {
+    public void plotConfusionMatrix(NeuralNetwork neuralNetwork, NNHeatMap heatMap, boolean normalized) {
         int[] configuration = neuralNetwork.getConfiguration();
         if (configuration[0] != 2) {
             throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
         }
-        if (configuration[configuration.length - 1] == 1) {
-            if (heatMap.getColors().size() < 2) {
-                throw new IllegalArgumentException("At least 2 data color items must be provided!");
+        if (configuration[configuration.length - 1] > 1) {
+            if (heatMap.getColors().size() < configuration[configuration.length-1]) {
+                //throw new IllegalArgumentException("Data color items " + heatMap.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
             }
-        } else {
+        }
+        this.series.clear();
+        this.series.add(new ConfusionMatrixSeries(this,  neuralNetwork, heatMap, normalized));
+        invalidate();
+    }
+
+    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap heatMap, double resolution) {
+        int[] configuration = neuralNetwork.getConfiguration();
+        if (configuration[0] != 2) {
+            throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
+        }
+        if (configuration[configuration.length - 1] > 1) {
             if (heatMap.getColors().size() < configuration[configuration.length-1]) {
                 throw new IllegalArgumentException("Data color items " + heatMap.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
             }
         }
-        if (showLegend != null && (showLegend.length != configuration[configuration.length-1]) || (configuration[configuration.length-1] == 1 && (showLegend.length != 2))) {
+        if (legend != null && (legend.length != configuration[configuration.length-1] || (configuration[configuration.length-1] == 1 && (legend.length != 2)))) {
             throw new IllegalArgumentException("Feature label length does not match neural network configuration!");
         }
-        if (showLegend != null) {
+        if (legend != null) {
             this.showLegend = true;
         }
         this.initResolution = resolution;
         this.resolution = resolution;
         this.series.clear();
-        this.series.add(new DecisionBoundarySeries(this,  neuralNetwork, inputData, outputData, showData, showLegend, heatMap));
+        this.series.add(new DecisionBoundarySeries(this,  neuralNetwork, inputData, outputData, showData, legend, heatMap));
         invalidate();
     }
 
     // --------------------------------------------- chart handling ---------------------------------------------
 
+    protected void postInvalidate() {
+        invalidateLegendDimensions();
+    }
+
     protected final void invalidate() {
+        //System.out.println(xAngle + " " + zAngle + " " + zoom);
         xMin = Double.MAX_VALUE;
         xMax = Double.MIN_VALUE;
         yMin = Double.MAX_VALUE;
@@ -254,25 +345,65 @@ public abstract class BaseChart {
                 this.zMax = zMax;
             }
         }
+
+        int initialization = 0;
+        int xInitialization = (xMin != xMax && xMin != Double.MAX_VALUE && xMax != Double.MIN_VALUE) ? 1 : 0;
+        int yInitialization = (yMin != yMax && yMin != Double.MAX_VALUE && yMax != Double.MIN_VALUE) ? 1 : 0;
+        int zInitialization = (zMin != zMax && zMin != Double.MAX_VALUE && zMax != Double.MIN_VALUE) ? 1 : 0;
+
+        if ((xInitialization + yInitialization) < 2) {
+            xMin = 0;
+            yMin = 0;
+            zMin = 0;
+            xMax = 1;
+        }
+
+        if (zInitialization == 0) {
+            zMin = -0.5;
+            zMax = 0.5;
+        }
+
+        postInvalidate();
+        //System.out.println("xmin: " + xMin + ", xMax: " + xMax + ", ymin: " + yMin + ", ymax: " + yMax + ", zmin " + zMin + ", zmax: " + zMax);
         render();
     }
 
     protected final void render() {
-        setProjectionMatrix();  // customizable
-        clear();
+        //Platform.runLater(() -> {
+            setProjectionMatrix();  // customizable
+            clear();
 
-        preProcess();           // customizable
+            preProcess();           // customizable
 
-        if (showGrid) {
-            renderGrid();
+            if (showGrid) {
+                renderGrid();
+            }
+
+            for (Series s: series) {
+                s.render();
+            }
+
+            postProcess();          // customizable
+
+            drawBorder();
+        //});
+    }
+
+    private void invalidateLegendDimensions() {
+        if (showLegend) {
+            double maxCharLength = 0;
+            for (Series s : series) {
+                for (String n : s.getName()) {
+                    if (n.length() > maxCharLength) {
+                        maxCharLength = n.length();
+                    }
+                }
+            }
+            legendWidth = (maxCharLength * 5.5) + 40;
+
+        } else {
+            legendWidth = 0;
         }
-        for (Series s: series) {
-            s.render();
-        }
-
-        postProcess();          // customizable
-
-        drawBorder();
     }
 
     protected void renderLegend(boolean renderAtBottomRight) {
@@ -280,33 +411,40 @@ public abstract class BaseChart {
             return;
         }
         int count = 0;
+        double maxCharLength = 0;
         final double stepSize = 24;
-
-        final double colorOffset = 12;
-        final double labelBoxWidth = 100;
-        final double maxTextWidth = labelBoxWidth - colorOffset - 10;
         for (Series s : series) {
             count += s.getName().size();
+            for (String n : s.getName()) {
+                if (n.length() > maxCharLength) {
+                    maxCharLength = n.length();
+                }
+            }
         }
+        final double colorOffset = 12;
+        final double maxTextWidth = maxCharLength*5.5;
+        final double labelBoxWidth = maxTextWidth + colorOffset + 16;
+
         double xColor = width-labelBoxWidth;
         double yColor = renderAtBottomRight ? height-(count*stepSize) : height-height/2-(count*stepSize)/2;
         double xText = xColor + colorOffset;
         double yText = yColor;
         context.setFill(blend(chartColors.getGridBackgroundColor(), TRANSPARENT, 0.2));
-        context.fillRect(xColor-16, yColor-stepSize, labelBoxWidth+6, (count*stepSize)+stepSize/2);
+        context.fillRect(xColor-10, yColor-stepSize, labelBoxWidth, (count*stepSize)+stepSize/2);
+
         for (Series s : series) {
             List<String> names = s.getName();
             List<Color> colors = s.getColor();
 
             for (int i = 0; i < names.size(); i++) {
 
-                context.setLineWidth(2.8);
+                context.setLineWidth(2);
                 double radius = 8;
                 context.setStroke(colors.get(i));
                 context.strokeOval(xColor-radius/2, yColor-radius-0.5, radius, radius);
 
                 Font font = context.getFont();
-                context.setFont(new Font(null, 14));
+                context.setFont(new Font(null, 12.5));
                 context.setTextAlign(TextAlignment.LEFT);
                 context.setFill(labelColor);
                 context.fillText(names.get(i), xText, yText, maxTextWidth);
@@ -351,7 +489,7 @@ public abstract class BaseChart {
 
     protected void renderTitle() {
         if (showTitle) {
-            context.setFill(axisColor);
+            context.setFill(labelColor);
             context.setTextAlign(TextAlignment.CENTER);
             Font font = context.getFont();
             context.setFont(new Font(null, 18));

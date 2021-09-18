@@ -47,7 +47,7 @@ public class CostTest3 extends Application {
                     .setLearningRate(0.2)
                     //.setDropoutFactor(0.1)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iter = 800;
+            int iter = 200;
             net.fit(in, out, iter);
 
             //plot1.setTitle("Cost of Neural Network");
@@ -57,13 +57,16 @@ public class CostTest3 extends Application {
             NNHeatMap heatMap = new NNHeatMap(Color.BLANCHEDALMOND, Color.LIGHTBLUE, Color.ROSYBROWN, Color.SALMON);
             heatMap.setOpacity(0.2,0.5);
 
-            plot1.plotDecisionBoundaries(net, in, heatMap, 0.01);
-
+            plot1.setOuterDataPadding(0.05);
+            plot1.showLegend(true);
+            plot1.plotLine(net,  BackPropEntity::getAccuracySum, "accuracy", RED, 0);
+            plot1.plotLine(net,  BackPropEntity::getPrecisionSum, "precision", ORANGE, 0);
+            plot1.plotLine(net,  BackPropEntity::getRecallSum, "recall", GREEN.brighter(), 0);
 
             //plot2.setTitle("Summed stats of Neural Network");
             plot2.plot(net, BackPropEntity::getAccuracySum, "accuracy", SALMON);
-            plot2.plot(net, BackPropEntity::getPrecisionSum, "precisionnnnnnnnnnnnnnnnnnnnnnnnnnn", SEAGREEN);
-            plot2.plot(net, BackPropEntity::getRecallSum, "recall", STEELBLUE);
+            plot2.plot(net, BackPropEntity::getPrecisionSum, "precision", SEAGREEN);
+            plot2.plot(net, BackPropEntity::getRecallSum, "recall", BLACK);
             plot2.setLegendSide(Side.RIGHT);
 ;
 

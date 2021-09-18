@@ -24,7 +24,7 @@ public class DecisionBoundarySeries extends Series {
     private boolean isBinary;
     private boolean showData;
 
-    public DecisionBoundarySeries(BaseChart chart, NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] featureLabels, NNHeatMap colorMap) {
+    public DecisionBoundarySeries(BaseChart chart, NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap colorMap) {
         super(null, colorMap.getColors());
         this.chart = chart;
         this.neuralNetwork = neuralNetwork;
@@ -35,7 +35,7 @@ public class DecisionBoundarySeries extends Series {
         int[] configuration = neuralNetwork.getConfiguration();
         this.isBinary = configuration[configuration.length-1] == 1;
 
-        if (featureLabels == null) {
+        if (legend == null) {
             if (isBinary) {
                 super.addName("true");
                 super.addName("false");
@@ -45,7 +45,7 @@ public class DecisionBoundarySeries extends Series {
                 }
             }
         } else {
-            for (String label : featureLabels) {
+            for (String label : legend) {
                 super.addName(label);
             }
         }
@@ -53,7 +53,7 @@ public class DecisionBoundarySeries extends Series {
 
     @Override
     public List<Color> getColor() {
-        if (isBinary && colorMap.getColors().size() > 2) {
+        if (isBinary) {
             List<Color> colors = colorMap.getColors();
             List<Color> featureLabelColors = new ArrayList<>();
             featureLabelColors.add(colors.get(colors.size()-1));
@@ -142,14 +142,29 @@ public class DecisionBoundarySeries extends Series {
         List<Color> colors = colorMap.getColors();
         double step = Math.abs(zMax -zMin)/(colors.size()-1);
         for (double[][][] transformedGrid : transformedDataGrid) {
-            List<Color> colorList;
+            List<Color> colorList = new ArrayList<>();
+            double minOpacity = colorMap.getMinOpacity();
+            double maxOpacity = colorMap.getMaxOpacity();
             if (transformedDataGrid.size() > 1) {
-                colorList = new ArrayList<>();
-                colorList.add(NNColor.blend(colors.get(index), TRANSPARENT, colorMap.getMinOpacity()));
-                colorList.add(NNColor.blend(colors.get(index), TRANSPARENT, colorMap.getMaxOpacity()));
-
+                colorList.add(NNColor.blend(colors.get(index), TRANSPARENT, minOpacity));
+                colorList.add(NNColor.blend(colors.get(index), TRANSPARENT, maxOpacity));
             } else {
-                colorList = colors;
+
+                if (minOpacity == 1 && maxOpacity == 1) {
+                    colorList.addAll(colors);
+                } else {
+                    if (colors.size() == 1) {
+                        colorList.add(NNColor.blend(colors.get(0), TRANSPARENT, minOpacity));
+                        colorList.add(NNColor.blend(colors.get(0), TRANSPARENT, maxOpacity));
+                    } else {
+                        double opacityStep = Math.abs(maxOpacity - minOpacity) / (colors.size() - 1);
+                        double opacity = minOpacity;
+                        for (Color color : colors) {
+                            colorList.add(NNColor.blend(color, TRANSPARENT, opacity));
+                            opacity += opacityStep;
+                        }
+                    }
+                }
             }
             polygons.addAll(getPolygons(context, zMin, zMax, transformedGrid, step, colorList));
             index++;
@@ -159,7 +174,7 @@ public class DecisionBoundarySeries extends Series {
             for (int i = 0; i < inputData.length; i++) {
                 double[] t = chart.transform(new double[] {inputData[i][0], inputData[i][1], zMax});
                 Color color = colorMap.getColors().get(getFeatureIndex(outputData[i]));
-                polygons.add(new Point(chart.context, t[0], t[1], t[3], color));
+                polygons.add(new Point(chart.context, t[0], t[1], t[3], color, true));
             }
         }
 
@@ -204,41 +219,37 @@ public class DecisionBoundarySeries extends Series {
 
                 double sort = (a[2] + b[2] + c[2] + d[2]) / 4;
 
-                double output = (a[3] + b[3] + c[3] + d[3]) / 4;
                 Color color;
                 if (colors.size() > 2) {
                     int stepIndex = 0;
                     double value = zMin;
                     for (int k = 0; k < colors.size() - 1; k++) {
                         value += step;
-                        if (output <= value || k == colors.size() - 2) {
+                        if (zSum <= value || k == colors.size() - 2) {
                             stepIndex = k;
                             break;
                         }
                     }
 
-                    double ratio = 1 / step * Math.abs(value - output);
-                    if (output > zMax) {
+                    double ratio = 1 / step * Math.abs(value - zSum);
+                    if (zSum > zMax) {
                         ratio = 0;
                     }
                     color = blend(colors.get(stepIndex), colors.get(stepIndex+1), ratio);
                 } else {
-                    color = blend(colors.get(1), colors.get(0), output);
+                    color = blend(colors.get(1), colors.get(0), zSum);
                 }
 
 
-                double zVal = chart instanceof NN3DChart ? sort : output;
+                double zVal = chart instanceof NN3DChart ? sort : zSum;
                 polygons.add(new Polygon(context, xEs, ys, zVal, color));
             }
         }
         return polygons;
     }
 
-    public List<double[][][]> getData() {
-        return seriesData;
-    }
 
-    public List<double[][][]> getBaseGrid(int featureSize) {
+    private List<double[][][]> getBaseGrid(int featureSize) {
         List<double[][][]> gridList = new ArrayList<>();
         for (int i = 0; i < featureSize; i++) {
             gridList.add(new double[iterX+1][iterY+1][]);

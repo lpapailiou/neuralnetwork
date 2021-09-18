@@ -67,6 +67,13 @@ public abstract class Series {
         this.addName(name);
     }
 
+    public void addColor(Color color) {
+        if (color == null) {
+            this.color.add(Color.TRANSPARENT);
+        }
+        this.color.add(color);
+    }
+
     public List<String> getName() {
         return name;
     }

@@ -1,17 +1,27 @@
 package ch.kaiki.nn.ui;
 
+import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.NotNull;
+
+import java.text.DecimalFormat;
 
 import static ch.kaiki.nn.ui.color.NNColor.blend;
 
 public class Polygon implements SortableSeriesData {
+    private static DecimalFormat df = new DecimalFormat("#.###");
     private GraphicsContext context;
     private double[] x;
     private double[] y;
     private double z;
     private Color color;
+    private double value;
+    private boolean showText;
+
     public Polygon(GraphicsContext context, double[] x, double[] y, double z, Color color) {
         this.context = context;
         this.x = x;
@@ -20,10 +30,29 @@ public class Polygon implements SortableSeriesData {
         this.color = color;
     }
 
+    public Polygon(GraphicsContext context, double[] x, double[] y, double z, Color color, double value, boolean showText) {
+        this(context, x, y, z, color);
+        this.value = value;
+        this.showText = showText;
+    }
+
     @Override
     public void render() {
         context.setFill(color);
         context.fillPolygon(x, y, 4);
+
+        if (showText) {
+            Font font = context.getFont();
+            context.setFill(color.invert());
+            context.setFont(new Font(null, 18));
+            context.setTextAlign(TextAlignment.CENTER);
+            context.setTextBaseline(VPos.CENTER);
+            double xCenter = (x[0] + x[1] + x[2] + x[3]) / 4;
+            double yCenter = (y[0] + y[1] + y[2] + y[3]) / 4;
+            context.fillText(formatValue(value), xCenter, yCenter);
+            context.setTextBaseline(VPos.BASELINE);
+            context.setFont(font);
+        }
     }
 
     void draw(Color a, Color b, double min, double max) {
@@ -47,5 +76,18 @@ public class Polygon implements SortableSeriesData {
     @Override
     public double getZ() {
         return z;
+    }
+
+
+    protected String formatValue(double value) {
+        if (Double.isNaN(value) || Double.isInfinite(value)){
+            return "" + value;
+        }
+
+        double formatted = Double.parseDouble(df.format(value));
+        if (formatted % 1 == 0) {
+            return Integer.toString((int) formatted);
+        }
+        return Double.toString(formatted);
     }
 }

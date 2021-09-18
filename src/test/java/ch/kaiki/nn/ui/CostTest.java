@@ -1,17 +1,21 @@
 package ch.kaiki.nn.ui;
 
+import ch.kaiki.nn.data.BackPropEntity;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.deprecated.NNPlot;
 import ch.kaiki.nn.util.Initializer;
 import ch.kaiki.nn.util.Optimizer;
 import ch.kaiki.nn.util.Rectifier;
+
+import java.util.function.Function;
 
 public class CostTest extends Application {
 
@@ -33,9 +37,13 @@ public class CostTest extends Application {
             Canvas canvas = new Canvas(canvasWidth + 2 * offset, canvasHeight + 2 * offset);
             GraphicsContext context = canvas.getGraphicsContext2D();
             root.getChildren().add(canvas);
+            Canvas canvas1 = new Canvas(canvasWidth + 2 * offset, canvasHeight + 2 * offset);
+            GraphicsContext context1 = canvas1.getGraphicsContext2D();
+            root.getChildren().add(canvas1);
             Canvas canvas2 = new Canvas(canvasWidth + 2 * offset, canvasHeight + 2 * offset);
             GraphicsContext context2 = canvas2.getGraphicsContext2D();
             root.getChildren().add(canvas2);
+
 
             NeuralNetwork net1 = new NeuralNetwork.Builder(2, 10, 1)
                     .setInitializer(Initializer.KAIMING)
@@ -56,6 +64,12 @@ public class CostTest extends Application {
             NNPlot costPlot = new NNPlot(context);
             costPlot.plotCost(net1, false, 0);
             costPlot.setTitle("Cost of neural network during " + iter + " iterations");
+
+            NN2DChart chart = new NN2DChart(context1);
+            chart.showLegend(true);
+            chart.setTitle("new thingy");
+            chart.setAxisLabels("iterations", "cost");
+            chart.plotLine(net1,  BackPropEntity::getCost, "cost", Color.PURPLE, 0);
 
             NNPlot sumPlot = new NNPlot(context2);
             sumPlot.plotCost(net2, false, 0);

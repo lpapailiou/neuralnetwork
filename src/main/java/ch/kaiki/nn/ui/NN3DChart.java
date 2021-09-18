@@ -5,7 +5,6 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.ScrollEvent;
 import javafx.util.Duration;
 
@@ -13,6 +12,8 @@ import java.util.*;
 
 public class NN3DChart extends BaseChart {
 
+    private final static double MIN_ZOOM = 0.1;
+    private final static double MAX_ZOOM = 10;
     private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
 
@@ -119,8 +120,7 @@ public class NN3DChart extends BaseChart {
             e.consume();
         });
 
-        final double MAX_SCALE = 10;
-        final double MIN_SCALE = 0.1;
+
         context.getCanvas().addEventFilter(ScrollEvent.ANY, e -> {      // zoom
             double delta = 1.2;
             double scale = zoom;
@@ -129,11 +129,25 @@ public class NN3DChart extends BaseChart {
             } else {
                 scale *= delta;
             }
-            this.zoom = clamp(scale, MIN_SCALE, MAX_SCALE);
+            this.zoom = clamp(scale, MIN_ZOOM, MAX_ZOOM);
             render();
             e.consume();
         });
 
+    }
+
+    public void setRotation(double xAngle, double zAngle) {
+        this.xAngle = xAngle % 360;
+        this.zAngle = zAngle % 360;
+        render();
+    }
+
+    public void setZoom(double zoom) {
+        if (zoom < MIN_ZOOM || zoom > MAX_ZOOM) {
+            throw new IllegalArgumentException("Zoom must be between " + MIN_ZOOM + " and " + MAX_ZOOM + "!");
+        }
+        this.zoom = zoom;
+        render();
     }
 
     public void setAnimated(boolean animate) {

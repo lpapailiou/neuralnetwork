@@ -2,6 +2,7 @@ package ch.kaiki.nn.ui;
 
 import ch.kaiki.nn.ui.color.NNChartColor;
 import ch.kaiki.nn.ui.util.GridFace;
+import javafx.application.Platform;
 import javafx.geometry.VPos;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -43,10 +44,10 @@ public class Grid {
     private static final double TICK_LABEL_OFFSET = 20;
     private static final double AXIS_LABEL_OFFSET = 40;
 
-    private final double tickStrokeWidth = 1.2;
-    private final double gridStrokeWidth = 0.3;
-    private final double axisStrokeWidth = 1.2;
-    private final double zeroLineStrokeWidth = 0.8;
+    private final double tickStrokeWidth = 1;
+    private final double gridStrokeWidth = 0.25;
+    private final double axisStrokeWidth = 1;
+    private final double zeroLineStrokeWidth = 0.75;
 
     private boolean is2D;
 
@@ -58,7 +59,6 @@ public class Grid {
         this.b = b;
         this.c = c;
         this.d = d;
-
         this.axisColor = chartColors.getAxisColor();
         this.gridBackgroundColor = chartColors.getGridBackgroundColor();
         this.gridLineColor = chartColors.getGridLineColor();
@@ -66,7 +66,6 @@ public class Grid {
         this.tickMarkColor = chartColors.getTickMarkColor();
         this.tickLabelColor = chartColors.getTickLabelColor();
         this.labelColor = chartColors.getLabelColor();
-
         this.axisLabels = axisLabels;
         initialTransformation();
     }
@@ -80,6 +79,7 @@ public class Grid {
     }
 
     void render() {
+
         x = new double[]{t0[0], t1[0], t2[0], t3[0]};
         y = new double[]{t0[1], t1[1], t2[1], t3[1]};
 
@@ -201,7 +201,9 @@ public class Grid {
     }
 
     private boolean drawGrid(double range, double rangeO, double min, double max, double minO, double maxO, double cnst, double offsetTickStart, double offsetTickEnd, int[] indexMap, boolean hasDecoration) {
-        double intervalStep = chart.getInterval(range, 1000);
+        //double intervalStep = chart.getInterval(range, 1000);
+        double intervalStep = chart.getInterval(range, 500);
+
         double value = min - (min % intervalStep) - intervalStep;
         int tickCount = (int) (range / intervalStep) + 3;
         boolean isStartZSmaller = true;
@@ -252,11 +254,14 @@ public class Grid {
 
                 // tick label
                 if (chart.showTickMarkLabels) {
+                    Font font = chart.context.getFont();
+                    chart.context.setFont(new Font(null, 11));
                     chart.context.setTextAlign(TextAlignment.CENTER);
                     chart.context.setTextBaseline(VPos.CENTER);
                     chart.context.setFill(tickLabelColor);
                     chart.context.fillText(chart.formatTickLabel(value), tickLabel[0], tickLabel[1]);
                     chart.context.setTextBaseline(VPos.BASELINE);
+                    chart.context.setFont(font);
                 }
             }
         }

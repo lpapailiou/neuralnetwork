@@ -1,11 +1,8 @@
 package ch.kaiki.nn.ui;
 
-import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNChartColor;
-import ch.kaiki.nn.ui.color.NNHeatMap;
 import ch.kaiki.nn.ui.util.GridFace;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.MouseButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +16,10 @@ public class NN2DChart extends BaseChart {
 
     private boolean isInteractive = false;
 
-    private final static double OFFSET_BASE = 5;
-    private final static double OFFSET_TITLE = 40;
-    private final static double OFFSET_FEATURE_LABEL_BOX = 116;
 
-    private final static double OFFSET_TICK_LABEL = 28;
+    private final static double OFFSET_TITLE = 40;
+
+    private final static double OFFSET_TICK_MARK_LABEL = 28;
     private final static double OFFSET_AXIS_LABEL = 20;
 
     private double offsetTop;
@@ -39,8 +35,6 @@ public class NN2DChart extends BaseChart {
         super(context);
         NNChartColor chartColors = new NNChartColor(TRANSPARENT, blend(LIGHTGRAY, TRANSPARENT, 0.1), DARKGRAY, GRAY, GRAY, DARKGRAY, DARKGRAY, DARKGRAY);
         mode = VisualizationMode.SNAP_TO_VIEWPORT;
-        //setColors(chartColors);
-        invalidateDimensions();
     }
 
     @Override
@@ -69,33 +63,13 @@ public class NN2DChart extends BaseChart {
     }
 
     @Override
-    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] showLegend, NNHeatMap heatMap, double resolution) {
-        gridPaddingOffset = 0;
-        super.plotDecisionBoundaries(neuralNetwork, inputData, outputData, showData, showLegend, heatMap, resolution);
-        invalidateDimensions();
-    }
-
-    @Override
-    public void setTitle(String text) {
-        super.setTitle(text);
-        invalidateDimensions();
-    }
-
-    @Override
-    public void setAxisLabels(String... labels) {
-        super.setAxisLabels(labels);
-        invalidateDimensions();
-    }
-
-    @Override
-    public void showTickMarkLabels(boolean showTickMarkLabels) {
-        super.showTickMarkLabels(showTickMarkLabels);
-        invalidateDimensions();
-    }
-
-    @Override
-    public void showLegend(boolean showLegend) {
-        super.showLegend(showLegend);
+    protected void postInvalidate() {
+        super.postInvalidate();
+        for (Series s: series) {
+            if (s instanceof DecisionBoundarySeries) {
+                gridPaddingOffset = 0;
+            }
+        }
         invalidateDimensions();
     }
 
@@ -109,8 +83,8 @@ public class NN2DChart extends BaseChart {
         }
 
         if (showTickMarkLabels) {
-            offsetLeft += OFFSET_TICK_LABEL;
-            offsetBottom += OFFSET_TICK_LABEL;
+            offsetLeft += OFFSET_TICK_MARK_LABEL;
+            offsetBottom += OFFSET_TICK_MARK_LABEL;
         }
 
         if (showAxisLabels) {
@@ -119,7 +93,7 @@ public class NN2DChart extends BaseChart {
         }
 
         if (showLegend) {
-            offsetRight = OFFSET_FEATURE_LABEL_BOX;
+            offsetRight += legendWidth;
         }
     }
 
@@ -212,7 +186,21 @@ public class NN2DChart extends BaseChart {
 
     // --------------------------------------------- ui interaction ---------------------------------------------
 
+    @Override
+    public void enableMouseInteraction() {
+        if (isInteractive) {
+            return;
+        }
+        super.enableMouseInteraction();
 
+        context.getCanvas().setOnMouseEntered(e -> {
+            context.getCanvas().setStyle("-fx-cursor: hand;");
+        });
+
+        context.getCanvas().setOnMouseExited(e -> {
+            context.getCanvas().setStyle("");
+        });
+    }
 
 
 
