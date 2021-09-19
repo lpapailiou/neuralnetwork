@@ -17,15 +17,30 @@ public class LayerWeightSeries extends Series {
     private final NNHeatMap colorMap;
     private final BaseChart chart;
     private List<Series> subSeries = new ArrayList<>();
-    private int layerCount;
+    private int imgCount;
     private GraphicsContext context;
 
     public LayerWeightSeries(BaseChart chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap) {
         super(null, colorMap.getColors(), ChartMode.MESH_GRID);
-        layerCount = neuralNetwork.getConfiguration().length-1;
-        for (int i = 0; i < layerCount; i++) {
+        imgCount = neuralNetwork.getConfiguration().length-1;
+        for (int i = 0; i < imgCount; i++) {
             subSeries.add(new SingleLayerWeightSeries(chart, neuralNetwork, colorMap, i));
         }
+
+        this.chart = chart;
+        this.context = chart.getContext();
+        this.colorMap = colorMap;
+        super.addName("high");
+        super.addName("low");
+    }
+
+    public LayerWeightSeries(BaseChart chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap, int layerIndex, int width) {
+        super(null, colorMap.getColors(), ChartMode.MESH_GRID);
+        int nodeCount = neuralNetwork.getConfiguration()[layerIndex+1];
+        for (int i = 0; i < nodeCount; i++) {
+            subSeries.add(new SingleLayerWeightSeries(chart, neuralNetwork, colorMap, layerIndex, i, width));
+        }
+        this.imgCount = nodeCount;
         this.chart = chart;
         this.context = chart.getContext();
         this.colorMap = colorMap;
@@ -44,17 +59,28 @@ public class LayerWeightSeries extends Series {
 
     @Override
     public void compute() {
-        chart.setZoom(0.8);
-
-        for (Series s : subSeries) {
-            s.compute();
-        }
         xMin = 0;
         xMax = 1;
         yMin = 0;
         yMax = 1;
-        zMin = 0;
-        zMax = 1;
+        zMin = Double.MAX_VALUE;
+        zMax = Double.MIN_VALUE;
+        chart.setPreRenderZoom(0.8);
+        for (Series s : subSeries) {
+            s.compute();
+            double zMin = s.getMinZ();
+            double zMax = s.getMaxZ();
+
+            if (zMin < this.zMin) {
+                this.zMin = zMin;
+                //System.out.println(zMin);
+            }
+            if (zMax > this.zMax) {
+                this.zMax = zMax;
+                //System.out.println(zMax);
+            }
+        }
+        System.out.println("total weight computing: zmin " + zMin + ", zmax: " + zMax);
     }
 
     @Override
@@ -83,7 +109,7 @@ public class LayerWeightSeries extends Series {
         int iterX = 1;
         int iterY = 1;
         int index = 0;
-        while (iterX * iterY < layerCount) {
+        while (iterX * iterY < imgCount) {
             if (index % 2 == 0) {
                 iterX++;
             } else {

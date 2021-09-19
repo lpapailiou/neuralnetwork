@@ -143,6 +143,7 @@ public class ConfusionMatrixSeries extends Series {
     private List<Polygon> getPolygons(GraphicsContext context, double zMin, double zMax, double[][][][] grid, double step, List<Color> colors) {
         double[][] actualData = neuralNetwork.getBackPropData().getConfusionMatrix();
         List<Polygon> polygons = new ArrayList<>();
+        double range = Math.abs(zMax-zMin);
         double pos = 0.3;
         double neg = -pos;
         for (int i = 0; i < dimension; i++) {
@@ -193,7 +194,7 @@ public class ConfusionMatrixSeries extends Series {
                     }
                     color = blend(colors.get(stepIndex), colors.get(stepIndex+1), ratio);
                 } else {
-                    color = blend(colors.get(1), colors.get(0), zSum);
+                    color = blend(colors.get(1), colors.get(0), (zSum-zMin)/range);
                 }
                 double zVal = chart instanceof NN3DChart ? sort : zSum;
                 double polygonLabel = (actualData == null) ? 0 : normalized ? seriesData[i][j] : actualData[i][j];

@@ -196,6 +196,7 @@ public class DecisionBoundarySeries extends Series {
 
     private List<Polygon> getPolygons(GraphicsContext context, double zMin, double zMax, double[][][] grid, double step, List<Color> colors) {
         List<Polygon> polygons = new ArrayList<>();
+        double range = Math.abs(zMax-zMin);
         double pos = isBinary ? 0.3 : chart instanceof NN2DChart ? 0.09 : 0.2;
         double neg = -pos;
         for (int i = 0; i < iterX; i++) {
@@ -246,7 +247,7 @@ public class DecisionBoundarySeries extends Series {
                     }
                     color = blend(colors.get(stepIndex), colors.get(stepIndex+1), ratio);
                 } else {
-                    color = blend(colors.get(1), colors.get(0), zSum);
+                    color = blend(colors.get(1), colors.get(0), (zSum-zMin)/range);
                 }
 
 

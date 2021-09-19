@@ -1,7 +1,6 @@
 package ch.kaiki.nn.ui;
 
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.deprecated.NNLinePlot;
 import ch.kaiki.nn.util.Rectifier;
 import javafx.application.Application;
 import javafx.scene.Scene;

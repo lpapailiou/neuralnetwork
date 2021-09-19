@@ -1,6 +1,5 @@
 package ch.kaiki.nn.ui;
 
-import ch.kaiki.nn.ui.deprecated.NNMeshGrid;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -1616,62 +1615,32 @@ public class WeightTest extends Application {
         try {
 
             primaryStage.setTitle("Weight test");
-            VBox root = new VBox();
+            HBox root = new HBox();
             root.setBackground(new Background(new BackgroundFill(BLACK, null, null)));
-            HBox hbox = null;
-            NNPlotColorDeprecated plotColors = new NNPlotColorDeprecated(BLACK, BLACK, STEELBLUE, LIGHTGRAY, STEELBLUE, RED);
 
-            NeuralNetwork net = new NeuralNetwork.Builder(784,  32, 32, 10)
+            NeuralNetwork net = new NeuralNetwork.Builder(784,72,72,10)
                     .setInitializer(Initializer.KAIMING)
-                    .setLearningRate(0.8)
+                    .setLearningRate(0.99)
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     //.setRectifierToLayer(Rectifier.SIGMOID, 2)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iterations = 2000;
+            int iterations = 1000;
             net.fit(in, out, iterations);
             //System.out.println(net);
 
-            NNHeatMap color = new NNHeatMap(STEELBLUE, AZURE, ORANGE, CRIMSON);
-            //NNHeatMap color = new NNHeatMap(BLACK, WHITE);
-
-            for (int i = 0; i < net.getConfiguration()[1]; i++) {
-                if (i % 16 == 0) {
-                    hbox = new HBox();
-                    hbox.setSpacing(10);
-                    hbox.setPadding(new Insets(20, 0, 20, 20));
-                    root.getChildren().add(hbox);
-                }
-
-                NNMeshGrid plot = new NNMeshGrid(addCanvas(100, 100, hbox));
-                plot.setPadding(0, 0, 0, 0, 0);
-                plot.setTitle("weights for col " + i);
-                plot.setColorPalette(plotColors);
-                plot.plotWeights(net, 0, i, 28, 0.9, true, true, false, color);
-                //plot.plotConfusionMatrix(net, in, 1, true, true, true, new NNHeatMap(STEELBLUE, AZURE, YELLOW, ORANGE, CRIMSON));
-            }
-
-            for (int i = 0; i < net.getConfiguration()[1]; i++) {
-                if (i % 16 == 0) {
-                    hbox = new HBox();
-                    hbox.setSpacing(10);
-                    hbox.setPadding(new Insets(20, 0, 20, 20));
-                    root.getChildren().add(hbox);
-                }
-
-                NNMeshGrid plot = new NNMeshGrid(addCanvas(100, 100, hbox));
-                plot.setPadding(0, 0, 0, 0, 0);
-                plot.setTitle("weights for col " + i);
-                plot.setColorPalette(plotColors);
-                plot.plotWeights(net, 1, i, 28, 0.9, true, true, false, color);
-                //plot.plotConfusionMatrix(net, in, 1, true, true, true, new NNHeatMap(STEELBLUE, AZURE, YELLOW, ORANGE, CRIMSON));
-            }
+            //NNHeatMap color = new NNHeatMap(STEELBLUE, AZURE, ORANGE, CRIMSON);
+            NNHeatMap color = new NNHeatMap(BLACK, WHITE);
+            Canvas canvas = new Canvas(1000,1000);
+            root.getChildren().add(canvas);
+            NN2DChart chart = new NN2DChart(canvas.getGraphicsContext2D());
+            chart.plotWeights(net, color, 0,  28);
+            //chart.plotWeights(net, color);
 
 
-
-
-            for (int i = 0; i < in.length; i++) {
-                printPrediction(net, i);
-            }
+            Canvas canvas1 = new Canvas(600,600);
+            root.getChildren().add(canvas1);
+            NN2DChart chart1 = new NN2DChart(canvas1.getGraphicsContext2D());
+            chart1.plotConfusionMatrix(net, color, true);
 
             primaryStage.setScene(new Scene(root));
             primaryStage.show();

@@ -47,6 +47,8 @@ public class NeuralNetwork implements Serializable {
     private double mutationRateMomentum;
     private BackPropData backPropData = new BackPropData();
 
+    private boolean hardBackPropagation = true;
+
     /**
      * The constructor of the neural network.
      * The varag parameters will define the architecture of the neural network. You need to enter at least two parameters.
@@ -140,6 +142,8 @@ public class NeuralNetwork implements Serializable {
      * @param expectedOutputNodes the expected output nodes as double array
      * @return the actual output nodes as Double List
      */
+
+
     public List<Double> fit(double[] inputNodes, double[] expectedOutputNodes) {
         if (inputNodes == null || expectedOutputNodes == null) {
             throw new NullPointerException("inputNodes and expectedOutputNodes are required!");
@@ -189,11 +193,14 @@ public class NeuralNetwork implements Serializable {
                 loss = Matrix.apply(loss, regularizer.gradient(loss, regularizationLambda), Double::sum);
 
             } else {
-                // computation of loss L = dC/da(L-i)
-                // this implementation does not follow the chain rule, but seems to get better results
-                //loss = Matrix.multiply(Matrix.transpose(layers.get(i + 1).weight), loss);
-                // correct implementation according to chain rule
-                loss = pass;
+                if (hardBackPropagation) {
+                    // computation of loss L = dC/da(L-i)
+                    // this implementation does not follow the chain rule, but seems to get better results
+                    loss = Matrix.multiply(Matrix.transpose(layers.get(i + 1).weight), loss);
+                } else {
+                    // correct implementation according to chain rule
+                    loss = pass;
+                }
             }
 
             // gradient: da(L)/dz(L) (derivation of activation)
@@ -201,9 +208,11 @@ public class NeuralNetwork implements Serializable {
             // loss * gradient: dC/da(L) * da(L)/dz(L) (loss * derivation of activation)
             gradient.multiply(loss);
 
-            // this would be the correct implementation of the chain rule - would be used as loss for the next iteration
-            pass = gradient.copy();
-            pass = Matrix.multiply(Matrix.transpose(layers.get(i).weight), pass);
+            if (!hardBackPropagation) {
+                // this would be the correct implementation of the chain rule - would be used as loss for the next iteration
+                pass = gradient.copy();
+                pass = Matrix.multiply(Matrix.transpose(layers.get(i).weight), pass);
+            }
 
             gradient.multiply(learningRate);
 
