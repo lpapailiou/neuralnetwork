@@ -73,14 +73,11 @@ public class LayerWeightSeries extends Series {
 
             if (zMin < this.zMin) {
                 this.zMin = zMin;
-                //System.out.println(zMin);
             }
             if (zMax > this.zMax) {
                 this.zMax = zMax;
-                //System.out.println(zMax);
             }
         }
-        System.out.println("total weight computing: zmin " + zMin + ", zmax: " + zMax);
     }
 
     @Override
@@ -98,8 +95,6 @@ public class LayerWeightSeries extends Series {
             chart.setxMax(s.getMaxX());
             chart.setyMin(s.getMinY());
             chart.setyMax(s.getMaxY());
-            chart.setzMin(s.getMinZ());
-            chart.setzMax(s.getMaxZ());
             chart.setProjectionMatrix();
             s.render();
             WritableImage img = new WritableImage(context.getCanvas().snapshot(params, null).getPixelReader(), x0, y0, x1, y1);

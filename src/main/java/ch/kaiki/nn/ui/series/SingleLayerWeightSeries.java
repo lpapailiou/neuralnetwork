@@ -101,8 +101,10 @@ public class SingleLayerWeightSeries extends Series {
 
     @Override
     public void render() {
+
         double[][][][] transformedDataGrid = new double[seriesData.length][seriesData[0].length][4][];
         GraphicsContext context = chart.getContext();
+
         double zMin = chart.getGlobalMinZ();
         double zMax = chart.getGlobalMaxZ();
         for (int i = 0; i < seriesData.length; i++) {
@@ -154,7 +156,6 @@ public class SingleLayerWeightSeries extends Series {
     }
 
     private List<Polygon> getPolygons(GraphicsContext context, double zMin, double zMax, double[][][][] grid, double step, List<Color> colors) {
-        //System.out.println(zMin + " " + zMax);
         List<Polygon> polygons = new ArrayList<>();
         double range = Math.abs(zMax-zMin);
         double pos = 0.3;
@@ -207,8 +208,7 @@ public class SingleLayerWeightSeries extends Series {
                     }
                     color = blend(colors.get(stepIndex), colors.get(stepIndex+1), ratio);
                 } else {
-                    //System.out.println((zSum-zMin)/range);
-                    color = blend(colors.get(1), colors.get(0), (zSum-zMin)/range); // TODO: ratio not working!!!
+                    color = blend(colors.get(1), colors.get(0), (zSum-zMin)/range);
                 }
                 double zVal = chart instanceof NN3DChart ? sort : zSum;
                 double polygonLabel = seriesData[i][j];

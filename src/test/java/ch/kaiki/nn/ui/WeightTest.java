@@ -1624,12 +1624,12 @@ public class WeightTest extends Application {
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     //.setRectifierToLayer(Rectifier.SIGMOID, 2)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iterations = 1000;
+            int iterations = 100;
             net.fit(in, out, iterations);
             //System.out.println(net);
 
-            //NNHeatMap color = new NNHeatMap(STEELBLUE, AZURE, ORANGE, CRIMSON);
-            NNHeatMap color = new NNHeatMap(BLACK, WHITE);
+            NNHeatMap color = new NNHeatMap(STEELBLUE, AZURE, ORANGE, CRIMSON);
+            //NNHeatMap color = new NNHeatMap(BLACK, WHITE);
             Canvas canvas = new Canvas(1000,1000);
             root.getChildren().add(canvas);
             NN2DChart chart = new NN2DChart(canvas.getGraphicsContext2D());

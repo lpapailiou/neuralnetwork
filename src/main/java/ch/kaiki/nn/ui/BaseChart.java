@@ -368,23 +368,18 @@ public abstract class BaseChart {
     }
     public void plotWeights(NeuralNetwork neuralNetwork, NNHeatMap heatMap) {
         setChartMode(ChartMode.MESH_GRID);
-        int[] configuration = neuralNetwork.getConfiguration();
-
         this.series.clear();
         this.series.add(new LayerWeightSeries(this,  neuralNetwork, heatMap));
         invalidate();
     }
     public void plotWeights(NeuralNetwork neuralNetwork, NNHeatMap heatMap, int layerIndex, int width) {
         setChartMode(ChartMode.MESH_GRID);
-        int[] configuration = neuralNetwork.getConfiguration();
-
         this.series.clear();
         this.series.add(new LayerWeightSeries(this,  neuralNetwork, heatMap, layerIndex, width));
         invalidate();
     }
     public void plotWeights(NeuralNetwork neuralNetwork, NNHeatMap heatMap, int layer) {
         setChartMode(ChartMode.MESH_GRID);
-
         this.series.clear();
         this.series.add(new SingleLayerWeightSeries(this,  neuralNetwork, heatMap, layer));
         invalidate();
@@ -392,7 +387,6 @@ public abstract class BaseChart {
 
     public void plotWeights(NeuralNetwork neuralNetwork, NNHeatMap heatMap, int layer, int nodeIndex, int width) {
         setChartMode(ChartMode.MESH_GRID);
-
         this.series.clear();
         this.series.add(new SingleLayerWeightSeries(this,  neuralNetwork, heatMap, layer, nodeIndex, width));
         invalidate();
@@ -400,8 +394,6 @@ public abstract class BaseChart {
 
     public void plotConfusionMatrix(NeuralNetwork neuralNetwork, NNHeatMap heatMap, boolean normalized) {
         setChartMode(ChartMode.MESH_GRID);
-        int[] configuration = neuralNetwork.getConfiguration();
-
         this.series.clear();
         this.series.add(new ConfusionMatrixSeries(this,  neuralNetwork, heatMap, normalized));
         invalidate();
@@ -473,7 +465,6 @@ public abstract class BaseChart {
                 this.zMax = zMax;
             }
         }
-        System.out.println("base chart weight computing:  zmin " + zMin + ", zmax: " + zMax);       // TODO: something not ok with global min and max z
         int xInitialization = (xMin != xMax && xMin != Double.MAX_VALUE && xMax != Double.MIN_VALUE) ? 1 : 0;
         int yInitialization = (yMin != yMax && yMin != Double.MAX_VALUE && yMax != Double.MIN_VALUE) ? 1 : 0;
         int zInitialization = (zMin != zMax && zMin != Double.MAX_VALUE && zMax != Double.MIN_VALUE) ? 1 : 0;
@@ -491,7 +482,7 @@ public abstract class BaseChart {
         }
 
         postInvalidate();
-        System.out.println("xmin: " + xMin + ", xMax: " + xMax + ", ymin: " + yMin + ", ymax: " + yMax + ", zmin " + zMin + ", zmax: " + zMax);
+        //System.out.println("xmin: " + xMin + ", xMax: " + xMax + ", ymin: " + yMin + ", ymax: " + yMax + ", zmin " + zMin + ", zmax: " + zMax);
         render();
     }
 
