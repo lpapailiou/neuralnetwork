@@ -2,7 +2,7 @@ package ch.kaiki.nn.ui.series;
 
 import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.BaseChart;
+import ch.kaiki.nn.ui.BasePlot;
 import ch.kaiki.nn.ui.util.ChartMode;
 import ch.kaiki.nn.ui.seriesobject.Point;
 import javafx.scene.canvas.GraphicsContext;
@@ -14,13 +14,13 @@ import java.util.function.Function;
 public class ScatterSeries extends Series {
 
     private List<double[]> seriesData = new ArrayList<>();
-    private final BaseChart chart;
+    private final BasePlot chart;
     private final NeuralNetwork neuralNetwork;
     private final Function<BackPropEntity, Double> function;
     private double smoothing;
     private GraphicsContext context;
 
-    public ScatterSeries(BaseChart chart, NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color, double smoothing) {
+    public ScatterSeries(BasePlot chart, NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color, double smoothing) {
         super(Arrays.asList(name), Arrays.asList(color), ChartMode.LINE_OR_SCATTER);
         this.chart = chart;
         this.context = chart.getContext();

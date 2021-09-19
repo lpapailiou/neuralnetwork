@@ -1,8 +1,8 @@
 package ch.kaiki.nn.ui.series;
 
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.BaseChart;
-import ch.kaiki.nn.ui.NN3DChart;
+import ch.kaiki.nn.ui.BasePlot;
+import ch.kaiki.nn.ui.NN3DPlot;
 import ch.kaiki.nn.ui.color.NNColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
 import ch.kaiki.nn.ui.util.ChartMode;
@@ -22,12 +22,12 @@ public class ConfusionMatrixSeries extends Series {
 
     private double[][] seriesData;
     private final NNHeatMap colorMap;
-    private final BaseChart chart;
+    private final BasePlot chart;
     private final NeuralNetwork neuralNetwork;
     private int dimension;
     private boolean normalized;
 
-    public ConfusionMatrixSeries(BaseChart chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap, boolean normalized) {
+    public ConfusionMatrixSeries(BasePlot chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap, boolean normalized) {
         super(null, colorMap.getColors(), ChartMode.MESH_GRID);
         this.chart = chart;
         this.neuralNetwork = neuralNetwork;
@@ -134,7 +134,7 @@ public class ConfusionMatrixSeries extends Series {
         polygons.addAll(getPolygons(context, zMin, zMax, transformedDataGrid, step, colorList));
 
         Comparator<SortableSeriesData> comparator = (SortableSeriesData::compareTo);
-        polygons.sort(chart instanceof NN3DChart ? comparator.reversed() : comparator);
+        polygons.sort(chart instanceof NN3DPlot ? comparator.reversed() : comparator);
         for (SortableSeriesData p : polygons) {
             p.render();
         }
@@ -196,7 +196,7 @@ public class ConfusionMatrixSeries extends Series {
                 } else {
                     color = blend(colors.get(1), colors.get(0), (zSum-zMin)/range);
                 }
-                double zVal = chart instanceof NN3DChart ? sort : zSum;
+                double zVal = chart instanceof NN3DPlot ? sort : zSum;
                 double polygonLabel = (actualData == null) ? 0 : normalized ? seriesData[i][j] : actualData[i][j];
                 polygons.add(new Polygon(context, xEs, ys, zVal, color, polygonLabel, true));
             }

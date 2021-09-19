@@ -3,7 +3,6 @@ package ch.kaiki.nn.ui;
 import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNHeatMap;
-import ch.kaiki.nn.ui.util.VisualizationMode;
 import ch.kaiki.nn.util.Initializer;
 import ch.kaiki.nn.util.Optimizer;
 import ch.kaiki.nn.util.Rectifier;
@@ -20,8 +19,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 import static javafx.scene.SceneAntialiasing.BALANCED;
 import static javafx.scene.paint.Color.*;
@@ -92,13 +89,16 @@ public class MetricsBinaryClassifier extends Application {
             //heatMap.setOpacity(0.3, 0.8);
 
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
-            NN2DChart plot = new NN2DChart(context);
+            NN3DPlot plot = new NN3DPlot(context);
+            plot.enableMouseInteraction();
+            plot.showLegend(true);
+            plot.setAxisLabels("x-Axis", "y-Axis");
 
             //plot.get().setAnimated(true);
             //plot.get().setAnimated(true);
 
 
-            NN2DChart plot2 = new NN2DChart(context2);
+            NN2DPlot plot2 = new NN2DPlot(context2);
             plot.plotLine(net, BackPropEntity::getAccuracySum, "accuracy", GREEN, 0);
             plot.plotLine(net, BackPropEntity::getPrecisionSum, "precision", BLUE, 0);
             plot.plotLine(net, BackPropEntity::getRecallSum, "recall", AQUAMARINE, 0);

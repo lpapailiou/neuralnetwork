@@ -31,7 +31,7 @@ public class RectifierTest2 extends Application {
                 }
                 Canvas canvas = new Canvas(canvasWidth, canvasHeight);
                 box.getChildren().add(canvas);
-                NN2DChart plot = new NN2DChart(canvas.getGraphicsContext2D());
+                NN2DPlot plot = new NN2DPlot(canvas.getGraphicsContext2D());
                 plot.showLegend(false);
                 plot.setTitle("Rectifier " + rectifier.name().replaceAll("_", " "));
                 plot.plotLine(rectifier::derive, "derivation", Color.LIGHTGRAY, -2, 2, -1, 1);

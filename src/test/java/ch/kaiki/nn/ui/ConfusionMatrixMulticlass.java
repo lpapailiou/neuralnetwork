@@ -91,7 +91,7 @@ public class ConfusionMatrixMulticlass extends Application {
             //heatMap.setOpacity(0.3, 0.8);
 
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
-            AtomicReference<NN3DChart> plot = new AtomicReference<>(new NN3DChart(context));
+            AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
             plot.get().setInnerDataPadding(padding);
             plot.get().setVisualizationMode(VisualizationMode.CUBE);
             plot.get().setAxisLabels("x-Axis", "y-Axis", "z-Axis");
@@ -110,7 +110,7 @@ public class ConfusionMatrixMulticlass extends Application {
             plot2.plot(net, in, resolution,1,true,true,true, heatMap);
             plot(plot, net, resolution, heatMap);*/
 
-            NN2DChart plot2 = new NN2DChart(context2);
+            NN2DPlot plot2 = new NN2DPlot(context2);
             plot2.setInnerDataPadding(padding);
             plot2.setTitle("Decision Boundary Visualization 2D");
             plot2.enableMouseInteraction();
@@ -138,7 +138,7 @@ public class ConfusionMatrixMulticlass extends Application {
         }
     }
 
-    private void plot(AtomicReference<NN3DChart> plot, NeuralNetwork net, NNHeatMap heatMap, boolean normalized) {
+    private void plot(AtomicReference<NN3DPlot> plot, NeuralNetwork net, NNHeatMap heatMap, boolean normalized) {
         plot.get().plotConfusionMatrix(net,heatMap, normalized);
     }
 

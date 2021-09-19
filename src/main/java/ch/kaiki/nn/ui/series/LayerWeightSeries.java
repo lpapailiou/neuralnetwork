@@ -1,7 +1,7 @@
 package ch.kaiki.nn.ui.series;
 
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.BaseChart;
+import ch.kaiki.nn.ui.BasePlot;
 import ch.kaiki.nn.ui.color.NNHeatMap;
 import ch.kaiki.nn.ui.util.ChartMode;
 import javafx.scene.SnapshotParameters;
@@ -15,12 +15,12 @@ import java.util.List;
 public class LayerWeightSeries extends Series {
 
     private final NNHeatMap colorMap;
-    private final BaseChart chart;
+    private final BasePlot chart;
     private List<Series> subSeries = new ArrayList<>();
     private int imgCount;
     private GraphicsContext context;
 
-    public LayerWeightSeries(BaseChart chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap) {
+    public LayerWeightSeries(BasePlot chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap) {
         super(null, colorMap.getColors(), ChartMode.MESH_GRID);
         imgCount = neuralNetwork.getConfiguration().length-1;
         for (int i = 0; i < imgCount; i++) {
@@ -34,7 +34,7 @@ public class LayerWeightSeries extends Series {
         super.addName("low");
     }
 
-    public LayerWeightSeries(BaseChart chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap, int layerIndex, int width) {
+    public LayerWeightSeries(BasePlot chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap, int layerIndex, int width) {
         super(null, colorMap.getColors(), ChartMode.MESH_GRID);
         int nodeCount = neuralNetwork.getConfiguration()[layerIndex+1];
         for (int i = 0; i < nodeCount; i++) {

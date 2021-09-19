@@ -1,8 +1,8 @@
 package ch.kaiki.nn.ui.series;
 
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.BaseChart;
-import ch.kaiki.nn.ui.NN3DChart;
+import ch.kaiki.nn.ui.BasePlot;
+import ch.kaiki.nn.ui.NN3DPlot;
 import ch.kaiki.nn.ui.color.NNColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
 import ch.kaiki.nn.ui.util.ChartMode;
@@ -12,7 +12,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -23,10 +22,10 @@ public class SingleLayerWeightSeries extends Series {
 
     private double[][] seriesData;
     private final NNHeatMap colorMap;
-    private final BaseChart chart;
+    private final BasePlot chart;
     private final NeuralNetwork neuralNetwork;
 
-    public SingleLayerWeightSeries(BaseChart chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap, int layerIndex) {
+    public SingleLayerWeightSeries(BasePlot chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap, int layerIndex) {
         super(null, colorMap.getColors(), ChartMode.MESH_GRID);
         this.chart = chart;
         this.neuralNetwork = neuralNetwork;
@@ -36,7 +35,7 @@ public class SingleLayerWeightSeries extends Series {
         super.addName("low");
     }
 
-    public SingleLayerWeightSeries(BaseChart chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap, int layerIndex, int nodeIndex, int width) {
+    public SingleLayerWeightSeries(BasePlot chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap, int layerIndex, int nodeIndex, int width) {
         super(null, colorMap.getColors(), ChartMode.MESH_GRID);
         this.chart = chart;
         this.neuralNetwork = neuralNetwork;
@@ -149,7 +148,7 @@ public class SingleLayerWeightSeries extends Series {
         polygons.addAll(getPolygons(context, zMin, zMax, transformedDataGrid, step, colorList));
 
         Comparator<SortableSeriesData> comparator = (SortableSeriesData::compareTo);
-        polygons.sort(chart instanceof NN3DChart ? comparator.reversed() : comparator);
+        polygons.sort(chart instanceof NN3DPlot ? comparator.reversed() : comparator);
         for (SortableSeriesData p : polygons) {
             p.render();
         }
@@ -210,7 +209,7 @@ public class SingleLayerWeightSeries extends Series {
                 } else {
                     color = blend(colors.get(1), colors.get(0), (zSum-zMin)/range);
                 }
-                double zVal = chart instanceof NN3DChart ? sort : zSum;
+                double zVal = chart instanceof NN3DPlot ? sort : zSum;
                 double polygonLabel = seriesData[i][j];
                 //polygons.add(new Polygon(context, xEs, ys, zVal, color, polygonLabel, true));
                 polygons.add(new Polygon(context, xEs, ys, zVal, color));

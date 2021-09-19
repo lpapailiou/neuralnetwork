@@ -1,9 +1,9 @@
 package ch.kaiki.nn.ui.series;
 
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.BaseChart;
-import ch.kaiki.nn.ui.NN2DChart;
-import ch.kaiki.nn.ui.NN3DChart;
+import ch.kaiki.nn.ui.BasePlot;
+import ch.kaiki.nn.ui.NN2DPlot;
+import ch.kaiki.nn.ui.NN3DPlot;
 import ch.kaiki.nn.ui.color.NNColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
 import ch.kaiki.nn.ui.seriesobject.Point;
@@ -24,7 +24,7 @@ public class DecisionBoundarySeries extends Series {
     private double[][] outputData;
     private List<double[][][]> seriesData = new ArrayList<>();
     private final NNHeatMap colorMap;
-    private final BaseChart chart;
+    private final BasePlot chart;
     private int iterX;
     private int iterY;
     private final NeuralNetwork neuralNetwork;
@@ -32,7 +32,7 @@ public class DecisionBoundarySeries extends Series {
     private boolean showData;
     private GraphicsContext context;
 
-    public DecisionBoundarySeries(BaseChart chart, NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap colorMap) {
+    public DecisionBoundarySeries(BasePlot chart, NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap colorMap) {
         super(null, colorMap.getColors(), ChartMode.MESH_GRID);
         this.chart = chart;
         this.context = chart.getContext();
@@ -188,7 +188,7 @@ public class DecisionBoundarySeries extends Series {
         }
 
         Comparator<SortableSeriesData> comparator = (SortableSeriesData::compareTo);
-        polygons.sort(chart instanceof NN3DChart ? comparator.reversed() : comparator);
+        polygons.sort(chart instanceof NN3DPlot ? comparator.reversed() : comparator);
         for (SortableSeriesData p : polygons) {
             p.render();
         }
@@ -197,7 +197,7 @@ public class DecisionBoundarySeries extends Series {
     private List<Polygon> getPolygons(GraphicsContext context, double zMin, double zMax, double[][][] grid, double step, List<Color> colors) {
         List<Polygon> polygons = new ArrayList<>();
         double range = Math.abs(zMax-zMin);
-        double pos = isBinary ? 0.3 : chart instanceof NN2DChart ? 0.09 : 0.2;
+        double pos = isBinary ? 0.3 : chart instanceof NN2DPlot ? 0.09 : 0.2;
         double neg = -pos;
         for (int i = 0; i < iterX; i++) {
             for (int j = 0; j < iterY; j++) {
@@ -251,7 +251,7 @@ public class DecisionBoundarySeries extends Series {
                 }
 
 
-                double zVal = chart instanceof NN3DChart ? sort : zSum;
+                double zVal = chart instanceof NN3DPlot ? sort : zSum;
                 polygons.add(new Polygon(context, xEs, ys, zVal, color));
             }
         }

@@ -2,7 +2,7 @@ package ch.kaiki.nn.ui;
 
 import ch.kaiki.nn.ui.color.NNChartColor;
 import ch.kaiki.nn.ui.series.DecisionBoundarySeries;
-import ch.kaiki.nn.ui.seriesobject.ChartGrid;
+import ch.kaiki.nn.ui.seriesobject.PlotGrid;
 import ch.kaiki.nn.ui.util.GridFace;
 import ch.kaiki.nn.ui.series.Series;
 import ch.kaiki.nn.ui.util.VisualizationMode;
@@ -15,7 +15,7 @@ import static ch.kaiki.nn.ui.color.NNColor.blend;
 import static javafx.scene.paint.Color.*;
 import static javafx.scene.paint.Color.DARKGRAY;
 
-public class NN2DChart extends BaseChart {
+public class NN2DPlot extends BasePlot {
 
 
     private boolean isInteractive = false;
@@ -32,7 +32,7 @@ public class NN2DChart extends BaseChart {
      * Note: turn on antialiasing!
      * @param context
      */
-    public NN2DChart(GraphicsContext context) {
+    public NN2DPlot(GraphicsContext context) {
         super(context);
         NNChartColor chartColors = new NNChartColor(TRANSPARENT, blend(LIGHTGRAY, TRANSPARENT, 0.1), DARKGRAY, GRAY, GRAY, DARKGRAY, DARKGRAY, DARKGRAY);
         mode = VisualizationMode.SNAP_TO_VIEWPORT;
@@ -104,8 +104,8 @@ public class NN2DChart extends BaseChart {
 
     @Override
     protected void renderGrid() {
-        List<ChartGrid> faces = getGrid();
-        for (ChartGrid grid : faces) {
+        List<PlotGrid> faces = getGrid();
+        for (PlotGrid grid : faces) {
             grid.render();
         }
     }
@@ -121,7 +121,7 @@ public class NN2DChart extends BaseChart {
     }
 
     @Override
-    protected List<ChartGrid> getGrid() {
+    protected List<PlotGrid> getGrid() {
         double offsetFactor = gridPaddingOffset;     // data is 90% of the cube size
         double xCubeOffset = Math.abs(xMax-xMin) * offsetFactor;
         double yCubeOffset = Math.abs(yMax-yMin) * offsetFactor;
@@ -137,8 +137,8 @@ public class NN2DChart extends BaseChart {
         double[] d2 = new double[] {xMaxCube, yMaxCube, zMinCube};
         double[] d3 = new double[] {xMaxCube, yMinCube, zMinCube};
 
-        List<ChartGrid> faces = new ArrayList<>();
-        faces.add(new ChartGrid(this, GridFace.BOTTOM, d0, d3, d2, d1, chartColors, axisLabels));
+        List<PlotGrid> faces = new ArrayList<>();
+        faces.add(new PlotGrid(this, GridFace.BOTTOM, d0, d3, d2, d1, chartColors, axisLabels));
         return faces;
     }
 

@@ -6,7 +6,7 @@ import ch.kaiki.nn.ui.color.NNChartColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
 import ch.kaiki.nn.ui.series.*;
 import ch.kaiki.nn.ui.util.ChartMode;
-import ch.kaiki.nn.ui.seriesobject.ChartGrid;
+import ch.kaiki.nn.ui.seriesobject.PlotGrid;
 import ch.kaiki.nn.ui.series.Series;
 import ch.kaiki.nn.ui.util.VisualizationMode;
 import javafx.scene.canvas.GraphicsContext;
@@ -23,7 +23,7 @@ import java.util.function.Function;
 import static ch.kaiki.nn.ui.color.NNColor.blend;
 import static javafx.scene.paint.Color.*;
 
-public abstract class BaseChart {
+public abstract class BasePlot {
     private static DecimalFormat df = new DecimalFormat("#.###");
     private final static double GRID_PADDING_OFFSET = 0.05; // 0.05 = 5% offset on each side -> grid size is 110% of data range
     protected double gridPaddingOffset = GRID_PADDING_OFFSET;
@@ -69,7 +69,7 @@ public abstract class BaseChart {
     protected List<Series> series = new ArrayList<>();
     protected VisualizationMode mode = VisualizationMode.CUBE;
     protected ChartMode chartMode = ChartMode.MESH_GRID;
-    public BaseChart(GraphicsContext context) {
+    public BasePlot(GraphicsContext context) {
         this.context = context;
         width = context.getCanvas().getWidth();
         height = context.getCanvas().getHeight();
@@ -256,7 +256,7 @@ public abstract class BaseChart {
 // --------------------------------------------- plots ---------------------------------------------
     private void setChartMode(ChartMode mode) {
         chartMode = mode;
-        if (this instanceof NN2DChart && mode == ChartMode.MESH_GRID) {
+        if (this instanceof NN2DPlot && mode == ChartMode.MESH_GRID) {
             gridPaddingOffset = 0;
         } else {
             gridPaddingOffset = GRID_PADDING_OFFSET;
@@ -582,7 +582,7 @@ public abstract class BaseChart {
 
     protected abstract void renderGrid();
 
-    protected abstract List<ChartGrid> getGrid();
+    protected abstract List<PlotGrid> getGrid();
 
     public boolean showBorder() {
         return showBorder;

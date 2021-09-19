@@ -1,6 +1,6 @@
 package ch.kaiki.nn.ui;
 
-import ch.kaiki.nn.ui.seriesobject.ChartGrid;
+import ch.kaiki.nn.ui.seriesobject.PlotGrid;
 import ch.kaiki.nn.ui.util.GridFace;
 import ch.kaiki.nn.ui.util.VisualizationMode;
 import javafx.animation.Animation;
@@ -12,7 +12,7 @@ import javafx.util.Duration;
 
 import java.util.*;
 
-public class NN3DChart extends BaseChart {
+public class NN3DPlot extends BasePlot {
 
 
     private double mousePosX, mousePosY;
@@ -25,7 +25,7 @@ public class NN3DChart extends BaseChart {
      * Note: turn on antialiasing!
      * @param context
      */
-    public NN3DChart(GraphicsContext context) {
+    public NN3DPlot(GraphicsContext context) {
         super(context);
         showBorder = true;
         mode = VisualizationMode.CUBE;
@@ -43,14 +43,14 @@ public class NN3DChart extends BaseChart {
 
     @Override
     protected void renderGrid() {
-        List<ChartGrid> faces = getGrid();
+        List<PlotGrid> faces = getGrid();
         for (int i = faces.size() - 1; i > 2; i--) {
             faces.get(i).render();
         }
     }
 
     @Override
-    protected List<ChartGrid> getGrid() {
+    protected List<PlotGrid> getGrid() {
         double offsetFactor = gridPaddingOffset;     // data is 90% of the cube size
         double xCubeOffset = Math.abs(xMax-xMin) * offsetFactor;
         double yCubeOffset = Math.abs(yMax-yMin) * offsetFactor;
@@ -72,15 +72,15 @@ public class NN3DChart extends BaseChart {
         double[] d6 = new double[] {xMaxCube, yMaxCube, zMaxCube};
         double[] d7 = new double[] {xMaxCube, yMinCube, zMaxCube};
 
-        List<ChartGrid> faces = new ArrayList<>();
+        List<PlotGrid> faces = new ArrayList<>();
 
-        faces.add(new ChartGrid(this, GridFace.BOTTOM, d0, d3, d2, d1, chartColors, axisLabels));
-        faces.add(new ChartGrid(this, GridFace.RIGHT, d3, d7, d6, d2, chartColors, axisLabels));
-        faces.add(new ChartGrid(this, GridFace.LEFT, d0, d4, d5, d1, chartColors, axisLabels));
-        faces.add(new ChartGrid(this, GridFace.BACK, d1, d2, d6, d5, chartColors, axisLabels));
-        faces.add(new ChartGrid(this, GridFace.FRONT, d0, d3, d7, d4, chartColors, axisLabels));
-        faces.add(new ChartGrid(this, GridFace.TOP, d4, d7, d6, d5, chartColors, axisLabels));
-        Collections.sort(faces, Comparator.comparingDouble(ChartGrid::getZ));
+        faces.add(new PlotGrid(this, GridFace.BOTTOM, d0, d3, d2, d1, chartColors, axisLabels));
+        faces.add(new PlotGrid(this, GridFace.RIGHT, d3, d7, d6, d2, chartColors, axisLabels));
+        faces.add(new PlotGrid(this, GridFace.LEFT, d0, d4, d5, d1, chartColors, axisLabels));
+        faces.add(new PlotGrid(this, GridFace.BACK, d1, d2, d6, d5, chartColors, axisLabels));
+        faces.add(new PlotGrid(this, GridFace.FRONT, d0, d3, d7, d4, chartColors, axisLabels));
+        faces.add(new PlotGrid(this, GridFace.TOP, d4, d7, d6, d5, chartColors, axisLabels));
+        Collections.sort(faces, Comparator.comparingDouble(PlotGrid::getZ));
         return faces;
     }
 

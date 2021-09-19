@@ -1,7 +1,7 @@
 package ch.kaiki.nn.ui.seriesobject;
 
-import ch.kaiki.nn.ui.BaseChart;
-import ch.kaiki.nn.ui.NN2DChart;
+import ch.kaiki.nn.ui.BasePlot;
+import ch.kaiki.nn.ui.NN2DPlot;
 import ch.kaiki.nn.ui.color.NNChartColor;
 import ch.kaiki.nn.ui.util.ChartMode;
 import ch.kaiki.nn.ui.util.GridFace;
@@ -15,10 +15,10 @@ import javafx.scene.transform.Rotate;
 
 import java.text.DecimalFormat;
 
-public class ChartGrid {
+public class PlotGrid {
     private static DecimalFormat df = new DecimalFormat("#.###");
 
-    private final BaseChart chart;
+    private final BasePlot chart;
     private final GraphicsContext context;
     private final GridFace face;
     private double[] x;
@@ -56,10 +56,10 @@ public class ChartGrid {
 
     private boolean is2D;
 
-    public ChartGrid(BaseChart chart, GridFace face, double[] a, double[] b, double[] c, double[] d, NNChartColor chartColors, String[] axisLabels) {
+    public PlotGrid(BasePlot chart, GridFace face, double[] a, double[] b, double[] c, double[] d, NNChartColor chartColors, String[] axisLabels) {
         this.chart = chart;
         this.context = chart.getContext();
-        this.is2D = chart instanceof NN2DChart;
+        this.is2D = chart instanceof NN2DPlot;
         this.face = face;
         this.a = a;
         this.b = b;
@@ -73,15 +73,6 @@ public class ChartGrid {
         this.tickLabelColor = chartColors.getTickLabelColor();
         this.labelColor = chartColors.getLabelColor();
         this.axisLabels = axisLabels;
-        if (!is2D && chart.getChartMode() == ChartMode.LINE_OR_SCATTER) {
-            String y = this.axisLabels[1];
-            String z = this.axisLabels[2];
-            //this.axisLabels[1] = z;
-            //this.axisLabels[2] = y;
-            //System.out.println(face);
-            //System.out.println(Arrays.toString(this.axisLabels));
-            // TODO check y not working
-        }
         initialTransformation();
     }
 
@@ -150,14 +141,14 @@ public class ChartGrid {
                 indexMap1 = new int[] {0,2,1};
                 indexMap2 = new int[] {2,0,1};
                 hasDecoration1 = false;
-                label2 = axisLabels[2];      // second z-Axis
+                label2 = (!is2D && chart.getChartMode() == ChartMode.LINE_OR_SCATTER) ? axisLabels[1] : axisLabels[2];      // second z-Axis
                 break;
             case LEFT:
             case RIGHT:
                 indexMap1 = new int[] {2,1,0};
                 indexMap2 = new int[] {1,2,0};
                 hasDecoration2 = false;
-                label1 = axisLabels[2];
+                label1 = (!is2D && chart.getChartMode() == ChartMode.LINE_OR_SCATTER) ? axisLabels[1] : axisLabels[2];
                 break;
             case TOP:
             case BOTTOM:
@@ -165,7 +156,7 @@ public class ChartGrid {
                 indexMap1 = new int[] {0,1,2};
                 indexMap2 = new int[] {1,0,2};
                 label1 = axisLabels[0];
-                label2 = axisLabels[1];
+                label2 = (!is2D && chart.getChartMode() == ChartMode.LINE_OR_SCATTER) ? axisLabels[2] : axisLabels[1];
                 break;
         }
 

@@ -1,14 +1,12 @@
 package ch.kaiki.nn.ui;
 
 import javafx.application.Application;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNHeatMap;
@@ -1630,16 +1628,18 @@ public class WeightTest extends Application {
 
             NNHeatMap color = new NNHeatMap(STEELBLUE, AZURE, ORANGE, CRIMSON);
             //NNHeatMap color = new NNHeatMap(BLACK, WHITE);
-            Canvas canvas = new Canvas(1000,1000);
+            Canvas canvas = new Canvas(600,600);
             root.getChildren().add(canvas);
-            NN2DChart chart = new NN2DChart(canvas.getGraphicsContext2D());
+            NN2DPlot chart = new NN2DPlot(canvas.getGraphicsContext2D());
+            chart.setTitle("Weights of the first layer per node");
             chart.plotWeights(net, color, 0,  28);
             //chart.plotWeights(net, color);
 
 
             Canvas canvas1 = new Canvas(600,600);
             root.getChildren().add(canvas1);
-            NN2DChart chart1 = new NN2DChart(canvas1.getGraphicsContext2D());
+            NN2DPlot chart1 = new NN2DPlot(canvas1.getGraphicsContext2D());
+            chart1.setTitle("confusion matrix");
             chart1.plotConfusionMatrix(net, color, true);
 
             primaryStage.setScene(new Scene(root));

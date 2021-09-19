@@ -2,8 +2,8 @@ package ch.kaiki.nn.ui.series;
 
 import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.BaseChart;
-import ch.kaiki.nn.ui.NN2DChart;
+import ch.kaiki.nn.ui.BasePlot;
+import ch.kaiki.nn.ui.NN2DPlot;
 import ch.kaiki.nn.ui.util.ChartMode;
 import ch.kaiki.nn.ui.seriesobject.Line;
 import javafx.scene.canvas.GraphicsContext;
@@ -18,7 +18,7 @@ import java.util.function.Function;
 public class LineSeries extends Series {
 
     private List<double[]> seriesData = new ArrayList<>();
-    private final BaseChart chart;
+    private final BasePlot chart;
     private final GraphicsContext context;
     private NeuralNetwork neuralNetwork;
     private Function<BackPropEntity, Double> backPropFunction;
@@ -28,22 +28,22 @@ public class LineSeries extends Series {
     private double yMinLimit = Double.MIN_VALUE;
     private double yMaxLimit = Double.MAX_VALUE;
 
-    public LineSeries(BaseChart chart, NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color, double smoothing) {
+    public LineSeries(BasePlot chart, NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color, double smoothing) {
         super(Arrays.asList(name), Arrays.asList(color), ChartMode.LINE_OR_SCATTER);
         this.chart = chart;
         this.context = chart.getContext();
         this.neuralNetwork = neuralNetwork;
         this.backPropFunction = function;
         this.smoothing = smoothing;
-        this.is2D = chart instanceof NN2DChart;
+        this.is2D = chart instanceof NN2DPlot;
     }
 
-    public LineSeries(BaseChart chart, Function<Double, Double> function, String name, Color color, double minX, double maxX, double minY, double maxY) {
+    public LineSeries(BasePlot chart, Function<Double, Double> function, String name, Color color, double minX, double maxX, double minY, double maxY) {
         super(Arrays.asList(name), Arrays.asList(color), ChartMode.LINE_OR_SCATTER);
         this.chart = chart;
         this.context = chart.getContext();
         this.genericFunction = function;
-        this.is2D = chart instanceof NN2DChart;
+        this.is2D = chart instanceof NN2DPlot;
         xMin = minX;
         xMax = maxX;
         yMinLimit = minY;

@@ -1627,7 +1627,7 @@ public class ConfusionMatrixTest extends Application {
             root.getChildren().add(hbox);
             Canvas canvas = new Canvas(300,300);
             hbox.getChildren().add(canvas);
-            NN2DChart plot = new NN2DChart(canvas.getGraphicsContext2D());
+            NN2DPlot plot = new NN2DPlot(canvas.getGraphicsContext2D());
             plot.setTitle("confusion matrix");
             plot.plotConfusionMatrix(net, new NNHeatMap(STEELBLUE, WHITE), false);
 
