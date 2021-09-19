@@ -4,7 +4,11 @@ import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNChartColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
-import javafx.application.Platform;
+import ch.kaiki.nn.ui.series.*;
+import ch.kaiki.nn.ui.util.ChartMode;
+import ch.kaiki.nn.ui.seriesobject.ChartGrid;
+import ch.kaiki.nn.ui.series.Series;
+import ch.kaiki.nn.ui.util.VisualizationMode;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
@@ -48,7 +52,10 @@ public abstract class BaseChart {
     protected double legendWidth;
     protected final static double OFFSET_BASE = 5;
     protected String title;
-
+    protected double offsetTop;
+    protected double offsetLeft;
+    protected double offsetRight;
+    protected double offsetBottom;
     protected boolean showBorder = false;
     protected boolean showTitle = false;
     protected boolean showGrid = true;
@@ -57,9 +64,11 @@ public abstract class BaseChart {
     protected boolean showTickMarkLabels = true;
     protected boolean showTickMarks = true;
     protected boolean showLegend = false;
-
+    final static double MIN_ZOOM = 0.1;
+    final static double MAX_ZOOM = 10;
     protected List<Series> series = new ArrayList<>();
     protected VisualizationMode mode = VisualizationMode.CUBE;
+    protected ChartMode chartMode = ChartMode.MESH_GRID;
     public BaseChart(GraphicsContext context) {
         this.context = context;
         width = context.getCanvas().getWidth();
@@ -82,6 +91,10 @@ public abstract class BaseChart {
         }
     }
 
+    public List<Series> getSeries() {
+        return series;
+    }
+
     public void setAxisLabels(String... labels) {
         if (labels == null) {
             axisLabels = new String[3];
@@ -99,7 +112,13 @@ public abstract class BaseChart {
         }
         showAxisLabels = foundLabel;
     }
-
+    public void setZoom(double zoom) {
+        if (zoom < MIN_ZOOM || zoom > MAX_ZOOM) {
+            throw new IllegalArgumentException("Zoom must be between " + MIN_ZOOM + " and " + MAX_ZOOM + "!");
+        }
+        this.zoom = zoom;
+        render();
+    }
     public void showTickMarkLabels(boolean showTickMarkLabels) {
         this.showTickMarkLabels = showTickMarkLabels;
     }
@@ -120,6 +139,14 @@ public abstract class BaseChart {
 
     public void showGrid(boolean showGrid) {
         this.showGrid = showGrid;
+        if (showGrid) {
+            showTickMarks = true;
+            showTickMarkLabels = true;
+        } else {
+            showTickMarks = true;
+            showTickMarkLabels = true;
+        }
+        setAxisLabels(axisLabels);
     }
 
     public void showGridContent(boolean showGridContent) {
@@ -136,6 +163,30 @@ public abstract class BaseChart {
         this.labelColor = colors.getLabelColor();
     }
 
+
+    public void setxMin(double xMin) {
+        this.xMin = xMin;
+    }
+
+    public void setxMax(double xMax) {
+        this.xMax = xMax;
+    }
+
+    public void setyMin(double yMin) {
+        this.yMin = yMin;
+    }
+
+    public void setyMax(double yMax) {
+        this.yMax = yMax;
+    }
+
+    public void setzMin(double zMin) {
+        this.zMin = zMin;
+    }
+
+    public void setzMax(double zMax) {
+        this.zMax = zMax;
+    }
 
     public void setInnerDataPadding(double innerDataPadding) {  // will expand data if possible
         if (dataScaling < 1) {
@@ -183,6 +234,11 @@ public abstract class BaseChart {
         return zMax;
     }
 
+    public ChartMode getChartMode() {
+        return chartMode;
+    }
+
+
     public GraphicsContext getContext() {
         return context;
     }
@@ -190,49 +246,87 @@ public abstract class BaseChart {
         return mode;
     }
 // --------------------------------------------- plots ---------------------------------------------
-public void plotLine(NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color, double smoothing) {
+    private void setChartMode(ChartMode mode) {
+        chartMode = mode;
+        if (this instanceof NN2DChart && mode == ChartMode.MESH_GRID) {
+            gridPaddingOffset = 0;
+        } else {
+            gridPaddingOffset = GRID_PADDING_OFFSET;
+        }
+    }
+    public void plotLine(Function<Double, Double> function, String name, Color color, double minX, double maxX) {
+        this.plotLine(function, name, color, minX, maxX, Double.MIN_VALUE, Double.MAX_VALUE);
+    }
+    public void plotLine(Function<Double, Double> function, String name, Color color, double minX, double maxX, double minY, double maxY) {
+        setChartMode(ChartMode.LINE_OR_SCATTER);
+        boolean clear = false;
+        for (Series s : series) {
+            if (s.getMode() == ChartMode.MESH_GRID) {
+                clear = true;
+            }
+        }
+        if (clear) {
+            series.clear();
+        }
+        LineSeries scatterSeries = new LineSeries(this, function, name, color, minX, maxX, minY, maxY);
+        int index = -1;
+        for (int i = 0; i < series.size(); i++) {
+            if (series.get(i) instanceof LineSeries) {
+                List<String> oName = series.get(i).getName();
+                if (oName.contains(name)) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        if (index == -1) {
+            series.add(scatterSeries);
+        } else {
+            series.set(index, scatterSeries);
+        }
+        invalidate();
+    }
+
+
+    public void plotLine(NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color, double smoothing) {
+        setChartMode(ChartMode.LINE_OR_SCATTER);
         if (smoothing < 0) {    // TODO: improve exception handling
             throw new IllegalArgumentException("Smoothing must be equal to or greater than 0.0!");
         }
-    xAngle = 0;
-    zAngle = 0;
-    zoom = 1;
-    boolean clear = false;
-    Series id = null;
-    for (Series s : series) {
-        if (s instanceof DecisionBoundarySeries) {
-            clear = true;
-        }
-    }
-    if (clear) {
-        series.clear();
-    }
-    LineSeries scatterSeries = new LineSeries(this, neuralNetwork, function, name, color, smoothing);
-    int index = -1;
-    for (int i = 0; i < series.size(); i++) {
-        if (series.get(i) instanceof LineSeries) {
-            List<String> oName = series.get(i).getName();
-            if (oName.contains(name)) {
-                index = i;
-                break;
-            }
-        }
-    }
-    if (index == -1) {
-        series.add(scatterSeries);
-    } else {
-        series.set(index, scatterSeries);
-    }
-    invalidate();
-}
-    public void scatter(NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color) {
-        xAngle = 0;
-        zAngle = 0;
-        zoom = 1;
         boolean clear = false;
         Series id = null;
         for (Series s : series) {
-            if (s instanceof DecisionBoundarySeries) {
+            if (s.getMode() == ChartMode.MESH_GRID) {
+                clear = true;
+            }
+        }
+        if (clear) {
+            series.clear();
+        }
+        LineSeries scatterSeries = new LineSeries(this, neuralNetwork, function, name, color, smoothing);
+        int index = -1;
+        for (int i = 0; i < series.size(); i++) {
+            if (series.get(i) instanceof LineSeries) {
+                List<String> oName = series.get(i).getName();
+                if (oName.contains(name)) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        if (index == -1) {
+            series.add(scatterSeries);
+        } else {
+            series.set(index, scatterSeries);
+        }
+        invalidate();
+    }
+    public void scatter(NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color) {
+        setChartMode(ChartMode.LINE_OR_SCATTER);
+        boolean clear = false;
+        Series id = null;
+        for (Series s : series) {
+            if (s.getMode() == ChartMode.MESH_GRID) {
                 clear = true;
             }
         }
@@ -264,8 +358,39 @@ public void plotLine(NeuralNetwork neuralNetwork, Function<BackPropEntity, Doubl
     public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, NNHeatMap heatMap, double resolution) {
         plotDecisionBoundaries(neuralNetwork, inputData, outputData, showData, null, heatMap, resolution);
     }
+    public void plotWeights(NeuralNetwork neuralNetwork, NNHeatMap heatMap) {
+        setChartMode(ChartMode.MESH_GRID);
+        int[] configuration = neuralNetwork.getConfiguration();
+        if (configuration[0] != 2) {
+            throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
+        }
+        if (configuration[configuration.length - 1] > 1) {
+            if (heatMap.getColors().size() < configuration[configuration.length-1]) {
+                //throw new IllegalArgumentException("Data color items " + heatMap.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
+            }
+        }
+        this.series.clear();
+        this.series.add(new LayerWeightSeries(this,  neuralNetwork, heatMap));
+        invalidate();
+    }
+    public void plotWeights(NeuralNetwork neuralNetwork, NNHeatMap heatMap, int layer) {
+        setChartMode(ChartMode.MESH_GRID);
+        int[] configuration = neuralNetwork.getConfiguration();
+        if (configuration[0] != 2) {
+            throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
+        }
+        if (configuration[configuration.length - 1] > 1) {
+            if (heatMap.getColors().size() < configuration[configuration.length-1]) {
+                //throw new IllegalArgumentException("Data color items " + heatMap.getColors().size() + " must match output class dimensions " + configuration[configuration.length-1] + "!");
+            }
+        }
+        this.series.clear();
+        this.series.add(new SingleLayerWeightSeries(this,  neuralNetwork, heatMap, layer));
+        invalidate();
+    }
 
     public void plotConfusionMatrix(NeuralNetwork neuralNetwork, NNHeatMap heatMap, boolean normalized) {
+        setChartMode(ChartMode.MESH_GRID);
         int[] configuration = neuralNetwork.getConfiguration();
         if (configuration[0] != 2) {
             throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
@@ -281,6 +406,7 @@ public void plotLine(NeuralNetwork neuralNetwork, Function<BackPropEntity, Doubl
     }
 
     public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap heatMap, double resolution) {
+        setChartMode(ChartMode.MESH_GRID);
         int[] configuration = neuralNetwork.getConfiguration();
         if (configuration[0] != 2) {
             throw new IllegalArgumentException("Decision boundaries can only be plotted for 2-dimensional inputs!");
@@ -305,7 +431,7 @@ public void plotLine(NeuralNetwork neuralNetwork, Function<BackPropEntity, Doubl
 
     // --------------------------------------------- chart handling ---------------------------------------------
 
-    protected void postInvalidate() {
+    public void postInvalidate() {
         invalidateLegendDimensions();
     }
 
@@ -456,20 +582,38 @@ public void plotLine(NeuralNetwork neuralNetwork, Function<BackPropEntity, Doubl
         }
     }
 
-    protected void preProcess() {
+    public void preProcess() {
     }
 
-    protected void postProcess() {
+    public void postProcess() {
     }
 
     protected abstract void renderGrid();
 
-    protected abstract List<Grid> getGrid();
+    protected abstract List<ChartGrid> getGrid();
+
+    public boolean showBorder() {
+        return showBorder;
+    }
+    public boolean showGridContent() {
+        return showGridContent;
+    }
+
+    public boolean showTickMarks() {
+        return showTickMarks;
+    }
+
+    public boolean showTickMarkLabels() {
+        return showTickMarkLabels;
+    }
+
+    public boolean showAxisLabels() {
+        return showAxisLabels;
+    }
 
 
 
-
-    private void clear() {
+    public void clear() {
         context.clearRect(0, 0, width, height);
         context.setFill(backgroundColor);
         context.fillRect(0, 0, width, height);
@@ -492,8 +636,8 @@ public void plotLine(NeuralNetwork neuralNetwork, Function<BackPropEntity, Doubl
             context.setFill(labelColor);
             context.setTextAlign(TextAlignment.CENTER);
             Font font = context.getFont();
-            context.setFont(new Font(null, 18));
-            double titleOffset = 30;
+            context.setFont(new Font(null, 16));
+            double titleOffset = 26;
             context.fillText(title, width / 2, titleOffset);
             context.setFont(font);
         }
@@ -521,48 +665,21 @@ public void plotLine(NeuralNetwork neuralNetwork, Function<BackPropEntity, Doubl
 
     // --------------------------------------------- helper methods ---------------------------------------------
 
-    protected double getInterval(double range, double threshold) {
-        if (range <= threshold) {
-            return calculateIntervalSmall(range);
-        }
-        return calculateIntervalLarge(range);
+
+    public double getOffsetLeft() {
+        return offsetLeft;
     }
 
-    private double calculateIntervalSmall(double range) {
-        double x = Math.pow(10.0, Math.floor(Math.log10(range)));
-        if (range / x >= 5) {
-            return x;
-        } else if (range / (x / 2.0) >= 5) {
-            return x / 2.0;
-        }
-        return x / 5.0;
+    public double getOffsetTop() {
+        return offsetTop;
     }
 
-    private double calculateIntervalLarge(double range) {
-        double x = Math.pow(10.0, Math.floor(Math.log10(range)));
-        if (range / (x / 2.0) >= 10) {
-            return x / 2.0;
-        } else if (range / (x / 5.0) >= 10) {
-            return x / 5.0;
-        }
-        return x / 10.0;
-    }
 
-    protected String formatTickLabel(double value) {
-        if (Double.isNaN(value) || Double.isInfinite(value)){
-            return "" + value;
-        }
 
-        double formatted = Double.parseDouble(df.format(value));
-        if (formatted % 1 == 0) {
-            return Integer.toString((int) formatted);
-        }
-        return Double.toString(formatted);
-    }
 
     // --------------------------------------------- matrix op ---------------------------------------------
 
-    protected abstract void setProjectionMatrix();
+    public abstract void setProjectionMatrix();
 
     public double[] transform(double[] v) {
         return lower(multiply(projectionMatrix, lift(v)));

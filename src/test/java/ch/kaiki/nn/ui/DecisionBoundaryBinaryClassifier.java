@@ -2,6 +2,7 @@ package ch.kaiki.nn.ui;
 
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNHeatMap;
+import ch.kaiki.nn.ui.util.VisualizationMode;
 import ch.kaiki.nn.util.Initializer;
 import ch.kaiki.nn.util.Optimizer;
 import ch.kaiki.nn.util.Rectifier;

@@ -1,7 +1,11 @@
 package ch.kaiki.nn.ui;
 
 import ch.kaiki.nn.ui.color.NNChartColor;
+import ch.kaiki.nn.ui.series.DecisionBoundarySeries;
+import ch.kaiki.nn.ui.seriesobject.ChartGrid;
 import ch.kaiki.nn.ui.util.GridFace;
+import ch.kaiki.nn.ui.series.Series;
+import ch.kaiki.nn.ui.util.VisualizationMode;
 import javafx.scene.canvas.GraphicsContext;
 
 import java.util.ArrayList;
@@ -17,15 +21,12 @@ public class NN2DChart extends BaseChart {
     private boolean isInteractive = false;
 
 
-    private final static double OFFSET_TITLE = 40;
+    private final static double OFFSET_TITLE = 32;
 
     private final static double OFFSET_TICK_MARK_LABEL = 28;
     private final static double OFFSET_AXIS_LABEL = 20;
 
-    private double offsetTop;
-    private double offsetLeft;
-    private double offsetRight;
-    private double offsetBottom;
+
 
     /**
      * Note: turn on antialiasing!
@@ -38,7 +39,7 @@ public class NN2DChart extends BaseChart {
     }
 
     @Override
-    protected void postProcess() {
+    public void postProcess() {
         // clip chart area, in case we overlapped any borders
         context.clearRect(0, 0, width, offsetTop);
         context.clearRect(0, 0, offsetLeft, height);
@@ -56,14 +57,16 @@ public class NN2DChart extends BaseChart {
         renderTitle();
         renderLegend(false);
 
-        boolean showGridContentCache = showGridContent;
-        showGridContent = false;
-        renderGrid();
-        showGridContent = showGridContentCache;
+        if (showGrid) {
+            boolean showGridContentCache = showGridContent;
+            showGridContent = false;
+            renderGrid();
+            showGridContent = showGridContentCache;
+        }
     }
 
     @Override
-    protected void postInvalidate() {
+    public void postInvalidate() {
         super.postInvalidate();
         for (Series s: series) {
             if (s instanceof DecisionBoundarySeries) {
@@ -101,8 +104,8 @@ public class NN2DChart extends BaseChart {
 
     @Override
     protected void renderGrid() {
-        List<Grid> faces = getGrid();
-        for (Grid grid : faces) {
+        List<ChartGrid> faces = getGrid();
+        for (ChartGrid grid : faces) {
             grid.render();
         }
     }
@@ -118,7 +121,7 @@ public class NN2DChart extends BaseChart {
     }
 
     @Override
-    protected List<Grid> getGrid() {
+    protected List<ChartGrid> getGrid() {
         double offsetFactor = gridPaddingOffset;     // data is 90% of the cube size
         double xCubeOffset = Math.abs(xMax-xMin) * offsetFactor;
         double yCubeOffset = Math.abs(yMax-yMin) * offsetFactor;
@@ -134,13 +137,13 @@ public class NN2DChart extends BaseChart {
         double[] d2 = new double[] {xMaxCube, yMaxCube, zMinCube};
         double[] d3 = new double[] {xMaxCube, yMinCube, zMinCube};
 
-        List<Grid> faces = new ArrayList<>();
-        faces.add(new Grid(this, GridFace.BOTTOM, d0, d3, d2, d1, chartColors, axisLabels));
+        List<ChartGrid> faces = new ArrayList<>();
+        faces.add(new ChartGrid(this, GridFace.BOTTOM, d0, d3, d2, d1, chartColors, axisLabels));
         return faces;
     }
 
     @Override
-    protected void setProjectionMatrix() {
+    public void setProjectionMatrix() {
         double[] camera = {0,0,-1};
         double[][] project = baseProjection(camera);
 

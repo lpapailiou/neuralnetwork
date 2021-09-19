@@ -13,7 +13,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNHeatMap;
-import ch.kaiki.nn.ui.color.NNPlotColorDeprecated;
 import ch.kaiki.nn.util.Initializer;
 import ch.kaiki.nn.util.Optimizer;
 import ch.kaiki.nn.util.Rectifier;
@@ -1628,7 +1627,7 @@ public class WeightTest extends Application {
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     //.setRectifierToLayer(Rectifier.SIGMOID, 2)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iterations = 1000000;
+            int iterations = 2000;
             net.fit(in, out, iterations);
             //System.out.println(net);
 

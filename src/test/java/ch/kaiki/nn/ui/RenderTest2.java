@@ -1,6 +1,9 @@
 package ch.kaiki.nn.ui;
 
+import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.deprecated.NNMeshGrid;
+import ch.kaiki.nn.util.Initializer;
+import ch.kaiki.nn.util.Optimizer;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -11,18 +14,13 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.color.NNDataColor;
-import ch.kaiki.nn.ui.color.NNPlotColorDeprecated;
-import ch.kaiki.nn.util.Initializer;
-import ch.kaiki.nn.util.Optimizer;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static javafx.scene.paint.Color.*;
 
-public class RenderTest extends Application {
+public class RenderTest2 extends Application {
 
     double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
     double[][] out = {{0}, {1}, {1}, {0}};

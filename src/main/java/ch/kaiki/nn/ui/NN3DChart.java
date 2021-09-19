@@ -1,6 +1,8 @@
 package ch.kaiki.nn.ui;
 
+import ch.kaiki.nn.ui.seriesobject.ChartGrid;
 import ch.kaiki.nn.ui.util.GridFace;
+import ch.kaiki.nn.ui.util.VisualizationMode;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -12,8 +14,7 @@ import java.util.*;
 
 public class NN3DChart extends BaseChart {
 
-    private final static double MIN_ZOOM = 0.1;
-    private final static double MAX_ZOOM = 10;
+
     private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
 
@@ -32,7 +33,7 @@ public class NN3DChart extends BaseChart {
 
 
     @Override
-    protected void preProcess() {
+    public void preProcess() {
         super.renderTitle();
         super.renderLegend(true);
     }
@@ -42,14 +43,14 @@ public class NN3DChart extends BaseChart {
 
     @Override
     protected void renderGrid() {
-        List<Grid> faces = getGrid();
+        List<ChartGrid> faces = getGrid();
         for (int i = faces.size() - 1; i > 2; i--) {
             faces.get(i).render();
         }
     }
 
     @Override
-    protected List<Grid> getGrid() {
+    protected List<ChartGrid> getGrid() {
         double offsetFactor = gridPaddingOffset;     // data is 90% of the cube size
         double xCubeOffset = Math.abs(xMax-xMin) * offsetFactor;
         double yCubeOffset = Math.abs(yMax-yMin) * offsetFactor;
@@ -71,15 +72,15 @@ public class NN3DChart extends BaseChart {
         double[] d6 = new double[] {xMaxCube, yMaxCube, zMaxCube};
         double[] d7 = new double[] {xMaxCube, yMinCube, zMaxCube};
 
-        List<Grid> faces = new ArrayList<>();
+        List<ChartGrid> faces = new ArrayList<>();
 
-        faces.add(new Grid(this, GridFace.BOTTOM, d0, d3, d2, d1, chartColors, axisLabels));
-        faces.add(new Grid(this, GridFace.RIGHT, d3, d7, d6, d2, chartColors, axisLabels));
-        faces.add(new Grid(this, GridFace.LEFT, d0, d4, d5, d1, chartColors, axisLabels));
-        faces.add(new Grid(this, GridFace.BACK, d1, d2, d6, d5, chartColors, axisLabels));
-        faces.add(new Grid(this, GridFace.FRONT, d0, d3, d7, d4, chartColors, axisLabels));
-        faces.add(new Grid(this, GridFace.TOP, d4, d7, d6, d5, chartColors, axisLabels));
-        Collections.sort(faces, Comparator.comparingDouble(Grid::getZ));
+        faces.add(new ChartGrid(this, GridFace.BOTTOM, d0, d3, d2, d1, chartColors, axisLabels));
+        faces.add(new ChartGrid(this, GridFace.RIGHT, d3, d7, d6, d2, chartColors, axisLabels));
+        faces.add(new ChartGrid(this, GridFace.LEFT, d0, d4, d5, d1, chartColors, axisLabels));
+        faces.add(new ChartGrid(this, GridFace.BACK, d1, d2, d6, d5, chartColors, axisLabels));
+        faces.add(new ChartGrid(this, GridFace.FRONT, d0, d3, d7, d4, chartColors, axisLabels));
+        faces.add(new ChartGrid(this, GridFace.TOP, d4, d7, d6, d5, chartColors, axisLabels));
+        Collections.sort(faces, Comparator.comparingDouble(ChartGrid::getZ));
         return faces;
     }
 
@@ -142,13 +143,7 @@ public class NN3DChart extends BaseChart {
         render();
     }
 
-    public void setZoom(double zoom) {
-        if (zoom < MIN_ZOOM || zoom > MAX_ZOOM) {
-            throw new IllegalArgumentException("Zoom must be between " + MIN_ZOOM + " and " + MAX_ZOOM + "!");
-        }
-        this.zoom = zoom;
-        render();
-    }
+
 
     public void setAnimated(boolean animate) {
         if (timeline != null) {
@@ -181,7 +176,7 @@ public class NN3DChart extends BaseChart {
     // --------------------------------------------- matrix op ---------------------------------------------
 
     @Override
-    protected void setProjectionMatrix() {
+    public void setProjectionMatrix() {
         double[] camera = {0,0,-1};
         double[][] project = multiply(centralProjection(), baseProjection(camera));
         double[][] rotate = lift(multiply(xRotation(xAngle), zRotation(zAngle)));

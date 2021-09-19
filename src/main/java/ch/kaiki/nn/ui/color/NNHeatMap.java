@@ -2,7 +2,7 @@ package ch.kaiki.nn.ui.color;
 
 import javafx.scene.paint.Color;
 
-public class NNHeatMap extends NNDataColor {
+public class NNHeatMap extends NNColorMap {
 
     private double min;
     private double max;

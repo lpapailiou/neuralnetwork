@@ -17,19 +17,20 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 import static javafx.scene.SceneAntialiasing.BALANCED;
-import static javafx.scene.paint.Color.*;
+import static javafx.scene.paint.Color.BLACK;
 
-public class ConfusionMatrixMulticlass extends Application {
+public class WeightBinaryClassifier extends Application {
 
-  double[][] in = {{0.1, 2.2}, {0.2, 0.22}, {0.3, 0.1}, {0.4, 0.7}, {0.5, 0.8}, {0.45, 0.9}, {0.8, 0.1}, {0.9, 0.15}, {0.8, 0.2}, {0.5, 1.55}};
-    double[][] out = {{1, 0, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
-   //double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
-   //double[][] out = {{0}, {1}, {1}, {0}};
+  //double[][] in = {{0.1, 2.2}, {0.2, 0.22}, {0.3, 0.1}, {0.4, 0.7}, {0.5, 0.8}, {0.45, 0.9}, {0.8, 0.1}, {0.9, 0.15}, {0.8, 0.2}, {0.5, 1.55}};
+    //double[][] out = {{1, 0, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+   double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
+   double[][] out = {{0}, {1}, {1}, {0}};
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -72,21 +73,20 @@ public class ConfusionMatrixMulticlass extends Application {
             graphBox.getChildren().add(canvas2);
             graphBox.getChildren().add(canvas);
 //# available values: gelu|identity|relu|leaky_relu|sigmoid|sigmoid_accurate|silu|silu_accurate|softplus|tanh|softmax.
-            NeuralNetwork net = new NeuralNetwork.Builder( 2, 32,32, 4).setInitializer(Initializer.KAIMING)
+            NeuralNetwork net = new NeuralNetwork.Builder( 2, 32,32, 16, 8, 2, 1).setInitializer(Initializer.KAIMING)
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     //.setLastLayerRectifier(Rectifier.TANH)  // SOFTPLUS | TANH
                     .setLearningRate(0.8)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
             int iter = 0;
-            int trainIter = 1;
+            int trainIter = 1000;
             double resolution = 0.1;
             double padding = 1.5;
-            boolean normalized = false;
 
 
             net.fit(in, out, iter);
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.SALMON);
-            NNHeatMap heatMap = new NNHeatMap(RED, YELLOW, GREEN);
+            NNHeatMap heatMap = new NNHeatMap(Color.STEELBLUE, Color.TURQUOISE, Color.YELLOW, Color.CRIMSON);
             //NNHeatMap heatMap = new NNHeatMap(Color.BLANCHEDALMOND, Color.LIGHTBLUE, Color.ROSYBROWN, Color.SALMON);
             //heatMap.setOpacity(0.3, 0.8);
 
@@ -97,11 +97,11 @@ public class ConfusionMatrixMulticlass extends Application {
             plot.get().setAxisLabels("x-Axis", "y-Axis", "z-Axis");
             plot.get().setTitle("Decision Boundary Visualization 3D");
             plot.get().enableMouseInteraction();
-            plot.get().showLegend(false);
+            plot.get().showLegend(true);
             plot.get().showBorder(true);
             plot.get().showTickMarkLabels(false);
             plot.get().showGridContent(false);
-            plot.get().showGrid(false);
+            plot.get().showGrid(true);
             //plot.get().setAnimated(true);
             //plot.get().setAnimated(true);
 /*
@@ -114,18 +114,17 @@ public class ConfusionMatrixMulticlass extends Application {
             plot2.setInnerDataPadding(padding);
             plot2.setTitle("Decision Boundary Visualization 2D");
             plot2.enableMouseInteraction();
-            plot2.showLegend(false);
+            plot2.showLegend(true);
             plot2.showBorder(true);
-            plot2.showGridContent(false);
-            plot2.showTickMarkLabels(false);
-            plot2.plotConfusionMatrix(net,heatMap, normalized);
-            plot(plot, net, heatMap, normalized);
+            plot2.setAxisLabels("x-Axis", "y-Axis");
+            plot2.plotWeights(net,heatMap);
+            plot(plot, net, resolution, heatMap);
 
             Button train = new Button("TRAIN");
             train.setOnAction(e -> {
                 net.fit(in, out, trainIter);
-                plot(plot, net, heatMap, normalized);
-                plot2.plotConfusionMatrix(net,heatMap, normalized);
+                plot(plot, net, resolution, heatMap);
+                plot2.plotWeights(net,heatMap);
             });
             cBox.getChildren().add(train);
 
@@ -138,8 +137,8 @@ public class ConfusionMatrixMulticlass extends Application {
         }
     }
 
-    private void plot(AtomicReference<NN3DChart> plot, NeuralNetwork net, NNHeatMap heatMap, boolean normalized) {
-        plot.get().plotConfusionMatrix(net,heatMap, normalized);
+    private void plot(AtomicReference<NN3DChart> plot, NeuralNetwork net, double resolution, NNHeatMap heatMap) {
+        plot.get().plotWeights(net,heatMap);
     }
 
 

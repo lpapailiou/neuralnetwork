@@ -1,8 +1,13 @@
-package ch.kaiki.nn.ui;
+package ch.kaiki.nn.ui.series;
 
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
+import ch.kaiki.nn.ui.BaseChart;
+import ch.kaiki.nn.ui.NN3DChart;
 import ch.kaiki.nn.ui.color.NNColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
+import ch.kaiki.nn.ui.util.ChartMode;
+import ch.kaiki.nn.ui.seriesobject.Polygon;
+import ch.kaiki.nn.ui.seriesobject.SortableSeriesData;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
@@ -23,7 +28,7 @@ public class ConfusionMatrixSeries extends Series {
     private boolean normalized;
 
     public ConfusionMatrixSeries(BaseChart chart, NeuralNetwork neuralNetwork, NNHeatMap colorMap, boolean normalized) {
-        super(null, colorMap.getColors());
+        super(null, colorMap.getColors(), ChartMode.MESH_GRID);
         this.chart = chart;
         this.neuralNetwork = neuralNetwork;
         int[] configuration = neuralNetwork.getConfiguration();
@@ -83,7 +88,7 @@ public class ConfusionMatrixSeries extends Series {
 
     @Override
     public void render() {
-        double[][][][] transformedDataGrid = new double[dimension+1][dimension+1][4][];
+        double[][][][] transformedDataGrid = new double[dimension][dimension][4][];
         GraphicsContext context = chart.getContext();
         double zMin = chart.getGlobalMinZ();
         double zMax = chart.getGlobalMaxZ();

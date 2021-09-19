@@ -1,8 +1,6 @@
-package ch.kaiki.nn.ui;
+package ch.kaiki.nn.ui.series;
 
-import ch.kaiki.nn.ui.util.Point;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import ch.kaiki.nn.ui.util.ChartMode;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
@@ -20,11 +18,14 @@ public abstract class Series {
     protected double zMin = Double.MAX_VALUE;
     protected double zMax = Double.MIN_VALUE;
 
-    public Series(List<String> name, List<Color> color) {
+    protected final ChartMode mode;
+
+    public Series(List<String> name, List<Color> color, ChartMode mode) {
         if (name != null) {
             this.name.addAll(name);
         }
         this.color.addAll(color);
+        this.mode = mode;
     }
 
     public abstract void compute();
@@ -80,6 +81,10 @@ public abstract class Series {
 
     public List<Color> getColor() {
         return color;
+    }
+
+    public ChartMode getMode() {
+        return mode;
     }
 
 }

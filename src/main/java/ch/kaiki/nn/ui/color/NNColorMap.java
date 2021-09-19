@@ -1,16 +1,15 @@
 package ch.kaiki.nn.ui.color;
 
-
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class NNDataColor implements NNColor {
+public class NNColorMap implements NNColor {
 
     private List<Color> colors = new ArrayList<>();
 
-    public NNDataColor(Color... colors) {
+    public NNColorMap(Color... colors) {
         for (Color color : colors) {
             if (color == null) {
                 color = Color.TRANSPARENT;

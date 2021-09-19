@@ -1,20 +1,25 @@
-package ch.kaiki.nn.ui;
+package ch.kaiki.nn.ui.seriesobject;
 
+import ch.kaiki.nn.ui.BaseChart;
+import ch.kaiki.nn.ui.NN2DChart;
 import ch.kaiki.nn.ui.color.NNChartColor;
+import ch.kaiki.nn.ui.util.ChartMode;
 import ch.kaiki.nn.ui.util.GridFace;
-import javafx.application.Platform;
 import javafx.geometry.VPos;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
+import java.text.DecimalFormat;
 
-public class Grid {
+public class ChartGrid {
+    private static DecimalFormat df = new DecimalFormat("#.###");
+
     private final BaseChart chart;
+    private final GraphicsContext context;
     private final GridFace face;
     private double[] x;
     private double[] y;
@@ -51,8 +56,9 @@ public class Grid {
 
     private boolean is2D;
 
-    public Grid(BaseChart chart, GridFace face, double[] a, double[] b, double[] c, double[] d, NNChartColor chartColors, String[] axisLabels) {
+    public ChartGrid(BaseChart chart, GridFace face, double[] a, double[] b, double[] c, double[] d, NNChartColor chartColors, String[] axisLabels) {
         this.chart = chart;
+        this.context = chart.getContext();
         this.is2D = chart instanceof NN2DChart;
         this.face = face;
         this.a = a;
@@ -67,6 +73,15 @@ public class Grid {
         this.tickLabelColor = chartColors.getTickLabelColor();
         this.labelColor = chartColors.getLabelColor();
         this.axisLabels = axisLabels;
+        if (!is2D && chart.getChartMode() == ChartMode.LINE_OR_SCATTER) {
+            String y = this.axisLabels[1];
+            String z = this.axisLabels[2];
+            //this.axisLabels[1] = z;
+            //this.axisLabels[2] = y;
+            //System.out.println(face);
+            //System.out.println(Arrays.toString(this.axisLabels));
+            // TODO check y not working
+        }
         initialTransformation();
     }
 
@@ -78,15 +93,15 @@ public class Grid {
         z = t0[3]+t1[3]+t2[3]+t3[3];
     }
 
-    void render() {
+    public void render() {
 
         x = new double[]{t0[0], t1[0], t2[0], t3[0]};
         y = new double[]{t0[1], t1[1], t2[1], t3[1]};
 
         // grid background
-        if (chart.showGridContent) {
-            chart.context.setFill(gridBackgroundColor);
-            chart.context.fillPolygon(x, y, 4);
+        if (chart.showGridContent()) {
+            context.setFill(gridBackgroundColor);
+            context.fillPolygon(x, y, 4);
         }
 
         double min1;
@@ -161,7 +176,7 @@ public class Grid {
         double offsetTickStart = min2-range2;
         double offsetTickEnd = max2+range2;
         boolean isStartZSmaller = drawGrid(range1, range2, min1, max1, min2, max2, cnst, offsetTickStart, offsetTickEnd, indexMap1, hasDecoration1);
-        if (hasDecoration1 && chart.showAxisLabels) {
+        if (hasDecoration1 && chart.showAxisLabels()) {
             double[] center = getTransformedVector(indexMap1, range1/2 + min1, isStartZSmaller ? min2 : max2, cnst);
             double[] labelPos = getTransformedVector(indexMap1, range1/2 + min1, isStartZSmaller ? offsetTickStart : offsetTickEnd, cnst);
             GridFace filter = (face == GridFace.LEFT || face == GridFace.RIGHT) ? GridFace.RIGHT : null;
@@ -173,7 +188,7 @@ public class Grid {
         offsetTickStart = min1 - range1;
         offsetTickEnd = max1 + range1;
         isStartZSmaller = drawGrid(range2, range1, min2, max2, min1, max1, cnst, offsetTickStart, offsetTickEnd, indexMap2, hasDecoration2);
-        if (hasDecoration2 && chart.showAxisLabels) {
+        if (hasDecoration2 && chart.showAxisLabels()) {
             double[] center = getTransformedVector(indexMap2, range2/2 + min2, isStartZSmaller ? min1 : max1, cnst);
             double[] labelPos = getTransformedVector(indexMap2, range2/2 + min2, isStartZSmaller ? offsetTickStart : offsetTickEnd, cnst);
             GridFace filter = (face == GridFace.FRONT || face == GridFace.BACK) ? GridFace.BACK : null;
@@ -185,24 +200,24 @@ public class Grid {
         }
 
         // axis aka border of grid
-        chart.context.setLineWidth(axisStrokeWidth);
-        chart.context.setStroke(axisColor);
-        chart.context.strokeLine(t0[0], t0[1], t1[0], t1[1]);
-        chart.context.strokeLine(t1[0], t1[1], t2[0], t2[1]);
-        chart.context.strokeLine(t2[0], t2[1], t3[0], t3[1]);
-        chart.context.strokeLine(t3[0], t3[1], t0[0], t0[1]);
+        context.setLineWidth(axisStrokeWidth);
+        context.setStroke(axisColor);
+        context.strokeLine(t0[0], t0[1], t1[0], t1[1]);
+        context.strokeLine(t1[0], t1[1], t2[0], t2[1]);
+        context.strokeLine(t2[0], t2[1], t3[0], t3[1]);
+        context.strokeLine(t3[0], t3[1], t0[0], t0[1]);
 
     }
 
     private void drawAxisLabel(double[] center, double[] labelPos, double angle, String label) {
-        double offset = chart.showTickMarkLabels ? AXIS_LABEL_OFFSET : AXIS_LABEL_OFFSET - TICK_LABEL_OFFSET;
+        double offset = chart.showTickMarkLabels() ? AXIS_LABEL_OFFSET : AXIS_LABEL_OFFSET - TICK_LABEL_OFFSET;
         labelPos = getScaledVector(center, labelPos, offset);
         drawLabel(label, labelPos, angle);
     }
 
     private boolean drawGrid(double range, double rangeO, double min, double max, double minO, double maxO, double cnst, double offsetTickStart, double offsetTickEnd, int[] indexMap, boolean hasDecoration) {
         //double intervalStep = chart.getInterval(range, 1000);
-        double intervalStep = chart.getInterval(range, 500);
+        double intervalStep = getInterval(range, 500);
 
         double value = min - (min % intervalStep) - intervalStep;
         int tickCount = (int) (range / intervalStep) + 3;
@@ -220,15 +235,17 @@ public class Grid {
             isStartZSmaller = ((face == GridFace.BOTTOM || face == GridFace.TOP) && is2D) ? start[3] <= end[3] : start[3] < end[3];
 
             // grid line
-            if (chart.showGridContent) {
+            if (chart.showGridContent()) {
+                context.setStroke(gridLineColor);
+                context.setLineWidth(gridStrokeWidth);
+                context.strokeLine(start[0], start[1], end[0], end[1]);
+
+                // zero line
                 if (Double.parseDouble(String.format("%.2f", value)) == 0) {
-                    chart.context.setStroke(zeroLineColor);
-                    chart.context.setLineWidth(zeroLineStrokeWidth);
-                } else {
-                    chart.context.setStroke(gridLineColor);
-                    chart.context.setLineWidth(gridStrokeWidth);
+                    context.setStroke(zeroLineColor);
+                    context.setLineWidth(zeroLineStrokeWidth);
+                    context.strokeLine(start[0], start[1], end[0], end[1]);
                 }
-                chart.context.strokeLine(start[0], start[1], end[0], end[1]);
             }
 
 
@@ -246,22 +263,22 @@ public class Grid {
                 }
 
                 // tick mark
-                if (chart.showTickMarks) {
-                    chart.context.setLineWidth(tickStrokeWidth);
-                    chart.context.setStroke(tickMarkColor);
-                    chart.context.strokeLine(tickStart[0], tickStart[1], tickEnd[0], tickEnd[1]);
+                if (chart.showTickMarks()) {
+                    context.setLineWidth(tickStrokeWidth);
+                    context.setStroke(tickMarkColor);
+                    context.strokeLine(tickStart[0], tickStart[1], tickEnd[0], tickEnd[1]);
                 }
 
                 // tick label
-                if (chart.showTickMarkLabels) {
-                    Font font = chart.context.getFont();
-                    chart.context.setFont(new Font(null, 11));
-                    chart.context.setTextAlign(TextAlignment.CENTER);
-                    chart.context.setTextBaseline(VPos.CENTER);
-                    chart.context.setFill(tickLabelColor);
-                    chart.context.fillText(chart.formatTickLabel(value), tickLabel[0], tickLabel[1]);
-                    chart.context.setTextBaseline(VPos.BASELINE);
-                    chart.context.setFont(font);
+                if (chart.showTickMarkLabels()) {
+                    Font font = context.getFont();
+                    context.setFont(new Font(null, 11));
+                    context.setTextAlign(TextAlignment.CENTER);
+                    context.setTextBaseline(VPos.CENTER);
+                    context.setFill(tickLabelColor);
+                    context.fillText(formatTickLabel(value), tickLabel[0], tickLabel[1]);
+                    context.setTextBaseline(VPos.BASELINE);
+                    context.setFont(font);
                 }
             }
         }
@@ -301,21 +318,57 @@ public class Grid {
     }
 
     private void drawLabel(String text, double[] position, double angle) {
-        Font font = chart.context.getFont();
-        chart.context.setFont(new Font(null, 15));
-        chart.context.setTextAlign(TextAlignment.CENTER);
-        chart.context.setTextBaseline(VPos.CENTER);
-        chart.context.setFill(labelColor);
-        chart.context.transform(new Affine(new Rotate(-angle, position[0],position[1])));
-        chart.context.fillText(text, position[0], position[1]);
-        chart.context.transform(new Affine(new Rotate(angle, position[0],position[1])));
-        chart.context.setFont(font);
-        chart.context.setTextBaseline(VPos.BASELINE);
-        //chart.context.fillText(text, position[0], position[1]);        // label without rotation
+        Font font = context.getFont();
+        context.setFont(new Font(null, 15));
+        context.setTextAlign(TextAlignment.CENTER);
+        context.setTextBaseline(VPos.CENTER);
+        context.setFill(labelColor);
+        context.transform(new Affine(new Rotate(-angle, position[0],position[1])));
+        context.fillText(text, position[0], position[1]);
+        context.transform(new Affine(new Rotate(angle, position[0],position[1])));
+        context.setFont(font);
+        context.setTextBaseline(VPos.BASELINE);
     }
 
     public double getZ() {
         return z;
     }
+    protected String formatTickLabel(double value) {
+        if (Double.isNaN(value) || Double.isInfinite(value)){
+            return "" + value;
+        }
 
+        double formatted = Double.parseDouble(df.format(value));
+        if (formatted % 1 == 0) {
+            return Integer.toString((int) formatted);
+        }
+        return Double.toString(formatted);
+    }
+
+    protected double getInterval(double range, double threshold) {
+        if (range <= threshold) {
+            return calculateIntervalSmall(range);
+        }
+        return calculateIntervalLarge(range);
+    }
+
+    private double calculateIntervalSmall(double range) {
+        double x = Math.pow(10.0, Math.floor(Math.log10(range)));
+        if (range / x >= 5) {
+            return x;
+        } else if (range / (x / 2.0) >= 5) {
+            return x / 2.0;
+        }
+        return x / 5.0;
+    }
+
+    private double calculateIntervalLarge(double range) {
+        double x = Math.pow(10.0, Math.floor(Math.log10(range)));
+        if (range / (x / 2.0) >= 10) {
+            return x / 2.0;
+        } else if (range / (x / 5.0) >= 10) {
+            return x / 5.0;
+        }
+        return x / 10.0;
+    }
 }

@@ -1,9 +1,7 @@
-package ch.kaiki.nn.ui;
+package ch.kaiki.nn.ui.seriesobject;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-
-import static ch.kaiki.nn.ui.color.NNColor.blend;
 
 public class Point implements SortableSeriesData {
     private GraphicsContext context;

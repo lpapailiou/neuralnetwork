@@ -1,7 +1,8 @@
 package ch.kaiki.nn.data;
 
+import ch.kaiki.nn.neuralnet.Matrix;
+
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -15,7 +16,6 @@ public class BackPropData implements Serializable {
     private int tnSum;
     private int fnSum;
     private boolean initialized;
-    private int iterations;
     private int[] iterCount;
     private boolean isBinary;
 
@@ -37,7 +37,7 @@ public class BackPropData implements Serializable {
         int fn = 0;
         costSum += cost;
         for (int i = 0; i < expected.length; i++) {
-            int maxIndex = maxIndex(actual);
+            int maxIndex = getMaxIndex(actual);
             double maxValue = actual[maxIndex];
             // collect scores
             if (expected[i] > 0.5) {
@@ -74,7 +74,6 @@ public class BackPropData implements Serializable {
                 if (expected[i] > 0.5) {
                     iterCount[i] += 1;
                     for (int j = 0; j < actual.length; j++) {
-                        //double value = actual[j] > 0.5 ? 1 : 0;
                         double value = j == maxIndex ? 1 : 0;
                         confusionMatrix[i][j] += value;
                     }
@@ -83,9 +82,7 @@ public class BackPropData implements Serializable {
             }
         }
         BackPropEntity backPropEntity = new BackPropEntity(cost, tp, fp, tn, fn, costSum, tpSum, fpSum, tnSum, fnSum);
-        System.out.println("expected: " + maxIndex(expected) + ", actual: "  + maxIndex(actual));        // TODO: transpose multiclass
         iterationMap.put(iteration, backPropEntity);
-        iterations++;
     }
 
     public SortedMap<Integer, BackPropEntity> getMap() {
@@ -93,12 +90,15 @@ public class BackPropData implements Serializable {
     }
 
     public double[][] getConfusionMatrix() {
-        return confusionMatrix;
+        if (!initialized) {
+            return null;
+        }
+        return transpose(confusionMatrix);
     }
 
     public double[][] getNormalizedConfusionMatrix() {
-        if (confusionMatrix == null) {
-            return confusionMatrix;
+        if (!initialized) {
+            return null;
         }
         double[][] normalizedMatrix = new double[confusionMatrix.length][confusionMatrix.length];
         for (int i = 0; i < confusionMatrix.length; i++) {
@@ -107,10 +107,10 @@ public class BackPropData implements Serializable {
                 normalizedMatrix[i][j] = iter == 0 ? 0 : confusionMatrix[i][j] / iterCount[i];
             }
         }
-        return normalizedMatrix;
+        return transpose(normalizedMatrix);
     }
 
-    private int maxIndex(double[] actual) {
+    private int getMaxIndex(double[] actual) {
         double val = Double.MIN_VALUE;
         int index = 0;
         for (int i = 0; i < actual.length; i++) {
@@ -120,6 +120,16 @@ public class BackPropData implements Serializable {
             }
         }
         return index;
+    }
+
+    private double[][] transpose(double[][] m) {
+        double[][] tmp = new double[m.length][m.length];
+        for (int i = 0; i < m.length; i++) {
+            for (int j = 0; j < m.length; j++) {
+                tmp[j][i] = m[i][j];
+            }
+        }
+        return tmp;
     }
 }
 

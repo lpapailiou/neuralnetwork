@@ -1,4 +1,4 @@
-package ch.kaiki.nn.ui;
+package ch.kaiki.nn.ui.seriesobject;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;

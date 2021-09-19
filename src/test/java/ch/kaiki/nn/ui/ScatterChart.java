@@ -3,6 +3,7 @@ package ch.kaiki.nn.ui;
 import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNHeatMap;
+import ch.kaiki.nn.ui.util.VisualizationMode;
 import ch.kaiki.nn.util.Initializer;
 import ch.kaiki.nn.util.Optimizer;
 import ch.kaiki.nn.util.Rectifier;
@@ -79,7 +80,7 @@ public class ScatterChart extends Application {
                     //.setLastLayerRectifier(Rectifier.TANH)  // SOFTPLUS | TANH
                     .setLearningRate(0.8)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iter = 25;
+            int iter = 500;
             int trainIter = 25;
             double resolution = 0.1;
             double padding = 1.5;

@@ -1,17 +1,15 @@
-package ch.kaiki.nn.ui;
+package ch.kaiki.nn.ui.series;
 
 import ch.kaiki.nn.data.BackPropEntity;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
-import ch.kaiki.nn.ui.color.NNColor;
-import ch.kaiki.nn.ui.color.NNHeatMap;
+import ch.kaiki.nn.ui.BaseChart;
+import ch.kaiki.nn.ui.util.ChartMode;
+import ch.kaiki.nn.ui.seriesobject.Point;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 import java.util.*;
 import java.util.function.Function;
-
-import static ch.kaiki.nn.ui.color.NNColor.blend;
-import static javafx.scene.paint.Color.TRANSPARENT;
 
 public class ScatterSeries extends Series {
 
@@ -20,10 +18,12 @@ public class ScatterSeries extends Series {
     private final NeuralNetwork neuralNetwork;
     private final Function<BackPropEntity, Double> function;
     private double smoothing;
+    private GraphicsContext context;
 
     public ScatterSeries(BaseChart chart, NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color, double smoothing) {
-        super(Arrays.asList(name), Arrays.asList(color));
+        super(Arrays.asList(name), Arrays.asList(color), ChartMode.LINE_OR_SCATTER);
         this.chart = chart;
+        this.context = chart.getContext();
         this.neuralNetwork = neuralNetwork;
         this.function = function;
     }
@@ -37,7 +37,7 @@ public class ScatterSeries extends Series {
         seriesData.clear();
 
         int index = 0;
-        for (Series s: chart.series) {
+        for (Series s: chart.getSeries()) {
             if (this == s) {
                 break;
             }
@@ -96,7 +96,7 @@ public class ScatterSeries extends Series {
         Color color = super.getColor().get(0);
         for (double[] point : seriesData) {
             double[] t = chart.transform(new double[]{point[0], point[1], point[2]});
-            points.add(new Point(chart.context, t[0], t[1], t[2], color, false));
+            points.add(new Point(context, t[0], t[1], t[2], color, false));
         }
 
         for (Point point : points) {

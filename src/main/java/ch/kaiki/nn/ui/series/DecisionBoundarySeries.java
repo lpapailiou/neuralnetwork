@@ -1,8 +1,15 @@
-package ch.kaiki.nn.ui;
+package ch.kaiki.nn.ui.series;
 
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
+import ch.kaiki.nn.ui.BaseChart;
+import ch.kaiki.nn.ui.NN2DChart;
+import ch.kaiki.nn.ui.NN3DChart;
 import ch.kaiki.nn.ui.color.NNColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
+import ch.kaiki.nn.ui.seriesobject.Point;
+import ch.kaiki.nn.ui.seriesobject.Polygon;
+import ch.kaiki.nn.ui.seriesobject.SortableSeriesData;
+import ch.kaiki.nn.ui.util.*;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
@@ -23,10 +30,12 @@ public class DecisionBoundarySeries extends Series {
     private final NeuralNetwork neuralNetwork;
     private boolean isBinary;
     private boolean showData;
+    private GraphicsContext context;
 
     public DecisionBoundarySeries(BaseChart chart, NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap colorMap) {
-        super(null, colorMap.getColors());
+        super(null, colorMap.getColors(), ChartMode.MESH_GRID);
         this.chart = chart;
+        this.context = chart.getContext();
         this.neuralNetwork = neuralNetwork;
         this.inputData = inputData;
         this.outputData = outputData;
@@ -174,7 +183,7 @@ public class DecisionBoundarySeries extends Series {
             for (int i = 0; i < inputData.length; i++) {
                 double[] t = chart.transform(new double[] {inputData[i][0], inputData[i][1], zMax});
                 Color color = colorMap.getColors().get(getFeatureIndex(outputData[i]));
-                polygons.add(new Point(chart.context, t[0], t[1], t[3], color, true));
+                polygons.add(new Point(context, t[0], t[1], t[3], color, true));
             }
         }
 

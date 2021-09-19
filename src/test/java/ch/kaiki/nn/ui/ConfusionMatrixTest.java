@@ -1,6 +1,5 @@
 package ch.kaiki.nn.ui;
 
-import ch.kaiki.nn.ui.deprecated.NNMeshGrid;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -13,7 +12,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNHeatMap;
-import ch.kaiki.nn.ui.color.NNPlotColorDeprecated;
 import ch.kaiki.nn.util.Initializer;
 import ch.kaiki.nn.util.Optimizer;
 import ch.kaiki.nn.util.Rectifier;
@@ -1614,7 +1612,6 @@ public class ConfusionMatrixTest extends Application {
             VBox root = new VBox();
             root.setBackground(new Background(new BackgroundFill(BLACK, null, null)));
             HBox hbox = null;
-            NNPlotColorDeprecated plotColors = new NNPlotColorDeprecated(BLACK, BLACK, STEELBLUE, LIGHTGRAY, STEELBLUE, RED);
 
             NeuralNetwork net = new NeuralNetwork.Builder(784, 100,100,10)
                     .setInitializer(Initializer.KAIMING)
@@ -1628,11 +1625,11 @@ public class ConfusionMatrixTest extends Application {
             hbox.setSpacing(10);
             hbox.setPadding(new Insets(20, 20, 20, 20));
             root.getChildren().add(hbox);
-            NNMeshGrid plot = new NNMeshGrid(addCanvas(300, 300, hbox));
-            plot.setPadding(25, 0, 20, 30, 0);
+            Canvas canvas = new Canvas(300,300);
+            hbox.getChildren().add(canvas);
+            NN2DChart plot = new NN2DChart(canvas.getGraphicsContext2D());
             plot.setTitle("confusion matrix");
-            plot.setColorPalette(plotColors);
-            plot.plotConfusionMatrix(net, in, 1, true, true, true, new NNHeatMap(STEELBLUE, WHITE));
+            plot.plotConfusionMatrix(net, new NNHeatMap(STEELBLUE, WHITE), false);
 
             System.out.println(net.predict(in[0]) + " is 0?");
             System.out.println(net.predict(in[1]) + " is 1?");

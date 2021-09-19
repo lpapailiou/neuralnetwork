@@ -1,4 +1,4 @@
-package ch.kaiki.nn.ui;
+package ch.kaiki.nn.ui.seriesobject;
 
 import org.jetbrains.annotations.NotNull;
 
