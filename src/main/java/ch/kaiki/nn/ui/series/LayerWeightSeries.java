@@ -101,18 +101,19 @@ public class LayerWeightSeries extends Series {
             weightImgs.add(img);
 
         }
-        int iterX = 1;
+        int iterX = imgCount;
         int iterY = 1;
-        int index = 0;
-        while (iterX * iterY < imgCount) {
-            if (index % 2 == 0) {
-                iterX++;
+        double viewPortRatio = chart.getWidth() / chart.getHeight();
+        while (((double) iterX / iterY) > viewPortRatio) {
+            int nextX = iterX -1;
+            int nextY = (int) Math.ceil((double) imgCount / iterX);
+            if ((((double) nextX) / nextY) > viewPortRatio) {
+                iterX = nextX;
+                iterY = nextY;
             } else {
-                iterY++;
+                break;
             }
-            index++;
         }
-
         chart.clear();
         chart.showGrid(false);
         chart.showTickMarks(false);
@@ -124,10 +125,10 @@ public class LayerWeightSeries extends Series {
         x1 = (int)chart.getWidth();
         y0 = (int)chart.getOffsetTop();
         y1 = (int)chart.getHeight();
-        double offset = 5;
+
         double stepX = (x1) / (double) iterX;
         double stepY = (y1) / (double) iterY;
-
+        double offset = Math.max(Math.min(stepX*0.02, 5), 1.5);
         int imgIndex = 0;
 
         double y = y0;

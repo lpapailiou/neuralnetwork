@@ -1,3 +1,5 @@
+package ch.kaiki.nn.ui;
+
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.NN2DPlot;
 import ch.kaiki.nn.ui.NN3DPlot;

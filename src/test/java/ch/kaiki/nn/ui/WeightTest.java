@@ -1628,15 +1628,22 @@ public class WeightTest extends Application {
 
             NNHeatMap color = new NNHeatMap(STEELBLUE, AZURE, ORANGE, CRIMSON);
             //NNHeatMap color = new NNHeatMap(BLACK, WHITE);
-            Canvas canvas = new Canvas(600,600);
+            Canvas canvas = new Canvas(500,500);
             root.getChildren().add(canvas);
             NN2DPlot chart = new NN2DPlot(canvas.getGraphicsContext2D());
             chart.setTitle("Weights of the first layer per node");
             chart.plotWeights(net, color, 0,  28);
             //chart.plotWeights(net, color);
 
+            Canvas canvas0 = new Canvas(500,500);
+            root.getChildren().add(canvas0);
+            NN2DPlot chart0 = new NN2DPlot(canvas0.getGraphicsContext2D());
+            chart0.setTitle("Weights of the first layer");
+            chart0.plotWeights(net, color, 0);
 
-            Canvas canvas1 = new Canvas(600,600);
+
+
+            Canvas canvas1 = new Canvas(500,500);
             root.getChildren().add(canvas1);
             NN2DPlot chart1 = new NN2DPlot(canvas1.getGraphicsContext2D());
             chart1.setTitle("confusion matrix");
