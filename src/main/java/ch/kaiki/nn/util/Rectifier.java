@@ -26,6 +26,42 @@ public enum Rectifier {
         }
     },
     /**
+     * The rectified linear unit is linear growth for values above 0 and 0 for values less or equal to 0.
+     * This is a quite common activation function for neural networks. It is quite fragile, as neurons can die during
+     * the training.
+     * formula:    f(x)  = x        if x greater than 0, else 0
+     * derivation: f(x)' = 1        if x greater than 0, else 0
+     */
+    RELU("Rectified Linear Unit") {
+        @Override
+        public double activate(double value) {
+            return value > 0 ? value : 0;
+        }
+
+        @Override
+        public double derive(double value) {
+            return value > 0 ? 1 : 0;
+        }
+    },
+    /**
+     * The leaky rectified linear unit is linear growth for values above 0 and alpha=0.2 for values less or equal to 0.
+     * This is a quite common activation function for neural networks. It solves the dead relu problem as
+     * gradients will not get suck at 0.
+     * formula:    f(x)  = x        if x greater than 0, else 0.01
+     * derivation: f(x)' = 1        if x greater than 0, else 0.01
+     */
+    LEAKY_RELU("Leaky Rectified Linear Unit") {
+        @Override
+        public double activate(double value) {
+            return value > 0 ? value : value * 0.01;
+        }
+
+        @Override
+        public double derive(double value) {
+            return value > 0 ? 1 : 0.01;
+        }
+    },
+    /**
      * The sigmoid is a common activation function as it performs well and its results are quite accurate.
      * The derivation function is simplified in order to get better performance.
      * formula:    f(x)  = 1 / (1 + e^(-x))
@@ -124,42 +160,6 @@ public enum Rectifier {
         }
     },
     /**
-     * The rectified linear unit is linear growth for values above 0 and 0 for values less or equal to 0.
-     * This is a quite common activation function for neural networks. It is quite fragile, as neurons can die during
-     * the training.
-     * formula:    f(x)  = x        if x greater than 0, else 0
-     * derivation: f(x)' = 1        if x greater than 0, else 0
-     */
-    RELU("Rectified Linear Unit") {
-        @Override
-        public double activate(double value) {
-            return value > 0 ? value : 0;
-        }
-
-        @Override
-        public double derive(double value) {
-            return value > 0 ? 1 : 0;
-        }
-    },
-    /**
-     * The leaky rectified linear unit is linear growth for values above 0 and alpha=0.2 for values less or equal to 0.
-     * This is a quite common activation function for neural networks. It solves the dead relu problem as
-     * gradients will not get suck at 0.
-     * formula:    f(x)  = x        if x greater than 0, else 0.2
-     * derivation: f(x)' = 1        if x greater than 0, else 0.2
-     */
-    LEAKY_RELU("Leaky Rectified Linear Unit") {
-        @Override
-        public double activate(double value) {
-            return value > 0 ? value : value * 0.2;
-        }
-
-        @Override
-        public double derive(double value) {
-            return value > 0 ? 1 : 0.2;
-        }
-    },
-    /**
      * The tangent hyperbolic function is similar to the sigmoid, but maps values below zero
      * to negative output values.
      * formula:    f(x)  = tanh(x)
@@ -174,6 +174,29 @@ public enum Rectifier {
         @Override
         public double derive(double value) {
             return 1 - (value * value);
+        }
+    },
+    /**
+     * The exponential linear unit works approximately like RELU, except for negative inputs, where
+     * ELU will react smoother.
+     * formula:    f(x)  = x        if x greater than 0, else 0.01 * (e^x - 1)
+     * derivation: f(x)' = 1        if x greater than 0, else 0.01 * e^x
+     */
+    ELU("Exponential Linear Unit") {
+        @Override
+        public double activate(double value) {
+            if (value > 0) {
+                return value;
+            }
+            return 0.01 * (Math.exp(value) - 1);
+        }
+
+        @Override
+        public double derive(double value) {
+            if (value > 0) {
+                return 1;
+            }
+            return 0.01 * Math.exp(value);
         }
     },
     /**
