@@ -2,7 +2,7 @@
 This is a maven library for neural networks in java 8.  
   
 ## Table of Contents
-1. [Features](#features)  
+1. [Scope](#scope)  
 	1.1 [Architecture](#architecture)  
 	1.2 [Supported algorithms](#supported-algorithms)  
     1.3 [Rectifiers](#rectifiers)  
@@ -21,7 +21,7 @@ This is a maven library for neural networks in java 8.
     3.2 [From a Maven dependency](#from-a-maven-dependency)  
     3.3 [Properties](#properties)  
 
-## Features
+## Scope
 ### Architecture
 - fully connected
 - none to many hidden layers supported
@@ -48,7 +48,7 @@ Implemented are following rectifiers:
 
 For further information, see javadoc.
 
-![plots of rectifiers](src/main/resources/img/rectifier.png)
+![plots of rectifiers](doc/img/rectifier.png)
 
 ### Learning and mutation rate optimizer
 - none (static learning rate)
@@ -78,7 +78,7 @@ Create a neural network with two input nodes, two hidden layers (4 and 5 nodes) 
   
 Create a neural network adding optional parameters.
 
-    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2, 2) 
+    NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2, 2)   // vararg for architecture
         // base settings
         .setInitializer(Initializer.RANDOM)
         .setDefaultRectifier(Rectifier.SIGMOID)
@@ -286,7 +286,7 @@ With the package `ui` you will get access to the neural network graph. It uses t
 It will build a graph of a specific neural network and is able to visualize its architecture, weight distribution and current
 node values. See here an example (code is available in the `test/java/ui` directory):
 
-![graph of neural network](src/main/resources/img/neural_network_graph.png)
+![graph of neural network](doc/img/neural_network_graph.png)
 
 The graph can be initialized with an available GraphicsContext object only. At this point, no neural network is available yet
 for display, so no graph will appear so far.
@@ -344,7 +344,7 @@ total count of input nodes the graph should have and list the indexes of the inp
     graph.setGraphInputNodeCount(totalNodes, inactiveIndexes);
     
 More visualization possibilities will come in 2d and 3d, focusing on visualization and monitoring of the neural network performance.  
-![gif of multiclass plot<](src/main/resources/img/decision_boundary_3dplot.gif)    
+![gif of multiclass plot<](doc/img/decision_boundary_3dplot.gif)    
 
 
 ## Implementation
