@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 public class NeuralNetwork implements Serializable {
 
     private static final long serialVersionUID = 2L;
+    private static final Logger LOG = Logger.getLogger("NeuralNetwork logger");
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private CostFunction costFunction;
@@ -33,7 +34,7 @@ public class NeuralNetwork implements Serializable {
     private int[] configuration;
 
     private List<Layer> layers = new ArrayList<>();
-    private List<List<Double>> cachedNodeValues = new ArrayList<>();
+    private final List<List<Double>> cachedNodeValues = new ArrayList<>();
     private Initializer initializer;
     private double dropout;
     private Optimizer learningRateOptimizer;
@@ -45,9 +46,9 @@ public class NeuralNetwork implements Serializable {
     private double initialMutationRate;
     private double mutationRate;
     private double mutationRateMomentum;
-    private BackPropData backPropData = new BackPropData();
+    private final BackPropData backPropData = new BackPropData();
 
-    private boolean hardBackPropagation = true;
+    private final boolean hardBackPropagation = false;
 
     /**
      * The constructor of the neural network.
@@ -241,10 +242,27 @@ public class NeuralNetwork implements Serializable {
         if (inputSet == null || expectedOutputSet == null) {
             throw new NullPointerException("inputSet and expectedOutputSet are required!");
         }
+        long starTime = System.nanoTime();
         for (int i = 0; i < epochs; i++) {
             int sampleIndex = (int) (Math.random() * inputSet.length);
             fit(inputSet[sampleIndex], expectedOutputSet[sampleIndex]);
         }
+        long endTime = System.nanoTime();
+        double fitTime = (endTime - starTime);
+        String unit = "nanos";
+        if (fitTime >= 1000000) {
+            fitTime /= 1000000.;
+            unit = "ms";
+            if (fitTime >= 1000) {
+                fitTime /= 1000.;
+                unit = "s";
+                if (fitTime >= 60) {
+                    fitTime /= 60.;
+                    unit = "min";
+                }
+            }
+        }
+        LOG.log(Level.INFO, "Fitting time for " + epochs + " epochs: " + fitTime + " " + unit + ".");
     }
 
     /**

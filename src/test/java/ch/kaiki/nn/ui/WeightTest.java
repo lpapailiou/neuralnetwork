@@ -1622,7 +1622,7 @@ public class WeightTest extends Application {
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     //.setRectifierToLayer(Rectifier.SIGMOID, 2)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iterations = 1000_000;
+            int iterations = 100_000;
             net.fit(in, out, iterations);
             //System.out.println(net);
 

@@ -78,8 +78,8 @@ public class DecisionBoundaryBinaryClassifier extends Application {
                     //.setLastLayerRectifier(Rectifier.TANH)  // SOFTPLUS | TANH
                     .setLearningRate(0.8)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iter = 0;
-            int trainIter = 1;
+            int iter = 10000;
+            int trainIter = 10000;
             double resolution = 0.1;
             double padding = 1.5;
 
@@ -97,11 +97,7 @@ public class DecisionBoundaryBinaryClassifier extends Application {
             plot.get().setAxisLabels("x-Axis", "y-Axis", "z-Axis");
             plot.get().setTitle("Decision Boundary Visualization 3D");
             plot.get().enableMouseInteraction();
-            plot.get().showLegend(true);
-            plot.get().showBorder(true);
-            plot.get().showTickMarkLabels(false);
-            plot.get().showGridContent(false);
-            plot.get().showGrid(true);
+
             //plot.get().setAnimated(true);
             //plot.get().setAnimated(true);
 /*

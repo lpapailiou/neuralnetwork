@@ -130,7 +130,7 @@ public class NN3DPlot extends BasePlot {
             } else {
                 scale *= delta;
             }
-            this.zoom = clamp(scale, MIN_ZOOM, MAX_ZOOM);
+            this.zoom = Math.min(Math.max(scale, MIN_ZOOM), MAX_ZOOM);
             render();
             e.consume();
         });
@@ -160,17 +160,6 @@ public class NN3DPlot extends BasePlot {
             timeline.setCycleCount(Animation.INDEFINITE);
             timeline.play();
         }
-    }
-
-
-    private double clamp(double value, double min, double max) {
-        if (Double.compare(value, min) < 0) {
-            return min;
-        }
-        if (Double.compare(value, max) > 0) {
-            return max;
-        }
-        return value;
     }
 
     // --------------------------------------------- matrix op ---------------------------------------------

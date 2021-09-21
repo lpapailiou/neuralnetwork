@@ -34,16 +34,21 @@ This is a maven library for neural networks in java 8.
 ### Rectifiers
 Implemented are following rectifiers:
 - Identity
+- RELU
+- Leaky RELU
 - Sigmoid
 - Sigmoid (accurate)
 - SILU
 - SILU (accurate)
-- RELU
 - TANH
+- ELU
 - GELU
 - Softplus
+- Softmax
 
-Rectifiers can be quite sensitive to hyperparameters (e.g. learning rate). 
+For further information, see javadoc.
+
+![plots of rectifiers](src/main/resources/img/rectifier.png)
 
 ### Learning and mutation rate optimizer
 - none (static learning rate)
