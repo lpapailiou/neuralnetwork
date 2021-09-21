@@ -28,11 +28,13 @@ public class DecisionBoundarySeries extends Series {
     private int iterX;
     private int iterY;
     private final NeuralNetwork neuralNetwork;
+    double padding;
     private boolean isBinary;
     private boolean showData;
     private GraphicsContext context;
 
-    public DecisionBoundarySeries(BasePlot chart, NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap colorMap) {
+
+    public DecisionBoundarySeries(BasePlot chart, NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap colorMap, double padding) {
         super(null, colorMap.getColors(), ChartMode.MESH_GRID);
         this.chart = chart;
         this.context = chart.getContext();
@@ -41,6 +43,7 @@ public class DecisionBoundarySeries extends Series {
         this.outputData = outputData;
         this.showData = showData;
         this.colorMap = colorMap;
+        this.padding = padding;
         int[] configuration = neuralNetwork.getConfiguration();
         this.isBinary = configuration[configuration.length-1] == 1;
 
@@ -75,7 +78,6 @@ public class DecisionBoundarySeries extends Series {
     @Override
     public void compute() {
         double resolution = chart.getResolution();
-        double padding = chart.getDataScaling();
         double width = chart.getWidth();
         double height = chart.getHeight();
         VisualizationMode mode = chart.getMode();
@@ -181,9 +183,13 @@ public class DecisionBoundarySeries extends Series {
 
         if (outputData != null && showData) {
             for (int i = 0; i < inputData.length; i++) {
-                double[] t = chart.transform(new double[] {inputData[i][0], inputData[i][1], zMax});
-                Color color = colorMap.getColors().get(getFeatureIndex(outputData[i]));
-                polygons.add(new Point(context, t[0], t[1], t[3], color, true));
+                double x = inputData[i][0];
+                double y = inputData[i][1];
+                if (x >= xMin && x <= xMax && y >= yMin && y <= yMax) {
+                    double[] t = chart.transform(new double[]{x, y, zMax});
+                    Color color = colorMap.getColors().get(getFeatureIndex(outputData[i]));
+                    polygons.add(new Point(context, t[0], t[1], t[3], color, true));
+                }
             }
         }
 
@@ -197,7 +203,7 @@ public class DecisionBoundarySeries extends Series {
     private List<Polygon> getPolygons(GraphicsContext context, double zMin, double zMax, double[][][] grid, double step, List<Color> colors) {
         List<Polygon> polygons = new ArrayList<>();
         double range = Math.abs(zMax-zMin);
-        double pos = isBinary ? 0.3 : chart instanceof NN2DPlot ? 0.09 : 0.2;
+        double pos = chart instanceof NN2DPlot ? (isBinary ? 0.35 : 0.2) : (isBinary ? 0.3 : 0.2);
         double neg = -pos;
         for (int i = 0; i < iterX; i++) {
             for (int j = 0; j < iterY; j++) {
@@ -205,19 +211,32 @@ public class DecisionBoundarySeries extends Series {
                 double[] b = grid[i+1][j];
                 double[] c = grid[i+1][j+1];
                 double[] d = grid[i][j+1];
+                double threshold = (Math.abs(a[0] - b[0]) + Math.abs(b[0] - c[0]) + Math.abs(c[0] - d[0]) + Math.abs(d[0] - a[0]))/4*0.1;
 
                 /*
                     d   c
                     a   b
                  */
+
+                double[] xEs = {Math.abs(a[0] - c[0]) < threshold ? a[0] : a[0] < c[0] ? a[0] + neg : a[0] + pos,
+                        Math.abs(b[0] - d[0]) < threshold ? b[0] : b[0] > d[0] ? b[0] + pos : b[0] + neg,
+                        Math.abs(c[0] - a[0]) < threshold ? c[0] : c[0] > a[0] ? c[0] + pos : c[0] + neg,
+                        Math.abs(d[0] - b[0]) < threshold ? d[0] : d[0] < b[0] ? d[0] + neg : d[0] + pos};
+
+
+                double[] ys =  {Math.abs(a[1] - c[1]) < threshold ? a[1] : a[1] > c[1] ? a[1] + pos : a[1] + neg,
+                        Math.abs(b[1] - d[1]) < threshold ? b[1] : b[1] > d[1] ? b[1] + pos : b[1] + neg,
+                        Math.abs(c[1] - a[1]) < threshold ? c[1] : c[1] < a[1] ? c[1] + neg : c[1] + pos,
+                        Math.abs(d[1] - b[1]) < threshold ? d[1] : d[1] < b[1] ? d[1] + neg : d[1] + pos};
+/*
                 double[] xEs = {a[0] <= c[0] ? a[0] + neg : a[0] + pos,
                         b[0] >= d[0] ? b[0] + pos : b[0] + neg,
                         c[0] >= a[0] ? c[0] + pos : c[0] + neg,
                         d[0] <= b[0] ? d[0] + neg : d[0] + pos};
-                double[] ys =  {a[1] >= c[1] ? a[1] + pos : a[1] + neg,
-                        b[1] >= d[1] ? b[1] + pos : b[1] + neg,
+                double[] ys =  {a[1] > c[1] ? a[1] + pos : a[1] + neg,
+                        b[1] > d[1] ? b[1] + pos : b[1] + neg,
                         c[1] <= a[1] ? c[1] + neg : c[1] + pos,
-                        d[1] <= b[1] ? d[1] + neg : d[1] + pos};
+                        d[1] <= b[1] ? d[1] + neg : d[1] + pos};*/
 
 
                 double zSum = (a[3] + b[3] + c[3] + d[3]) / 4;
@@ -249,7 +268,6 @@ public class DecisionBoundarySeries extends Series {
                 } else {
                     color = blend(colors.get(1), colors.get(0), (zSum-zMin)/range);
                 }
-
 
                 double zVal = chart instanceof NN3DPlot ? sort : zSum;
                 polygons.add(new Polygon(context, xEs, ys, zVal, color));
@@ -290,7 +308,7 @@ public class DecisionBoundarySeries extends Series {
             }
         }
 
-        if (padding > 1) {
+        //if (padding > 1) {
             double xPadding = Math.abs(xMax - xMin) * padding;
             double yPadding = Math.abs(yMax - yMin) * padding;
             double xOffset = ((xPadding - Math.abs(xMax - xMin))) / 2;
@@ -299,7 +317,7 @@ public class DecisionBoundarySeries extends Series {
             xMax = xMax + xOffset;
             yMin = yMin - yOffset;
             yMax = yMax + yOffset;
-        }
+        //}
         //xMax += 1;
         zMin = Double.MAX_VALUE;
         zMax = Double.MIN_VALUE;

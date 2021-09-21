@@ -5,6 +5,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
+import javafx.scene.transform.Affine;
+import javafx.scene.transform.Scale;
 
 import java.text.DecimalFormat;
 
@@ -69,6 +71,7 @@ public class Polygon implements SortableSeriesData {
         //Color blend = factor > 0.5 ? blend(a, TRANSPARENT,  factor) : blend(TRANSPARENT, b, 0.5+factor);
         //context.setFill(blend(color, blend, 0.1));
         context.fillPolygon(x, y, 4);
+        //context.scale(0.5,1);
     }
 
     @Override

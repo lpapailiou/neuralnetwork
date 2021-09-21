@@ -16,13 +16,11 @@ import javafx.scene.transform.Rotate;
 import java.text.DecimalFormat;
 
 public class PlotGrid {
-    private static DecimalFormat df = new DecimalFormat("#.###");
+    private static final DecimalFormat df = new DecimalFormat("#.###");
 
     private final BasePlot chart;
     private final GraphicsContext context;
     private final GridFace face;
-    private double[] x;
-    private double[] y;
     private double z;
 
     private final double[] a;
@@ -52,9 +50,9 @@ public class PlotGrid {
     private final double tickStrokeWidth = 1;
     private final double gridStrokeWidth = 0.25;
     private final double axisStrokeWidth = 1;
-    private final double zeroLineStrokeWidth = 0.75;
+    private final double zeroLineStrokeWidth = 0.5;
 
-    private boolean is2D;
+    private final boolean is2D;
 
     public PlotGrid(BasePlot chart, GridFace face, double[] a, double[] b, double[] c, double[] d, NNChartColor chartColors, String[] axisLabels) {
         this.chart = chart;
@@ -86,8 +84,8 @@ public class PlotGrid {
 
     public void render() {
 
-        x = new double[]{t0[0], t1[0], t2[0], t3[0]};
-        y = new double[]{t0[1], t1[1], t2[1], t3[1]};
+        double[] x = new double[]{t0[0], t1[0], t2[0], t3[0]};
+        double[] y = new double[]{t0[1], t1[1], t2[1], t3[1]};
 
         // grid background
         if (chart.showGridContent()) {
@@ -166,7 +164,7 @@ public class PlotGrid {
         // first grid axis
         double offsetTickStart = min2-range2;
         double offsetTickEnd = max2+range2;
-        boolean isStartZSmaller = drawGrid(range1, range2, min1, max1, min2, max2, cnst, offsetTickStart, offsetTickEnd, indexMap1, hasDecoration1);
+        boolean isStartZSmaller = drawGrid(range1, min1, max1, min2, max2, cnst, offsetTickStart, offsetTickEnd, indexMap1, hasDecoration1);
         if (hasDecoration1 && chart.showAxisLabels()) {
             double[] center = getTransformedVector(indexMap1, range1/2 + min1, isStartZSmaller ? min2 : max2, cnst);
             double[] labelPos = getTransformedVector(indexMap1, range1/2 + min1, isStartZSmaller ? offsetTickStart : offsetTickEnd, cnst);
@@ -178,7 +176,7 @@ public class PlotGrid {
         // second grid axis
         offsetTickStart = min1 - range1;
         offsetTickEnd = max1 + range1;
-        isStartZSmaller = drawGrid(range2, range1, min2, max2, min1, max1, cnst, offsetTickStart, offsetTickEnd, indexMap2, hasDecoration2);
+        isStartZSmaller = drawGrid(range2, min2, max2, min1, max1, cnst, offsetTickStart, offsetTickEnd, indexMap2, hasDecoration2);
         if (hasDecoration2 && chart.showAxisLabels()) {
             double[] center = getTransformedVector(indexMap2, range2/2 + min2, isStartZSmaller ? min1 : max1, cnst);
             double[] labelPos = getTransformedVector(indexMap2, range2/2 + min2, isStartZSmaller ? offsetTickStart : offsetTickEnd, cnst);
@@ -206,7 +204,7 @@ public class PlotGrid {
         drawLabel(label, labelPos, angle);
     }
 
-    private boolean drawGrid(double range, double rangeO, double min, double max, double minO, double maxO, double cnst, double offsetTickStart, double offsetTickEnd, int[] indexMap, boolean hasDecoration) {
+    private boolean drawGrid(double range, double min, double max, double minO, double maxO, double cnst, double offsetTickStart, double offsetTickEnd, int[] indexMap, boolean hasDecoration) {
         //double intervalStep = chart.getInterval(range, 1000);
         double intervalStep = getInterval(range, 500);
 
@@ -217,6 +215,7 @@ public class PlotGrid {
             if (i > 0) {
                 value += intervalStep;
             }
+            value = Double.parseDouble(String.format("%.3f", value));
             if (value < min || value > max) {
                 continue;
             }
@@ -324,8 +323,9 @@ public class PlotGrid {
     public double getZ() {
         return z;
     }
+
     protected String formatTickLabel(double value) {
-        if (Double.isNaN(value) || Double.isInfinite(value)){
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
             return "" + value;
         }
 

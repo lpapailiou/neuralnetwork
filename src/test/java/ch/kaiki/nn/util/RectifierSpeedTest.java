@@ -26,7 +26,7 @@ public class RectifierSpeedTest {
         NeuralNetwork net = new NeuralNetwork.Builder(2, 64, 64, 64, 1).setDefaultRectifier(rectifier).build();
 
         long startTime = System.currentTimeMillis();
-        net.fit(in, out, 100);
+        net.fit(in, out, 100, 16);
         long duration = System.currentTimeMillis() - startTime;
 
         System.out.println("rectifier: " + rectifier.getDescription());

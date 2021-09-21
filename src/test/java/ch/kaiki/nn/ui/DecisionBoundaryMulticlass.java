@@ -1,5 +1,8 @@
 package ch.kaiki.nn.ui;
 
+import ch.kaiki.nn.data.Dataset;
+import ch.kaiki.nn.data.DatasetType;
+import ch.kaiki.nn.neuralnet.BatchMode;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNHeatMap;
 import ch.kaiki.nn.ui.util.VisualizationMode;
@@ -9,10 +12,11 @@ import ch.kaiki.nn.util.Rectifier;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.DepthTest;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
@@ -27,105 +31,78 @@ import static javafx.scene.paint.Color.BLACK;
 
 public class DecisionBoundaryMulticlass extends Application {
 
-  double[][] in = {{0.1, 2.2}, {0.2, 0.22}, {0.3, 0.1}, {0.4, 0.7}, {0.5, 0.8}, {0.45, 0.9}, {0.8, 0.1}, {0.9, 0.15}, {0.8, 0.2}, {0.5, 1.55}};
-    double[][] out = {{1, 0, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
-   //double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
-   //double[][] out = {{0}, {1}, {1}, {0}};
-
     @Override
     public void start(Stage primaryStage) throws Exception {
         try {
-
-            primaryStage.setTitle("3D test");
+            primaryStage.setTitle("Decision Boundary Sample (multiclass)");
             VBox root = new VBox();
-            root.setDepthTest(DepthTest.ENABLE);
             root.setSpacing(10);
-            HBox graphBox = new HBox();
-            graphBox.setSpacing(10);
-            graphBox.setPadding(new Insets(20, 20, 20, 20));
-            root.getChildren().add(graphBox);
-            HBox btnContainer = new HBox();
-            btnContainer.setSpacing(10);
-            btnContainer.setPadding(new Insets(20, 20, 20, 20));
-            root.getChildren().add(btnContainer);
-            VBox cBox = new VBox();
-            cBox.setSpacing(10);
-            cBox.setPadding(new Insets(20, 20, 20, 20));
-            btnContainer.getChildren().add(cBox);
-            VBox tBox = new VBox();
-            tBox.setSpacing(10);
-            tBox.setPadding(new Insets(20, 20, 20, 20));
-            btnContainer.getChildren().add(tBox);
-            VBox dBox = new VBox();
-            dBox.setSpacing(10);
-            dBox.setPadding(new Insets(20, 20, 20, 20));
-            btnContainer.getChildren().add(dBox);
+            root.setBackground(new Background(new BackgroundFill(BLACK, null, null)));
+            HBox visualizationBox = new HBox();
+            visualizationBox.setSpacing(10);
+            visualizationBox.setPadding(new Insets(20, 20, 20, 20));
+            root.getChildren().add(visualizationBox);
+            VBox controls = new VBox();
+            controls.setSpacing(10);
+            controls.setPadding(new Insets(20, 20, 20, 20));
+            root.getChildren().add(controls);
+
             double canvasWidth = 700;
             double canvasHeight = 550;
-            root.setBackground(new Background(new BackgroundFill(BLACK, null, null)));
-            double canW = canvasWidth;
-            double canH = canvasHeight;
-            Canvas canvas = new Canvas(canW, canH);
-            GraphicsContext context = canvas.getGraphicsContext2D();
+            Canvas canvasLeft = new Canvas(canvasWidth, canvasHeight);
+            Canvas canvasRight = new Canvas(canvasWidth, canvasHeight);
+            visualizationBox.getChildren().add(canvasLeft);
+            visualizationBox.getChildren().add(canvasRight);
 
-            Canvas canvas2 = new Canvas(canvasWidth, canvasHeight);
-            GraphicsContext context2 = canvas2.getGraphicsContext2D();
-            graphBox.getChildren().add(canvas2);
-            graphBox.getChildren().add(canvas);
-//# available values: gelu|identity|relu|leaky_relu|sigmoid|sigmoid_accurate|silu|silu_accurate|softplus|tanh|softmax.
-            NeuralNetwork net = new NeuralNetwork.Builder( 2, 8,8, 4).setInitializer(Initializer.KAIMING)
+            Dataset dataset = new Dataset(DatasetType.CUSTOM);
+            double[][] in = dataset.getX();
+            double[][] out = dataset.getY();
+
+            NeuralNetwork neuralNetwork = new NeuralNetwork.Builder( 2,8,8,4).setInitializer(Initializer.KAIMING)
                     .setDefaultRectifier(Rectifier.SIGMOID)
-                    .setLastLayerRectifier(Rectifier.TANH)  // SOFTPLUS | TANH
+                    //.setLastLayerRectifier(Rectifier.SOFTPLUS)  // SOFTPLUS | TANH
                     .setLearningRate(0.5)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
-            int iter = 0;
-            int trainIter = 1;
+
+            int iter = 2000;
+            int trainIter = 50;
             double resolution = 0.1;
             double padding = 1.2;
+            int batchSize = 1;
 
+            neuralNetwork.fit(in, out, iter, batchSize);
 
-            net.fit(in, out, iter);
-            //NNHeatMap heatMap = new NNHeatMap(0,1,Color.STEELBLUE, Color.TURQUOISE, Color.YELLOW, Color.CRIMSON);
             NNHeatMap heatMap = new NNHeatMap(Color.BLANCHEDALMOND, Color.LIGHTBLUE, Color.ROSYBROWN, Color.SALMON);
-            heatMap.setOpacity(0.3, 0.9);
-            //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
-            AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
-            plot.get().setInnerDataPadding(padding);
-            plot.get().setVisualizationMode(VisualizationMode.CUBE);
-            plot.get().setAxisLabels("x-Axis", "y-Axis", "z-Axis");
-            plot.get().setTitle("Decision Boundary Visualization 3D");
-            plot.get().enableMouseInteraction();
-            plot.get().showLegend(true);
-            plot.get().showBorder(true);
-            plot.get().showGrid(true);
-            //plot.get().setAnimated(true);
-            //plot.get().setAnimated(true);
-/*
-            NNMeshGrid plot2 = new NNMeshGrid(context2);
-            plot2.setPadding(0,0,50,0,padding);
-            plot2.plot(net, in, resolution,1,true,true,true, heatMap);
-            plot(plot, net, resolution, heatMap);*/
+            heatMap.setOpacity(0.3,0.8);
 
-            NN2DPlot plot2 = new NN2DPlot(context2);
-            plot2.setInnerDataPadding(padding);
-            plot2.setTitle("Decision Boundary Visualization 2D");
-            plot2.enableMouseInteraction();
-            plot2.showLegend(true);
-            plot2.showBorder(true);
-            plot2.setAxisLabels("x-Axis", "y-Axis");
-            plot2.plotDecisionBoundaries(net, in, out, true, heatMap, resolution);
-            plot(plot, net, resolution, heatMap);
+            NN2DPlot plot2D = new NN2DPlot(canvasLeft.getGraphicsContext2D());
+            plot2D.setTitle("Decision Boundary Visualization 2D");
+            plot2D.enableMouseInteraction();
+            plot2D.showLegend(true);
+            plot2D.setAxisLabels("x-Axis", "y-Axis");
 
-            Button train = new Button("TRAIN");
+
+            NN3DPlot plot3D = new NN3DPlot(canvasRight.getGraphicsContext2D());
+            plot3D.setVisualizationMode(VisualizationMode.CUBE);
+            plot3D.setAxisLabels("x-Axis", "y-Axis", "z-Axis");
+            plot3D.setTitle("Decision Boundary Visualization 3D");
+            //plot3D.showLegend(true);
+            plot3D.showBorder(true);
+            plot3D.enableMouseInteraction();
+            plot3D.setAnimated(true);
+
+
+            plot(plot2D, plot3D,  neuralNetwork, in, out, heatMap, resolution, padding);
+
+            Button train = new Button("FIT (x" + trainIter + ")");
             train.setOnAction(e -> {
-                net.fit(in, out, trainIter);
-                plot(plot, net, resolution, heatMap);
-                //plot2.plotDecisionBoundaries(net, in, out, true, heatMap, resolution);
-                plot2.plotConfusionMatrix(net, heatMap, true);
+                neuralNetwork.fit(in, out, trainIter, batchSize);
+                plot(plot2D, plot3D,  neuralNetwork, in, out, heatMap, resolution, padding);
             });
-            cBox.getChildren().add(train);
+            controls.getChildren().add(train);
 
-            Scene scene = new Scene(root, root.getWidth(), root.getHeight(), false, BALANCED);
+
+            Scene scene = new Scene(root, canvasWidth*2 + 60, canvasHeight + 120, false, BALANCED);
             primaryStage.setScene(scene);
             primaryStage.show();
 
@@ -134,8 +111,9 @@ public class DecisionBoundaryMulticlass extends Application {
         }
     }
 
-    private void plot(AtomicReference<NN3DPlot> plot, NeuralNetwork net, double resolution, NNHeatMap heatMap) {
-        plot.get().plotDecisionBoundaries(net, in, out, true, heatMap, resolution);
+    private void plot(NN2DPlot plot2D, NN3DPlot plot3D,  NeuralNetwork net, double[][] in, double[][] out, NNHeatMap heatMap, double resolution, double padding) {
+        plot2D.plotDecisionBoundaries(net, in, out, true, heatMap, resolution, padding);
+        plot3D.plotDecisionBoundaries(net, in, out, true, heatMap, resolution, padding);
     }
 
 

@@ -21,7 +21,7 @@ public class NeuralTest {
         double[][] in = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
         double[][] out = {{0}, {1}, {1}, {0}};
         NeuralNetwork net = new NeuralNetwork.Builder(2, 15, 15, 1).build();
-        net.fit(in, out, 1000);
+        net.fit(in, out, 1000, 16);
 
         for (int i = 0; i < in.length; i++) {
             double expected = out[i][0];

@@ -27,7 +27,6 @@ public class NN3DPlot extends BasePlot {
      */
     public NN3DPlot(GraphicsContext context) {
         super(context);
-        showBorder = true;
         mode = VisualizationMode.CUBE;
     }
 

@@ -30,7 +30,7 @@ public class RectifierAccuracyTest {
 
         NeuralNetwork net = new NeuralNetwork.Builder( 2, 2, 1).setInitializer(Initializer.RANDOM).setLearningRate(0.5).setLearningRateOptimizer(Optimizer.NONE)
         .setDefaultRectifier(rectifier).build();
-        net.fit(in, out, 50000);
+        net.fit(in, out, 50000, 16);
 
         System.out.println("rectifier: " + rectifier.getDescription());
         List<Double> set0 = net.predict(in[0]);
@@ -96,7 +96,7 @@ public class RectifierAccuracyTest {
 
         NeuralNetwork net = new NeuralNetwork.Builder(2, 4, 1).setDefaultRectifier(rectifier)
         .setLearningRate(0.8).setLearningRateOptimizer(Optimizer.NONE).build();
-        net.fit(in, out, 1000);
+        net.fit(in, out, 1000, 16);
 
         System.out.println("test with rectifier: " + rectifier.getDescription());
         System.out.println("  combo 1: " + net.predict(in[0]));

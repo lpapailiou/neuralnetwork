@@ -86,7 +86,7 @@ public class ScatterChart extends Application {
             double padding = 1.5;
 
 
-            net.fit(in, out, iter);
+            net.fit(in, out, iter, 16);
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.SALMON);
             NNHeatMap heatMap = new NNHeatMap(0,1,Color.STEELBLUE, Color.TURQUOISE, Color.YELLOW, Color.CRIMSON);
             //NNHeatMap heatMap = new NNHeatMap(Color.BLANCHEDALMOND, Color.LIGHTBLUE, Color.ROSYBROWN, Color.SALMON);
@@ -96,7 +96,6 @@ public class ScatterChart extends Application {
 
 
             AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
-            plot.get().setInnerDataPadding(padding);
             plot.get().setVisualizationMode(VisualizationMode.CUBE);
             plot.get().setAxisLabels("x-Axis", "y-Axis", "z-Axis");
             plot.get().setTitle("Decision Boundary Visualization 3D");
@@ -115,7 +114,6 @@ public class ScatterChart extends Application {
             plot(plot, net, resolution, heatMap);*/
 
             NN2DPlot plot2 = new NN2DPlot(context2);
-            plot2.setInnerDataPadding(padding);
             plot2.setTitle("Decision Boundary Visualization 2D");
             //plot2.enableMouseInteraction();
             plot2.showLegend(true);
@@ -128,7 +126,7 @@ public class ScatterChart extends Application {
             plot.get().plotLine(net, BackPropEntity::getAccuracySum, "accurracy", YELLOW, 0);
             Button train = new Button("TRAIN");
             train.setOnAction(e -> {
-                net.fit(in, out, trainIter);
+                net.fit(in, out, trainIter, 16);
                 Platform.runLater(() ->{
                     plot2.plotLine(net, BackPropEntity::getAccuracySum, "accuracy", GREEN, 0);
                     plot2.plotLine(net, BackPropEntity::getPrecisionSum, "precision", BLUE, 0.01);

@@ -51,7 +51,7 @@ public class NNGraphTest extends Application {
 
             Button btnf = new Button("fit");
             btnf.setOnAction(e -> {
-                neuralNetwork[0].fit(in, out, 1000);
+                neuralNetwork[0].fit(in, out, 1000, 16);
                 graph.refresh();
                 inLabel.setText("");
                 outLabel.setText("");

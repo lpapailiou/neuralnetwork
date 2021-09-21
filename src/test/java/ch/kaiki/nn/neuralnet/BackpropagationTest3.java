@@ -10,7 +10,7 @@ public class BackpropagationTest3 {
     @Test
     public void backpropagationTest() {
         NeuralNetwork neuralNetwork = new NeuralNetwork.Builder(2,3,1).build();
-        neuralNetwork.fit(in, out, 1);
+        neuralNetwork.fit(in, out, 1, 16);
 
     }
 }

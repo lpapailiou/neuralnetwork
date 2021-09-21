@@ -1,5 +1,7 @@
 package ch.kaiki.nn.ui;
 
+import ch.kaiki.nn.data.Dataset;
+import ch.kaiki.nn.data.DatasetType;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -1611,7 +1613,9 @@ public class WeightTest extends Application {
 
 
         try {
-
+            Dataset dataset = new Dataset(DatasetType.MNIST);
+            in = dataset.getX();
+            out = dataset.getY();
             primaryStage.setTitle("Weight test");
             HBox root = new HBox();
             root.setBackground(new Background(new BackgroundFill(BLACK, null, null)));
@@ -1623,7 +1627,7 @@ public class WeightTest extends Application {
                     //.setRectifierToLayer(Rectifier.SIGMOID, 2)
                     .setLearningRateOptimizer(Optimizer.NONE).build();
             int iterations = 100_000;
-            net.fit(in, out, iterations);
+            net.fit(in, out, iterations, 16);
             //System.out.println(net);
 
             NNHeatMap color = new NNHeatMap(STEELBLUE, AZURE, ORANGE, CRIMSON);

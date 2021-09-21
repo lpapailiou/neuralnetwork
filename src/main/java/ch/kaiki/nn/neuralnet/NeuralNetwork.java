@@ -5,7 +5,6 @@ import ch.kaiki.nn.data.BackPropData;
 import ch.kaiki.nn.util.Initializer;
 import ch.kaiki.nn.util.Optimizer;
 import ch.kaiki.nn.util.Rectifier;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -37,6 +36,7 @@ public class NeuralNetwork implements Serializable {
     private final List<List<Double>> cachedNodeValues = new ArrayList<>();
     private Initializer initializer;
     private double dropout;
+    private BatchMode batchMode;
     private Optimizer learningRateOptimizer;
     private double initialLearningRate;
     private double learningRate;
@@ -48,7 +48,9 @@ public class NeuralNetwork implements Serializable {
     private double mutationRateMomentum;
     private final BackPropData backPropData = new BackPropData();
 
-    private final boolean hardBackPropagation = false;
+    private final boolean followChainRule = true;
+
+    private Batch batch = new Batch();
 
     /**
      * The constructor of the neural network.
@@ -143,9 +145,11 @@ public class NeuralNetwork implements Serializable {
      * @param expectedOutputNodes the expected output nodes as double array
      * @return the actual output nodes as Double List
      */
-
-
     public List<Double> fit(double[] inputNodes, double[] expectedOutputNodes) {
+        return fit(inputNodes, expectedOutputNodes, true);
+    }
+
+    private List<Double> fit(double[] inputNodes, double[] expectedOutputNodes, boolean consumeBatch) {
         if (inputNodes == null || expectedOutputNodes == null) {
             throw new NullPointerException("inputNodes and expectedOutputNodes are required!");
         } else if (inputNodes.length != configuration[0]) {
@@ -177,24 +181,24 @@ public class NeuralNetwork implements Serializable {
 
         Matrix target = Matrix.fromArray(expectedOutputNodes);
 
+        // start backpropagating
+        int iter = cachedNodeValueVector.size() - 1;
+        Matrix lastCachedVector = cachedNodeValueVector.get(cachedNodeValueVector.size() - 1);
+
+        // computation of cost C
+        double cost = costFunction.cost(lastCachedVector, target) + regularizer.costSummand(lastCachedVector, regularizationLambda);
+        backPropData.add(iterationCount, cost, Matrix.asArray(lastCachedVector), expectedOutputNodes);
+
+        // computation of loss L = dC/da(L) (derivation of cost function)
+        Matrix loss = costFunction.gradient(lastCachedVector, target);
         // backward propagate to adjust weights in layers
-        Matrix loss = null;
         Matrix pass = null;
-        for (int i = cachedNodeValueVector.size() - 1; i >= 0; i--) {
-            if (loss == null) {
-                Matrix lastCachedVector = cachedNodeValueVector.get(cachedNodeValueVector.size() - 1);
-                // computation of cost C
-                double cost = costFunction.cost(lastCachedVector, target) + regularizer.get(lastCachedVector, regularizationLambda);
-                backPropData.add(iterationCount, cost, Matrix.asArray(lastCachedVector), expectedOutputNodes);
 
-                // computation of loss L = dC/da(L) (derivation of cost function)
-                loss = costFunction.gradient(lastCachedVector, target);
-
-                // apply regularization
-                loss = Matrix.apply(loss, regularizer.gradient(loss, regularizationLambda), Double::sum);
-
-            } else {
-                if (hardBackPropagation) {
+        // apply regularization
+        loss = Matrix.apply(loss, regularizer.gradient(loss, regularizationLambda), Double::sum);       // TODO: only for first loss or for all?
+        for (int i = iter; i >= 0; i--) {
+            if (i != iter) {
+                if (!followChainRule) {
                     // computation of loss L = dC/da(L-i)
                     // this implementation does not follow the chain rule, but seems to get better results
                     loss = Matrix.multiply(Matrix.transpose(layers.get(i + 1).weight), loss);
@@ -206,10 +210,11 @@ public class NeuralNetwork implements Serializable {
 
             // gradient: da(L)/dz(L) (derivation of activation)
             Matrix gradient = cachedNodeValueVector.get(i).derive(layers.get(i).rectifier);
+
             // loss * gradient: dC/da(L) * da(L)/dz(L) (loss * derivation of activation)
             gradient.multiply(loss);
 
-            if (!hardBackPropagation) {
+            if (followChainRule) {
                 // this would be the correct implementation of the chain rule - would be used as loss for the next iteration
                 pass = gradient.copy();
                 pass = Matrix.multiply(Matrix.transpose(layers.get(i).weight), pass);
@@ -217,18 +222,72 @@ public class NeuralNetwork implements Serializable {
 
             gradient.multiply(learningRate);
 
-            // update biases (no change as add gate distributes when derived)
-            layers.get(i).bias.subtractBias(gradient);
-
+            // no change as add gate distributes when derived
+            Matrix biasDelta = gradient.copy();
+            batch.addBias(biasDelta, iter-i);
             // delta rule: dz(L)/dw(L) (* dC/da(L) * da(L)/dz(L)) (multiply with preceding activated neurons to get weight derivation)
-            Matrix delta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : cachedNodeValueVector.get(i - 1)));
+            Matrix weightDelta = Matrix.multiply(gradient, Matrix.transpose((i == 0) ? input : cachedNodeValueVector.get(i - 1)));
+            batch.addWeight(weightDelta, iter-i);
 
-            // update weights - gradient was already multiplied with learning rate
-            layers.get(i).weight.subtract(delta);
+            // update weights and bias
+            //layers.get(i).weight.subtract(weightDelta);
+            //layers.get(i).bias.subtractBias(biasDelta);
 
+            if (consumeBatch) {
+                layers.get(i).weight.subtract(batch.getWeight(iter-i));
+                layers.get(i).bias.subtractBias(batch.getBias(iter-i));
+            }
+
+        }
+        if (consumeBatch) {
+            batch = new Batch();
         }
         decreaseRate();
         return Matrix.asList(tmp);
+    }
+
+    private class Batch {
+        int iter = 0;
+        List<Matrix> weightDeltas = new ArrayList<>();
+        List<Matrix> biasDeltas = new ArrayList<>();
+
+        public void addWeight(Matrix matrix, int index) {
+            if (weightDeltas.size() == index) {
+                weightDeltas.add(matrix);
+            } else {
+                Matrix m = weightDeltas.get(index);
+                m.add(matrix);
+                weightDeltas.set(index, m);
+            }
+            iter++;
+        }
+
+        public void addBias(Matrix matrix, int index) {
+            if (biasDeltas.size() == index) {
+                biasDeltas.add(matrix);
+            } else {
+                Matrix m = biasDeltas.get(index);
+                m.add(matrix);
+                biasDeltas.set(index, m);
+            }
+            iter++;
+        }
+
+        public Matrix getWeight(int index) {
+            Matrix result = this.weightDeltas.get(index).copy();
+            if (NeuralNetwork.this.batchMode == BatchMode.MEAN) {
+                result.divide(iter);
+            }
+            return result;
+        }
+
+        public Matrix getBias(int index) {
+            Matrix result = this.biasDeltas.get(index).copy();
+            if (NeuralNetwork.this.batchMode == BatchMode.MEAN) {
+                result.divide(iter);
+            }
+            return result;
+        }
     }
 
     /**
@@ -237,15 +296,20 @@ public class NeuralNetwork implements Serializable {
      * @param inputSet          the input set of possible input node values
      * @param expectedOutputSet the output set of according expected output values
      * @param epochs            the count of repetitions of the batch training
+     * @param batchSize         the batch size for fitting cycles
      */
-    public void fit(double[][] inputSet, double[][] expectedOutputSet, int epochs) {
+    public void fit(double[][] inputSet, double[][] expectedOutputSet, int epochs, int batchSize) {
         if (inputSet == null || expectedOutputSet == null) {
             throw new NullPointerException("inputSet and expectedOutputSet are required!");
         }
         long starTime = System.nanoTime();
+        int rest = epochs % batchSize;
         for (int i = 0; i < epochs; i++) {
             int sampleIndex = (int) (Math.random() * inputSet.length);
-            fit(inputSet[sampleIndex], expectedOutputSet[sampleIndex]);
+            if (i == epochs-rest) {
+                batchSize = rest;
+            }
+            fit(inputSet[sampleIndex], expectedOutputSet[sampleIndex], (i+1) % batchSize == 0);
         }
         long endTime = System.nanoTime();
         double fitTime = (endTime - starTime);
@@ -290,6 +354,7 @@ public class NeuralNetwork implements Serializable {
         neuralNetwork.regularizer = this.regularizer;
         neuralNetwork.regularizationLambda = this.regularizationLambda;
         neuralNetwork.dropout = this.dropout;
+        neuralNetwork.batchMode = this.batchMode;
 
         neuralNetwork.initialLearningRate = this.initialLearningRate;
         neuralNetwork.learningRate = this.learningRate;
@@ -421,6 +486,14 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
+     * Getter for the batch mode.
+     * @return the batch mode.
+     */
+    public BatchMode getBatchMode() {
+        return batchMode;
+    }
+
+    /**
      * Returns current learning rate of this NeuralNetwork. Must not match corresponding property.
      *
      * @return the learning rate.
@@ -531,6 +604,9 @@ public class NeuralNetwork implements Serializable {
         sb.append("dropout factor: ");
         sb.append(dropout);
         sb.append(", ");
+        sb.append("batch mode: ");
+        sb.append(batchMode);
+        sb.append(", ");
         sb.append("learning rate: ");
         sb.append(learningRate);
         sb.append(", ");
@@ -591,12 +667,13 @@ public class NeuralNetwork implements Serializable {
 
         private Initializer initializer = Initializer.RANDOM;
         private Rectifier rectifier = Rectifier.SIGMOID;
-        private Map<Integer, Rectifier> rectifierMap = new TreeMap<>();
+        private final Map<Integer, Rectifier> rectifierMap = new TreeMap<>();
 
         private CostFunction costFunction = CostFunction.MSE;
         private Regularizer regularizer = Regularizer.NONE;
         private double regularizationLambda = 0;
         private double dropout = 0;
+        private BatchMode batchMode = BatchMode.MEAN;
 
         private double learningRate = 0.8;
         private Optimizer learningRateOptimizer = Optimizer.NONE;
@@ -625,7 +702,7 @@ public class NeuralNetwork implements Serializable {
 
         /**
          * The build method will assemble a new NeuralNetwork according to the given parameters.
-         * @return the new NeuralNetuwork instance.
+         * @return the new NeuralNetwork instance.
          */
         public NeuralNetwork build() {
             NeuralNetwork neuralNetwork = new NeuralNetwork(layerParams);
@@ -649,6 +726,10 @@ public class NeuralNetwork implements Serializable {
                 throw new IllegalArgumentException("Dropout factor must not be within a range of 0.0 and 1.0!");
             }
             neuralNetwork.dropout = this.dropout;
+            if (this.batchMode == null) {
+                throw new NullPointerException("Batch mode must not be null!");
+            }
+            neuralNetwork.batchMode = this.batchMode;
             if (this.learningRate < 0.0 || this.learningRate > 1.0) {
                 throw new IllegalArgumentException("Learning rate must not be within a range of 0.0 and 1.0!");
             }
@@ -781,6 +862,16 @@ public class NeuralNetwork implements Serializable {
         }
 
         /**
+         * Setter for the batch mode.
+         * @param batchMode the batch mode.
+         * @return the Builder.
+         */
+        public Builder setBatchMode(BatchMode batchMode) {
+            this.batchMode = batchMode;
+            return this;
+        }
+
+        /**
          * Method to set the learning rate. The learning rate may be decreased in case of
          * unsupervised learning.
          *
@@ -884,6 +975,12 @@ public class NeuralNetwork implements Serializable {
                 this.dropout = Double.parseDouble(PROPERTIES.getProperty("dropout_factor"));
             } catch (Exception e) {
                 logMissingProperty("dropout_factor", e);
+            }
+
+            try {
+                this.batchMode = BatchMode.valueOf(PROPERTIES.getProperty("batch_mode").toUpperCase());
+            } catch (Exception e) {
+                logMissingProperty("batch_mode", e);
             }
 
             try {

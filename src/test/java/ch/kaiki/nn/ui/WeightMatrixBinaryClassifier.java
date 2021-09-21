@@ -86,7 +86,7 @@ public class WeightMatrixBinaryClassifier extends Application {
             double padding = 1.5;
 
 
-            net.fit(in, out, iter);
+            net.fit(in, out, iter, 16);
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.SALMON);
             NNHeatMap heatMap = new NNHeatMap(Color.STEELBLUE, Color.TURQUOISE, Color.YELLOW, Color.CRIMSON);
             //NNHeatMap heatMap = new NNHeatMap(Color.BLANCHEDALMOND, Color.LIGHTBLUE, Color.ROSYBROWN, Color.SALMON);
@@ -94,7 +94,6 @@ public class WeightMatrixBinaryClassifier extends Application {
 
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.BLACK, Color.WHITE);
             AtomicReference<NN3DPlot> plot = new AtomicReference<>(new NN3DPlot(context));
-            plot.get().setInnerDataPadding(padding);
             plot.get().setVisualizationMode(VisualizationMode.CUBE);
             plot.get().setAxisLabels("x-Axis", "y-Axis", "z-Axis");
             plot.get().setTitle("Decision Boundary Visualization 3D");
@@ -113,7 +112,6 @@ public class WeightMatrixBinaryClassifier extends Application {
             plot(plot, net, resolution, heatMap);*/
 
             NN2DPlot plot2 = new NN2DPlot(context2);
-            plot2.setInnerDataPadding(padding);
             plot2.setTitle("Decision Boundary Visualization 2D");
             plot2.enableMouseInteraction();
             plot2.showLegend(true);
@@ -124,7 +122,7 @@ public class WeightMatrixBinaryClassifier extends Application {
 
             Button train = new Button("TRAIN");
             train.setOnAction(e -> {
-                net.fit(in, out, trainIter);
+                net.fit(in, out, trainIter, 16);
                 plot(plot, net, resolution, heatMap);
                 plot2.plotConfusionMatrix(net,heatMap, true);
             });

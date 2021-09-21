@@ -73,7 +73,7 @@ public abstract class BasePlot {
         this.context = context;
         width = context.getCanvas().getWidth();
         height = context.getCanvas().getHeight();
-        NNChartColor chartColors = new NNChartColor(TRANSPARENT, TRANSPARENT, DARKGRAY, LIGHTGRAY, LIGHTGRAY, DARKGRAY, DARKGRAY, DARKGRAY);
+        NNChartColor chartColors = new NNChartColor(TRANSPARENT, blend(LIGHTGRAY, TRANSPARENT, 0.15), DARKGRAY, LIGHTGRAY, LIGHTGRAY, DARKGRAY, DARKGRAY, DARKGRAY);
         //NNChartColor chartColors = new NNChartColor(TRANSPARENT, blend(LIGHTGRAY, TRANSPARENT, 0.25), DARKGRAY, GRAY, GRAY, DARKGRAY, GRAY, GRAY);
         setChartColors(chartColors);
         invalidate();
@@ -196,19 +196,6 @@ public abstract class BasePlot {
         this.zMax = zMax;
     }
 
-    public void setInnerDataPadding(double innerDataPadding) {  // will expand data if possible
-        if (dataScaling < 1) {
-            throw new IllegalArgumentException("Inner data padding must be equal to or greater than 1!");
-        }
-        dataScaling = innerDataPadding;
-    }
-
-    public void setOuterDataPadding(double outerDataPadding) {  // distance data to grid min/max
-        if (outerDataPadding < 0 || outerDataPadding >= 1) {
-            throw new IllegalArgumentException("Outer data padding must be equal to or greater than 1!");
-        }
-        this.gridPaddingOffset = outerDataPadding;
-    }
 
     public void setVisualizationMode(VisualizationMode mode) {
         if (mode == null) {
@@ -220,10 +207,6 @@ public abstract class BasePlot {
 
     public double getResolution() {
         return resolution;
-    }
-
-    public double getDataScaling() {
-        return dataScaling;
     }
 
     public double getWidth() {
@@ -360,11 +343,11 @@ public abstract class BasePlot {
         invalidate();
     }
 
-    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, NNHeatMap heatMap, double resolution) {
-        plotDecisionBoundaries(neuralNetwork, inputData, null, false, null, heatMap, resolution);
+    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, NNHeatMap heatMap, double resolution, double padding) {
+        plotDecisionBoundaries(neuralNetwork, inputData, null, false, null, heatMap, resolution, padding);
     }
-    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, NNHeatMap heatMap, double resolution) {
-        plotDecisionBoundaries(neuralNetwork, inputData, outputData, showData, null, heatMap, resolution);
+    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, NNHeatMap heatMap, double resolution, double padding) {
+        plotDecisionBoundaries(neuralNetwork, inputData, outputData, showData, null, heatMap, resolution, padding);
     }
     public void plotWeights(NeuralNetwork neuralNetwork, NNHeatMap heatMap) {
         setChartMode(ChartMode.MESH_GRID);
@@ -399,7 +382,7 @@ public abstract class BasePlot {
         invalidate();
     }
 
-    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap heatMap, double resolution) {
+    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap heatMap, double resolution, double padding) {
         setChartMode(ChartMode.MESH_GRID);
         int[] configuration = neuralNetwork.getConfiguration();
         if (configuration[0] != 2) {
@@ -416,10 +399,17 @@ public abstract class BasePlot {
         if (legend != null) {
             this.showLegend = true;
         }
+        if (resolution <= 0 || resolution > 1.0) {
+            throw new IllegalArgumentException("Resolution must be greater than 0.0 and less or equal to 1.0!");
+        }
+        if (padding <= 0) {
+            throw new IllegalArgumentException("Padding must be greater than 0.0!");
+        }
         this.initResolution = resolution;
         this.resolution = resolution;
+        this.dataScaling = padding;
         this.series.clear();
-        this.series.add(new DecisionBoundarySeries(this,  neuralNetwork, inputData, outputData, showData, legend, heatMap));
+        this.series.add(new DecisionBoundarySeries(this,  neuralNetwork, inputData, outputData, showData, legend, heatMap, padding));
         invalidate();
     }
 

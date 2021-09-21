@@ -82,7 +82,7 @@ public class MetricsBinaryClassifier extends Application {
             double padding = 1.5;
 
 
-            net.fit(in, out, iter);
+            net.fit(in, out, iter, 16);
             //NNHeatMap heatMap = new NNHeatMap(0,1,Color.SALMON);
             NNHeatMap heatMap = new NNHeatMap(Color.STEELBLUE, Color.TURQUOISE, Color.YELLOW, Color.CRIMSON);
             //NNHeatMap heatMap = new NNHeatMap(Color.BLANCHEDALMOND, Color.LIGHTBLUE, Color.ROSYBROWN, Color.SALMON);
@@ -107,7 +107,7 @@ public class MetricsBinaryClassifier extends Application {
 
             Button train = new Button("TRAIN");
             train.setOnAction(e -> {
-                net.fit(in, out, trainIter);
+                net.fit(in, out, trainIter, 16);
                 plot.plotLine(net, BackPropEntity::getAccuracySum, "accuracy", GREEN, 0);
                 plot.plotLine(net, BackPropEntity::getPrecisionSum, "precision", BLUE, 0);
                 plot.plotLine(net, BackPropEntity::getRecallSum, "recall", AQUAMARINE, 0);
