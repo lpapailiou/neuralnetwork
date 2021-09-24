@@ -58,7 +58,7 @@ public class DecisionBoundaryBinaryClassifier extends Application {
             double[][] in = dataset.getX();
             double[][] out = dataset.getY();
 
-            NeuralNetwork neuralNetwork = new NeuralNetwork.Builder( 2, 40,40, 1).setInitializer(Initializer.KAIMING)
+            NeuralNetwork neuralNetwork = new NeuralNetwork.Builder( 2, 16,16, 1).setInitializer(Initializer.KAIMING)
                     .setDefaultRectifier(Rectifier.SIGMOID)
                     //.setLastLayerRectifier(Rectifier.SOFTPLUS)  // SOFTPLUS | TANH
                     .setLearningRate(0.5)
