@@ -68,6 +68,7 @@ public class DecisionBoundaryBinaryClassifier extends Application {
             int trainIter = 20;
             double resolution = 0.18;
             double padding = 3;
+            boolean blend = false;
             int batchSize = 1;
 
             neuralNetwork.fit(in, out, iter, batchSize);
@@ -90,12 +91,12 @@ public class DecisionBoundaryBinaryClassifier extends Application {
             plot3D.enableMouseInteraction();
 
 
-            plot(plot2D, plot3D,  neuralNetwork, in, out, heatMap, resolution, padding);
+            plot(plot2D, plot3D,  neuralNetwork, in, out, heatMap, blend, resolution, padding);
 
             Button train = new Button("FIT (x" + trainIter + ")");
             train.setOnAction(e -> {
                 neuralNetwork.fit(in, out, trainIter, batchSize);
-                plot(plot2D, plot3D,  neuralNetwork, in, out, heatMap, resolution, padding);
+                plot(plot2D, plot3D,  neuralNetwork, in, out, heatMap, blend, resolution, padding);
             });
             controls.getChildren().add(train);
 
@@ -109,9 +110,9 @@ public class DecisionBoundaryBinaryClassifier extends Application {
         }
     }
 
-    private void plot(NN2DPlot plot2D, NN3DPlot plot3D,  NeuralNetwork net, double[][] in, double[][] out, NNHeatMap heatMap, double resolution, double padding) {
-        plot2D.plotDecisionBoundaries(net, in, out, true, heatMap, resolution, padding);
-        plot3D.plotDecisionBoundaries(net, in, out, true, heatMap, resolution, padding);
+    private void plot(NN2DPlot plot2D, NN3DPlot plot3D,  NeuralNetwork net, double[][] in, double[][] out, NNHeatMap heatMap, boolean blend, double resolution, double padding) {
+        plot2D.plotDecisionBoundaries(net, in, out, true, heatMap, blend, resolution, padding);
+        plot3D.plotDecisionBoundaries(net, in, out, true, heatMap, blend, resolution, padding);
     }
 
 

@@ -343,12 +343,7 @@ public abstract class BasePlot {
         invalidate();
     }
 
-    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, NNHeatMap heatMap, double resolution, double padding) {
-        plotDecisionBoundaries(neuralNetwork, inputData, null, false, null, heatMap, resolution, padding);
-    }
-    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, NNHeatMap heatMap, double resolution, double padding) {
-        plotDecisionBoundaries(neuralNetwork, inputData, outputData, showData, null, heatMap, resolution, padding);
-    }
+
     public void plotWeights(NeuralNetwork neuralNetwork, NNHeatMap heatMap) {
         setChartMode(ChartMode.MESH_GRID);
         this.series.clear();
@@ -381,8 +376,13 @@ public abstract class BasePlot {
         this.series.add(new ConfusionMatrixSeries(this,  neuralNetwork, heatMap, normalized));
         invalidate();
     }
-
-    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap heatMap, double resolution, double padding) {
+    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, NNHeatMap heatMap, boolean blend, double resolution, double padding) {
+        plotDecisionBoundaries(neuralNetwork, inputData, null, false, null, heatMap, blend, resolution, padding);
+    }
+    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, NNHeatMap heatMap, boolean blend, double resolution, double padding) {
+        plotDecisionBoundaries(neuralNetwork, inputData, outputData, showData, null, heatMap, blend, resolution, padding);
+    }
+    public void plotDecisionBoundaries(NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap heatMap, boolean blend, double resolution, double padding) {
         setChartMode(ChartMode.MESH_GRID);
         int[] configuration = neuralNetwork.getConfiguration();
         if (configuration[0] != 2) {
@@ -409,7 +409,7 @@ public abstract class BasePlot {
         this.resolution = resolution;
         this.dataScaling = padding;
         this.series.clear();
-        this.series.add(new DecisionBoundarySeries(this,  neuralNetwork, inputData, outputData, showData, legend, heatMap, padding));
+        this.series.add(new DecisionBoundarySeries(this,  neuralNetwork, inputData, outputData, showData, legend, heatMap, blend, padding));
         invalidate();
     }
 

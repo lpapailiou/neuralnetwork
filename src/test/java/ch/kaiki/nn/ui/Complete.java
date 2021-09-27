@@ -114,14 +114,14 @@ public class Complete extends Application {
             plot2.showLegend(true);
             plot2.showBorder(true);
             plot2.setAxisLabels("x-Axis", "y-Axis");
-            plot2.plotDecisionBoundaries(net, in, out, true, heatMap, resolution,padding);
+            plot2.plotDecisionBoundaries(net, in, out, true, heatMap, true, resolution,padding);
             plot(plot, net, resolution, heatMap,padding);
 
             Button train = new Button("TRAIN");
             train.setOnAction(e -> {
                 net.fit(in, out, trainIter, batchSize);
                 plot(plot, net, resolution, heatMap,padding);
-                plot2.plotDecisionBoundaries(net, in, out, true, heatMap, resolution,padding);
+                plot2.plotDecisionBoundaries(net, in, out, true, heatMap, true, resolution,padding);
             });
             btnContainer.getChildren().add(train);
             ComboBox<Integer> comboBox = new ComboBox<>();
@@ -166,7 +166,7 @@ public class Complete extends Application {
     }
 
     private void plot(AtomicReference<NN3DPlot> plot, NeuralNetwork net, double resolution, NNHeatMap heatMap, double padding) {
-        plot.get().plotDecisionBoundaries(net, in, out, true, heatMap, resolution, padding);
+        plot.get().plotDecisionBoundaries(net, in, out, true, heatMap, true, resolution, padding);
     }
 
 

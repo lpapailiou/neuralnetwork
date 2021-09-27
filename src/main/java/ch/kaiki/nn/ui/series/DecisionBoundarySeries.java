@@ -32,9 +32,10 @@ public class DecisionBoundarySeries extends Series {
     private boolean isBinary;
     private boolean showData;
     private GraphicsContext context;
+    private boolean blend;
 
 
-    public DecisionBoundarySeries(BasePlot chart, NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap colorMap, double padding) {
+    public DecisionBoundarySeries(BasePlot chart, NeuralNetwork neuralNetwork, double[][] inputData, double[][] outputData, boolean showData, String[] legend, NNHeatMap colorMap, boolean blend, double padding) {
         super(null, colorMap.getColors(), ChartMode.MESH_GRID);
         this.chart = chart;
         this.context = chart.getContext();
@@ -43,6 +44,7 @@ public class DecisionBoundarySeries extends Series {
         this.outputData = outputData;
         this.showData = showData;
         this.colorMap = colorMap;
+        this.blend = blend;
         this.padding = padding;
         int[] configuration = neuralNetwork.getConfiguration();
         this.isBinary = configuration[configuration.length-1] == 1;
@@ -249,6 +251,7 @@ public class DecisionBoundarySeries extends Series {
                 double sort = (a[2] + b[2] + c[2] + d[2]) / 4;
 
                 Color color;
+                double ratio;
                 if (colors.size() > 2) {
                     int stepIndex = 0;
                     double value = zMin;
@@ -260,13 +263,20 @@ public class DecisionBoundarySeries extends Series {
                         }
                     }
 
-                    double ratio = 1 / step * Math.abs(value - zSum);
+                    ratio = 1 / step * Math.abs(value - zSum);
                     if (zSum > zMax) {
                         ratio = 0;
                     }
+                    if (!blend) {
+                        ratio = (ratio >= 1) ? 1 : ratio - ratio % 0.2;
+                    }
                     color = blend(colors.get(stepIndex), colors.get(stepIndex+1), ratio);
                 } else {
-                    color = blend(colors.get(1), colors.get(0), (zSum-zMin)/range);
+                    ratio = (zSum-zMin)/range;
+                    if (!blend) {
+                        ratio = (ratio >= 1) ? 1 : ratio - ratio % 0.2;
+                    }
+                    color = blend(colors.get(1), colors.get(0), ratio);
                 }
 
                 double zVal = chart instanceof NN3DPlot ? sort : zSum;
