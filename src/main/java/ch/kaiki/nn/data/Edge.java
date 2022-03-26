@@ -5,6 +5,7 @@ public class Edge implements IEdge {
     private String name;
     private IVertice from;
     private IVertice to;
+    private IEdge counterpart;
     private double weight;
     private boolean visited;
     private boolean highlighted;
@@ -24,6 +25,27 @@ public class Edge implements IEdge {
         this(a, b);
         this.weight = weight;
         this.name = name;
+    }
+
+    public Edge(IVertice a, IVertice b, String name, IEdge counterpart) {
+        this(a, b, counterpart);
+        this.name = name;
+    }
+
+    public Edge(IVertice a, IVertice b, double weight, IEdge counterpart) {
+        this(a, b, counterpart);
+        this.weight = weight;
+    }
+
+    public Edge(IVertice a, IVertice b, double weight, String name, IEdge counterpart) {
+        this(a, b, counterpart);
+        this.weight = weight;
+        this.name = name;
+    }
+
+    public Edge(IVertice a, IVertice b, IEdge counterpart) {
+        this(a, b);
+        this.counterpart = counterpart;
     }
 
     public Edge(IVertice a, IVertice b) {
@@ -50,10 +72,16 @@ public class Edge implements IEdge {
     @Override
     public void setVisited(boolean visited) {
         this.visited = visited;
+        if (counterpart != null) {
+            counterpart.setVisited(visited);
+        }
     }
     @Override
     public void setHighlighted(boolean highlighted) {
         this.highlighted = highlighted;
+        if (counterpart != null) {
+            counterpart.setHighlighted(highlighted);
+        }
     }
     @Override
     public double getWeight() {

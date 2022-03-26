@@ -32,15 +32,16 @@ public class Graph implements IGraph {
         Edge edge = new Edge(a, b);
         edges.add(edge);
          if (bidirectional) {
-            new Edge(b, a);
+            new Edge(b, a,edge);
         }
     }
 
     @Override
     public void addEdge(IVertice a, IVertice b, double weight) {
-        new Edge(a, b, weight);
+        Edge edge = new Edge(a, b, weight);
+        edges.add(edge);
         if (bidirectional) {
-            new Edge(b, a, weight);
+            new Edge(b, a, weight, edge);
         }
     }
 
