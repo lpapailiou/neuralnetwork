@@ -79,7 +79,7 @@ public class GraphSeries extends Series {
         }
         for (IVertice vertice : graph.getVertices()) {
             double[] t = chart.transform(vertice.getCoordinates());
-            Color color = vertice.isHighlighted() ? graphColor.getHighlightedVerticeColor() : vertice.isVisited() ? graphColor.getVisitedVerticeColor() : graphColor.getEdgeColor();
+            Color color = vertice.isHighlighted() ? graphColor.getHighlightedVerticeColor() : vertice.isVisited() ? graphColor.getVisitedVerticeColor() : graphColor.getVerticeColor();
             points.add(new Point(context, t[0], t[1], t[2], color, false));
         }
 
