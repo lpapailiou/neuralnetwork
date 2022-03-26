@@ -26,11 +26,11 @@ public class MatrixTest {
 
     @Test
     public void biasTest() {
-        double[][] d = new double[][]{{0, 1}, {1, 1}, {1, 1}};
+        double[][] d = new double[][]{{0, 1}};
         Matrix a = new Matrix(d);
         double[][] db = new double[][]{{1, 2}};
         Matrix b = new Matrix(db);
-        double[][] de = new double[][]{{1, 3}, {2, 3}, {2, 3}};
+        double[][] de = new double[][]{{1, 3}};
         Matrix e = new Matrix(de);
         a.addBias(b);
         a.print();

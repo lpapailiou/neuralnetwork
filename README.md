@@ -369,7 +369,7 @@ Add following snippets to your ``pom.xml`` file to import the library:
         <!-- plugin handling -->
         <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
         <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
-        <neuralnetwork.group>ch.ch.ch.nn</neuralnetwork.group>
+        <neuralnetwork.group>ch.kaiki.nn</neuralnetwork.group>
         <neuralnetwork.id>neural-network</neuralnetwork.id>        
         <neuralnetwork.version>3.0</neuralnetwork.version>                  <!-- fixed version -->
         <!-- <neuralnetwork.version>LATEST</neuralnetwork.version> -->      <!-- latest version -->

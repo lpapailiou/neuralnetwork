@@ -242,7 +242,7 @@ public class Matrix implements Serializable {
 
     void addBias(Matrix m) {
         if (cols != m.cols) {
-            throw new IllegalArgumentException("wrong input matrix dimensions!");
+            throw new IllegalArgumentException("wrong input matrix dimensions! expected " + cols + " columns instead of " + m.cols + " columns.");
         }
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {

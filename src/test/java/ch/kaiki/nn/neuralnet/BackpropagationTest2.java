@@ -17,7 +17,7 @@ public class BackpropagationTest2 {
         net.layers.get(1).weight = new Matrix(new double[][]{{0.40470524, -0.53871819,  0.48922482}});
         net.layers.get(1).bias = new Matrix(new double[][]{{0.0032744}});
         */
-        net.fit(in, out, 10000, 16);
+        net.fit(in, out, 10, 16);
 
         System.out.println("prediction: " + net.predict(in[0]));
         System.out.println("prediction: " + net.predict(in[1]));
