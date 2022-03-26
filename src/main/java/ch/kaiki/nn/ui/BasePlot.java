@@ -1,7 +1,9 @@
 package ch.kaiki.nn.ui;
 
 import ch.kaiki.nn.data.BackPropEntity;
+import ch.kaiki.nn.data.IGraph;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
+import ch.kaiki.nn.ui.color.GraphColor;
 import ch.kaiki.nn.ui.color.NNChartColor;
 import ch.kaiki.nn.ui.color.NNHeatMap;
 import ch.kaiki.nn.ui.series.*;
@@ -259,7 +261,7 @@ public abstract class BasePlot {
         if (clear) {
             series.clear();
         }
-        LineSeries scatterSeries = new LineSeries(this, function, name, color, minX, maxX, minY, maxY);
+        LineSeries lineSeries = new LineSeries(this, function, name, color, minX, maxX, minY, maxY);
         int index = -1;
         for (int i = 0; i < series.size(); i++) {
             if (series.get(i) instanceof LineSeries) {
@@ -271,9 +273,9 @@ public abstract class BasePlot {
             }
         }
         if (index == -1) {
-            series.add(scatterSeries);
+            series.add(lineSeries);
         } else {
-            series.set(index, scatterSeries);
+            series.set(index, lineSeries);
         }
         invalidate();
     }
@@ -312,6 +314,20 @@ public abstract class BasePlot {
         }
         invalidate();
     }
+
+    public void plotGraph(IGraph graph, GraphColor graphColor) {
+        plotGraph(graph, "", graphColor);
+    }
+
+    public void plotGraph(IGraph graph, String name, GraphColor graphColor) {
+        setChartMode(ChartMode.LINE_OR_SCATTER);
+        series.clear();
+
+        GraphSeries graphSeries = new GraphSeries(this, graph, name, graphColor);
+        series.add(graphSeries);
+        invalidate();
+    }
+
     public void scatter(NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color) {
         setChartMode(ChartMode.LINE_OR_SCATTER);
         boolean clear = false;
@@ -396,14 +412,14 @@ public abstract class BasePlot {
         if (legend != null && (legend.length != configuration[configuration.length-1] || (configuration[configuration.length-1] == 1 && (legend.length != 2)))) {
             throw new IllegalArgumentException("Feature label length does not match neural network configuration!");
         }
-        if (legend != null) {
-            this.showLegend = true;
-        }
         if (resolution <= 0 || resolution > 1.0) {
             throw new IllegalArgumentException("Resolution must be greater than 0.0 and less or equal to 1.0!");
         }
         if (padding <= 0) {
             throw new IllegalArgumentException("Padding must be greater than 0.0!");
+        }
+        if (legend != null) {
+            this.showLegend = true;
         }
         this.initResolution = resolution;
         this.resolution = resolution;

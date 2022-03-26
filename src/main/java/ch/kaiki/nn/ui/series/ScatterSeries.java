@@ -26,6 +26,7 @@ public class ScatterSeries extends Series {
         this.context = chart.getContext();
         this.neuralNetwork = neuralNetwork;
         this.function = function;
+        this.smoothing = smoothing;
     }
 
     @Override
