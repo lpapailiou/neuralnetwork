@@ -111,11 +111,11 @@ class GeneticAlgorithmGeneration<T> {
     }
 
     private NeuralNetwork spinRouletteWheel(Map<Integer, Double> map, int selectionPoolSize, double sumFitness) {
-        long checksum = 0;
+        double checksum = 0;
         NeuralNetwork chosen = null;
         for (int i = 0; i < selectionPoolSize; i++) {
             checksum += map.get(i);
-            if (checksum > new Random().nextInt((int) sumFitness)) {
+            if (checksum > new Random().nextDouble() * sumFitness) {
                 chosen = populationList.get(i).getNeuralNetwork();
                 break;
             }
