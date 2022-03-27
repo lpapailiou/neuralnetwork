@@ -386,7 +386,7 @@ public class NNGraph {
         this.radius = radius;
         width = initialWidth - radius;
         height = initialHeight - radius;
-        hOffsetTop = radius / 2;
+        hOffsetTop = radius;
         paintNetwork();
         return this;
     }
