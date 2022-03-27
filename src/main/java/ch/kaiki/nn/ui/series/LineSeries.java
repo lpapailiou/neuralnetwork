@@ -71,6 +71,14 @@ public class LineSeries extends Series {
         }
     }
 
+    public void addData(double x, double y, int index) {
+        if (is2D) {
+            seriesData.add(new double[]{x, y, index});
+        } else {
+            seriesData.add(new double[]{x, index, y});
+        }
+    }
+
     @Override
     public void compute() {
         if (clear) {

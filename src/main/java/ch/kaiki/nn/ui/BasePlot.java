@@ -291,21 +291,34 @@ public abstract class BasePlot {
         if (clear) {
             series.clear();
         }
-        LineSeries lineSeries = new LineSeries(this, x, y, name, color);
-        int index = -1;
-        for (int i = 0; i < series.size(); i++) {
-            if (series.get(i) instanceof LineSeries) {
-                List<String> oName = series.get(i).getName();
-                if (oName.contains(name)) {
-                    index = i;
-                    break;
+        int seriesIndex = 0;
+        LineSeries lineSeriesElement = null;
+        for (Series s: getSeries()) {
+            if (s instanceof LineSeries && name.equals(s.getName().stream().findFirst().orElse(""))) {
+                lineSeriesElement = (LineSeries) s;
+                break;
+            }
+            seriesIndex++;
+        }
+        if (lineSeriesElement != null) {
+            lineSeriesElement.addData(x, y, seriesIndex);
+        } else {
+            LineSeries lineSeries = new LineSeries(this, x, y, name, color);
+            int index = -1;
+            for (int i = 0; i < series.size(); i++) {
+                if (series.get(i) instanceof LineSeries) {
+                    List<String> oName = series.get(i).getName();
+                    if (oName.contains(name)) {
+                        index = i;
+                        break;
+                    }
                 }
             }
-        }
-        if (index == -1) {
-            series.add(lineSeries);
-        } else {
-            series.set(index, lineSeries);
+            if (index == -1) {
+                series.add(lineSeries);
+            } else {
+                series.set(index, lineSeries);
+            }
         }
         invalidate();
     }
