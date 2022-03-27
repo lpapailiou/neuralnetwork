@@ -63,7 +63,7 @@ public class NNGraph {
         initialWidth = context.getCanvas().getWidth();
         width = initialWidth - radius;
         initialHeight = context.getCanvas().getHeight();
-        height = initialHeight;
+        height = initialHeight - radius;
     }
 
     private void buildGraph() {
@@ -78,7 +78,7 @@ public class NNGraph {
         for (int i = 0; i < configuration.length; i++) {
             List<GraphNode> layer = new ArrayList<>();
             int indicatorLayerSize = (i == 0) ? activeInputNodes.length : configuration[i];
-            double h = height / (dynamicGrowthH ? globalMax : indicatorLayerSize);
+            double h = (double) height / (dynamicGrowthH ? globalMax : indicatorLayerSize);
             double hOffset = (height - ((indicatorLayerSize - 1) * h) - 20) / 2;
 
             for (int j = 0; j < indicatorLayerSize; j++) {
@@ -384,6 +384,8 @@ public class NNGraph {
             throw new IllegalArgumentException("Radius must be greater than 0!");
         }
         this.radius = radius;
+        width = initialWidth - radius;
+        height = initialHeight - radius;
         paintNetwork();
         return this;
     }
