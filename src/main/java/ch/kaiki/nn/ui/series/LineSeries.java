@@ -77,7 +77,6 @@ public class LineSeries extends Series {
         } else {
             seriesData.add(new double[]{x, index, y});
         }
-        compute();
     }
 
     @Override
@@ -129,8 +128,8 @@ public class LineSeries extends Series {
             zMax = Double.MIN_VALUE;
             for (double[] data : seriesData) {
                 double dataX = data[0];
-                double dataY = data[0];
-                double dataZ = data[0];
+                double dataY = data[1];
+                double dataZ = data[2];
                 if (dataX < xMin) {
                     xMin = dataX;
                 } else if (dataX > xMax) {
