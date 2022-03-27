@@ -78,8 +78,8 @@ public class NNGraph {
         for (int i = 0; i < configuration.length; i++) {
             List<GraphNode> layer = new ArrayList<>();
             int indicatorLayerSize = (i == 0) ? activeInputNodes.length : configuration[i];
-            double h = (double) height / (dynamicGrowthH ? globalMax : indicatorLayerSize);
-            double hOffset = (height - ((indicatorLayerSize - 1) * h) - 20) / 2;
+            double h = height / (double) (dynamicGrowthH ? globalMax : indicatorLayerSize);
+            double hOffset = (height - (((dynamicGrowthH ? globalMax : indicatorLayerSize) - 1) * h) - 20) / 2;
 
             for (int j = 0; j < indicatorLayerSize; j++) {
                 GraphNode node = new GraphNode(((calcW * i) + wOffsetLeft), (h * j) + hOffset + hOffsetTop);
@@ -386,6 +386,8 @@ public class NNGraph {
         this.radius = radius;
         width = initialWidth - radius;
         height = initialHeight - radius;
+        hOffsetTop = radius / 2;
+        wOffsetLeft = radius  / 2;
         paintNetwork();
         return this;
     }
