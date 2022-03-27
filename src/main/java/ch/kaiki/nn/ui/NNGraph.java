@@ -73,9 +73,10 @@ public class NNGraph {
         }
         int[] configuration = neuralNetwork.getConfiguration();
         double calcW = width / (configuration.length - (dynamicGrowth ? 0 : 1));
+        int globalMax = Arrays.stream(configuration).max().getAsInt();
         for (int i = 0; i < configuration.length; i++) {
             List<GraphNode> layer = new ArrayList<>();
-            int indicatorLayerSize = (i == 0) ? activeInputNodes.length : configuration[i];
+            int indicatorLayerSize = dynamicGrowth ? globalMax : (i == 0) ? activeInputNodes.length : configuration[i];
             double h = height / indicatorLayerSize;
             double hOffset = (height - ((indicatorLayerSize - 1) * h) - 20) / 2;
 
