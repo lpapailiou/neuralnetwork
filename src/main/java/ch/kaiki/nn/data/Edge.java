@@ -95,4 +95,5 @@ public class Edge implements IEdge {
     public IVertice getTo() {
         return to;
     }
+
 }

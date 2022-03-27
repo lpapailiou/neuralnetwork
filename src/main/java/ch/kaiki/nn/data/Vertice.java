@@ -2,6 +2,7 @@ package ch.kaiki.nn.data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Vertice implements IVertice {
 
@@ -32,6 +33,8 @@ public class Vertice implements IVertice {
         this.x = x;
         this.y = y;
     }
+
+    private Vertice() {}
 
     @Override
     public void addEdge(IEdge edge) {
@@ -93,5 +96,6 @@ public class Vertice implements IVertice {
     public void setHighlighted(boolean highlighted) {
         this.highlighted = highlighted;
     }
+
 
 }

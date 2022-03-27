@@ -302,7 +302,7 @@ public class NNGraph {
             throw new IllegalArgumentException("Padding offset must be greater than 0!");
         }
         this.width = initialWidth - radius;
-        this.height = initialHeight;
+        this.height = initialHeight - radius;
 
         this.width = width - left - right;
         this.height = height - top - bottom;

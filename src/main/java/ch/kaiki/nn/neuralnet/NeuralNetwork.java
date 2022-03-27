@@ -94,8 +94,8 @@ public class NeuralNetwork implements Serializable {
         }
         NeuralNetwork neuralNetwork = neuralNetworks.get(0).copy();
         for (int i = 0; i < neuralNetwork.layers.size(); i++) {
-            Matrix[] weights = new Matrix[neuralNetwork.layers.size()];
-            Matrix[] biases = new Matrix[neuralNetwork.layers.size()];
+            Matrix[] weights = new Matrix[neuralNetworks.size()];
+            Matrix[] biases = new Matrix[neuralNetworks.size()];
             for (int j = 0; j < neuralNetworks.size(); j++) {
                 weights[j] = neuralNetworks.get(j).layers.get(i).weight;
                 biases[j] = neuralNetworks.get(j).layers.get(i).bias;

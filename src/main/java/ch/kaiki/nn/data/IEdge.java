@@ -10,5 +10,4 @@ public interface IEdge {
     double getWeight();
     IVertice getFrom();
     IVertice getTo();
-
 }
