@@ -90,11 +90,11 @@ class GeneticAlgorithmGeneration<T> {
             selectionPoolSize = (int) (populationSize * 0.001);
         }
 
-        Map<Integer, Long> map = new HashMap<>();
+        Map<Integer, Double> map = new HashMap<>();
         double sumFitness = 0;
         for (int i = 0; i < selectionPoolSize; i++) {
             IGeneticAlgorithmObject object = populationList.get(i);
-            long fitness = object.getFitness();
+            double fitness = object.getFitness();
             sumFitness += fitness;
             map.put(i, fitness);
         }
@@ -110,7 +110,7 @@ class GeneticAlgorithmGeneration<T> {
         return bestForReproduction;
     }
 
-    private NeuralNetwork spinRouletteWheel(Map<Integer, Long> map, int selectionPoolSize, double sumFitness) {
+    private NeuralNetwork spinRouletteWheel(Map<Integer, Double> map, int selectionPoolSize, double sumFitness) {
         long checksum = 0;
         NeuralNetwork chosen = null;
         for (int i = 0; i < selectionPoolSize; i++) {
@@ -143,9 +143,8 @@ class GeneticAlgorithmGeneration<T> {
 
         @Override
         public void run() {
-            boolean running = true;
-            while (running) {
-                running = object.perform();
+            while (object.perform()) {
+                // run while genetic algorithm object has not reached goal
             }
         }
     }

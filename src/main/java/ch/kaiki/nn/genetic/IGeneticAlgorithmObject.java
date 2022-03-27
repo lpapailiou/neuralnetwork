@@ -50,7 +50,7 @@ public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObj
      *
      * @return the fitness value for this instance.
      */
-    long getFitness();
+    double getFitness();
 
     /**
      * This method indicates if this instance is in an immature state yet. In mature statues only, the genetic
