@@ -79,7 +79,7 @@ public class NNGraph {
             List<GraphNode> layer = new ArrayList<>();
             int indicatorLayerSize = (i == 0) ? activeInputNodes.length : configuration[i];
             double h = height / (double) (dynamicGrowthH ? globalMax : indicatorLayerSize);
-            double hOffset = (height - (((dynamicGrowthH ? globalMax : indicatorLayerSize) - 1) * h) - 20) / 2;
+            double hOffset = (height - ((indicatorLayerSize - 1) * h) - 20) / 2;
 
             for (int j = 0; j < indicatorLayerSize; j++) {
                 GraphNode node = new GraphNode(((calcW * i) + wOffsetLeft), (h * j) + hOffset + hOffsetTop);
