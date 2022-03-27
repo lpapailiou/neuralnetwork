@@ -387,7 +387,6 @@ public class NNGraph {
         width = initialWidth - radius;
         height = initialHeight - radius;
         hOffsetTop = radius / 2;
-        wOffsetLeft = radius  / 2;
         paintNetwork();
         return this;
     }
