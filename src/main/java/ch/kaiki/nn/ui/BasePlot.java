@@ -523,6 +523,8 @@ public abstract class BasePlot {
             yMin = 0;
             zMin = 0;
             xMax = 1;
+            yMax = 1;
+            zMax = 1;
         }
 
         if (zInitialization == 0) {
