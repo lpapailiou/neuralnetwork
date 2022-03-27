@@ -27,6 +27,7 @@ public class LineSeries extends Series {
     private boolean is2D;
     private double yMinLimit = Double.MIN_VALUE;
     private double yMaxLimit = Double.MAX_VALUE;
+    boolean clear = true;
 
     public LineSeries(BasePlot chart, NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color, double smoothing) {
         super(Arrays.asList(name), Arrays.asList(color), ChartMode.LINE_OR_SCATTER);
@@ -50,9 +51,31 @@ public class LineSeries extends Series {
         yMaxLimit = maxY;
     }
 
+    public LineSeries(BasePlot chart, double x, double y, String name, Color color) {
+        super(Arrays.asList(name), Arrays.asList(color), ChartMode.LINE_OR_SCATTER);
+        this.chart = chart;
+        this.context = chart.getContext();
+        this.is2D = chart instanceof NN2DPlot;
+        this.clear = false;
+        int index = 0;
+        for (Series s: chart.getSeries()) {
+            if (this == s) {
+                break;
+            }
+            index++;
+        }
+        if (is2D) {
+            seriesData.add(new double[]{x, y, index});
+        } else {
+            seriesData.add(new double[]{x, index, y});
+        }
+    }
+
     @Override
     public void compute() {
-        seriesData.clear();
+        if (clear) {
+            seriesData.clear();
+        }
         int index = 0;
         for (Series s: chart.getSeries()) {
             if (this == s) {
@@ -87,6 +110,33 @@ public class LineSeries extends Series {
                     }
                 }
                 x += xStep;
+            }
+        } else if (!clear) {
+            xMin = Double.MAX_VALUE;
+            xMax = Double.MIN_VALUE;
+            yMin = Double.MAX_VALUE;
+            yMax = Double.MIN_VALUE;
+            zMin = Double.MAX_VALUE;
+            zMax = Double.MIN_VALUE;
+            for (double[] data : seriesData) {
+                double dataX = data[0];
+                double dataY = data[0];
+                double dataZ = data[0];
+                if (dataX < xMin) {
+                    xMin = dataX;
+                } else if (dataX > xMax) {
+                    xMax = dataX;
+                }
+                if (dataY < yMin) {
+                    yMin = dataY;
+                } else if (dataY > yMax) {
+                    yMax = dataY;
+                }
+                if (dataZ < zMin) {
+                    zMin = dataZ;
+                } else if (dataZ > zMax) {
+                    zMax = dataZ;
+                }
             }
         } else {
             xMin = Double.MAX_VALUE;
@@ -150,6 +200,9 @@ public class LineSeries extends Series {
 
     @Override
     public void render() {
+        if (seriesData.size() < 2) {
+            return;
+        }
         List<Line> lines = new ArrayList<>();
         Color color = super.getColor().get(0);
         int index = 0;

@@ -280,6 +280,36 @@ public abstract class BasePlot {
         invalidate();
     }
 
+    public void plotLine(double x, double y, String name, Color color) {
+        setChartMode(ChartMode.LINE_OR_SCATTER);
+        boolean clear = false;
+        for (Series s : series) {
+            if (s.getMode() == ChartMode.MESH_GRID) {
+                clear = true;
+            }
+        }
+        if (clear) {
+            series.clear();
+        }
+        LineSeries lineSeries = new LineSeries(this, x, y, name, color);
+        int index = -1;
+        for (int i = 0; i < series.size(); i++) {
+            if (series.get(i) instanceof LineSeries) {
+                List<String> oName = series.get(i).getName();
+                if (oName.contains(name)) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        if (index == -1) {
+            series.add(lineSeries);
+        } else {
+            series.set(index, lineSeries);
+        }
+        invalidate();
+    }
+
 
     public void plotLine(NeuralNetwork neuralNetwork, Function<BackPropEntity, Double> function, String name, Color color, double smoothing) {
         setChartMode(ChartMode.LINE_OR_SCATTER);
