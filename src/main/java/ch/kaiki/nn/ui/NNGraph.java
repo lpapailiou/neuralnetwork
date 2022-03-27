@@ -33,7 +33,8 @@ public class NNGraph {
     private double height;
     private double wOffsetLeft;
     private double hOffsetTop;
-    private boolean dynamicGrowth = true;
+    private boolean dynamicGrowthW = true;
+    private boolean dynamicGrowthH = true;
     private double radius = 16;
     private double lineWidth = 2;
     private double lowerNodeThreshold = 0.3;
@@ -72,12 +73,12 @@ public class NNGraph {
             return;
         }
         int[] configuration = neuralNetwork.getConfiguration();
-        double calcW = width / (configuration.length - (dynamicGrowth ? 0 : 1));
+        double calcW = width / (configuration.length - (dynamicGrowthW ? 0 : 1));
         int globalMax = Arrays.stream(configuration).max().getAsInt();
         for (int i = 0; i < configuration.length; i++) {
             List<GraphNode> layer = new ArrayList<>();
             int indicatorLayerSize = (i == 0) ? activeInputNodes.length : configuration[i];
-            double h = height / (dynamicGrowth ? globalMax : indicatorLayerSize);
+            double h = height / (dynamicGrowthH ? globalMax : indicatorLayerSize);
             double hOffset = (height - ((indicatorLayerSize - 1) * h) - 20) / 2;
 
             for (int j = 0; j < indicatorLayerSize; j++) {
@@ -312,14 +313,15 @@ public class NNGraph {
     }
 
     /**
-     * This method defines if the neural network graph will grow horizontally to the right if
-     * the layer count will be expanded.
+     * This method defines if the neural network graph will grow dynamically.
      *
-     * @param growth the growth indicator.
+     * @param growthWith the horizontal growth indicator.
+     * @param growthHeight the vertical growth indicator.
      * @return this NNGraph (for chaining).
      */
-    public NNGraph setDynamicGrowth(boolean growth) {
-        this.dynamicGrowth = growth;
+    public NNGraph setDynamicGrowth(boolean growthWith, boolean growthHeight) {
+        this.dynamicGrowthW = growthWith;
+        this.dynamicGrowthH = growthHeight;
         return this;
     }
 
