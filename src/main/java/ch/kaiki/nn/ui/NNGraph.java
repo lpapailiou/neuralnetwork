@@ -76,8 +76,8 @@ public class NNGraph {
         int globalMax = Arrays.stream(configuration).max().getAsInt();
         for (int i = 0; i < configuration.length; i++) {
             List<GraphNode> layer = new ArrayList<>();
-            int indicatorLayerSize = dynamicGrowth ? globalMax : (i == 0) ? activeInputNodes.length : configuration[i];
-            double h = height / indicatorLayerSize;
+            int indicatorLayerSize = (i == 0) ? activeInputNodes.length : configuration[i];
+            double h = height / (dynamicGrowth ? globalMax : indicatorLayerSize);
             double hOffset = (height - ((indicatorLayerSize - 1) * h) - 20) / 2;
 
             for (int j = 0; j < indicatorLayerSize; j++) {
