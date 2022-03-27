@@ -77,6 +77,7 @@ public class LineSeries extends Series {
         } else {
             seriesData.add(new double[]{x, index, y});
         }
+        compute();
     }
 
     @Override
