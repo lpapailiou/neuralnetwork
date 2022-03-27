@@ -238,6 +238,9 @@ public abstract class BasePlot {
     public VisualizationMode getMode() {
         return mode;
     }
+    public void triggerInvalidate() {
+        this.invalidate();
+    }
 // --------------------------------------------- plots ---------------------------------------------
     private void setChartMode(ChartMode mode) {
         chartMode = mode;
