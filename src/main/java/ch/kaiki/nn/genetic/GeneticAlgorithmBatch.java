@@ -23,7 +23,8 @@ public class GeneticAlgorithmBatch<T> {
     private int generationCount = Integer.MAX_VALUE;
     private int currentGenerationId;
     private GeneticAlgorithmGeneration<T> currentGeneration;
-    private int reproductionPoolSize;
+    private int reproductionSpecimenCount = -1;
+    private double reproductionPoolSize = -1;
 
     /**
      * Constructor to create a new batch. With given parameters, the genetic algorithm will be able to run.
@@ -47,17 +48,20 @@ public class GeneticAlgorithmBatch<T> {
         this.populationSize = populationSize;
 
         try {
-            reproductionPoolSize = Integer.parseInt(NeuralNetwork.Builder.getProperty("genetic_reproduction_pool_size"));
+            reproductionSpecimenCount = Integer.parseInt(NeuralNetwork.Builder.getProperty("genetic_reproduction_specimen_count"));
+        } catch (Exception e) {
+            LOG.log(Level.INFO, "Could not load property 'genetic_reproduction_specimen_count' from neuralnetwork.properties!", e);
+        }
+        try {
+            reproductionPoolSize = Double.parseDouble(NeuralNetwork.Builder.getProperty("genetic_reproduction_pool_size"));
         } catch (Exception e) {
             LOG.log(Level.INFO, "Could not load property 'genetic_reproduction_pool_size' from neuralnetwork.properties!", e);
-        } finally {
-            if (reproductionPoolSize == 0) {
-                reproductionPoolSize = (int) (populationSize * 0.2);
-                reproductionPoolSize = Math.max(reproductionPoolSize, 2);
-            }
         }
-        if (reproductionPoolSize < 1 || reproductionPoolSize > populationSize) {
-            throw new IllegalArgumentException("reproduction pool must be set to at least 1 in neuralnetwork.properties and it must not exceed population size!");
+        if (reproductionSpecimenCount < 1 || reproductionSpecimenCount > populationSize) {
+            throw new IllegalArgumentException("reproduction specimen count must be set to at least 1 and it must not exceed population size!");
+        }
+        if (reproductionPoolSize <= 0 || reproductionPoolSize > 1) {
+            throw new IllegalArgumentException("reproduction pool size must have a value larger than 0.0 and less or equal to 1.0!");
         }
     }
 
@@ -81,11 +85,11 @@ public class GeneticAlgorithmBatch<T> {
      * @return the best NeuralNetwork for reproduction (i.e. the seed for a new generation).
      */
     public NeuralNetwork processGeneration() {
-        currentGeneration = new GeneticAlgorithmGeneration<>(geneticAlgorithmObjectConstructor, currentGenerationId, reproductionPoolSize, populationSize);
-        seedNeuralNetwork = currentGeneration.runGeneration(seedNeuralNetwork);
         if (currentGenerationId == generationCount) {
             return null;
         }
+        currentGeneration = new GeneticAlgorithmGeneration<>(geneticAlgorithmObjectConstructor, currentGenerationId, reproductionSpecimenCount, populationSize, reproductionPoolSize);
+        seedNeuralNetwork = currentGeneration.runGeneration(seedNeuralNetwork);
         currentGenerationId++;
         return seedNeuralNetwork;
     }
@@ -134,23 +138,45 @@ public class GeneticAlgorithmBatch<T> {
     }
 
     /**
-     * Returns current reproduction pool size for the genetic algorithm. Must not match corresponding property.
+     * Returns current reproduction specimen count for the genetic algorithm.
+     *
+     * @return the reproduction specimen count.
+     */
+    public int getReproductionSpecimenCount() {
+        return reproductionSpecimenCount;
+    }
+
+    /**
+     * Sets reproduction specimen count for the genetic algorithm. Must be at least 1 and must not exceed population size.
+     *
+     * @param reproductionSpecimenCount the count of neural networks to be merged for reproduction.
+     * @return the current genetic algorithm batch.
+     */
+    public GeneticAlgorithmBatch<T> setReproductionSpecimenCount(int reproductionSpecimenCount) {
+        if (reproductionSpecimenCount < 1 || reproductionSpecimenCount > populationSize) {
+            throw new IllegalArgumentException("reproduction specimen count must be set to at least 1 and it must not exceed population size!");
+        }
+        this.reproductionSpecimenCount = reproductionSpecimenCount;
+        return this;
+    }
+
+    /**
+     * Returns current reproduction pool size for the genetic algorithm.
      *
      * @return the reproduction pool size.
      */
-    public int getReproductionPoolSize() {
+    public double getReproductionPoolSize() {
         return reproductionPoolSize;
     }
 
     /**
-     * Sets reproduction pool size for the genetic algorithm.
-     *
-     * @param reproductionPoolSize the count of neural networks to be merged for reproduction.
+     * Sets reproduction pool size for the genetic algorithm. Must be greater than 0.0 and less or equal to 1.0.
+     * @param reproductionPoolSize the size of the reproduction pool as percentage.
      * @return the current genetic algorithm batch.
      */
-    public GeneticAlgorithmBatch<T> setReproductionPoolSize(int reproductionPoolSize) {
-        if (reproductionPoolSize < 1 || reproductionPoolSize > populationSize) {
-            throw new IllegalArgumentException("reproduction pool must be set to at least 1 and it must not exceed population size!");
+    public GeneticAlgorithmBatch<T> setReproductionPoolSize(double reproductionPoolSize) {
+        if (reproductionPoolSize <= 0 || reproductionPoolSize > 1) {
+            throw new IllegalArgumentException("reproduction specimen count must be set to at least 1 and it must not exceed population size!");
         }
         this.reproductionPoolSize = reproductionPoolSize;
         return this;

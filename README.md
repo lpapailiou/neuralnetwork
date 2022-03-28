@@ -469,7 +469,7 @@ Below an overview of the `neuralnetwork.properties` file.
     # the learning rate must have a value between 0.0 and 1.0.
     learning_rate=0.8
     # the default rectifier as activation function for the neural network.
-    # available values: gelu|identity|relu|leaky_relu|sigmoid|sigmoid_accurate|silu|silu_accurate|softplus|tanh.
+    # available values: identity|relu|leaky_relu|sigmoid|sigmoid_accurate|silu|silu_accurate|tanh|elu|gelu|softplus|softmax.
     rectifier=sigmoid
     # the optimizer for the learning rate between iterations.
     # available values: none|sgd
@@ -493,13 +493,24 @@ Below an overview of the `neuralnetwork.properties` file.
     # regularization functions may rely on a regularization parameter. this parameter, usually called lambda,
     # will be controlled by the property regularizer_param.
     regularizer_param=0
-            
+    
+    # dropout is an additional regularization technique. during training, it will set a certain percentage
+    # of output layer weights to zero and scale the output values by that factor.
+    # during testing, dropout is not active, the output will be scaled up instead.
+    dropout_factor=0
+    
+    # batch mode decides if gradients are summed up or the mean is used for backpropagation.
+    # available values: mean|sum
+    batch_mode=mean
+    
     # ************************************************************************************************************ #
     # ***********                                GENETIC ALGORITHM ONLY                                *********** #
     # ************************************************************************************************************ #
-    # the reproduction pool is the count of NeuralNetworks chosen for reproduction to be seeded to
+    # the reproduction specimen count is the count of NeuralNetworks chosen for reproduction to be seeded to
     # the new generation to come. value must not be below 2.
-    genetic_reproduction_pool_size=3
+    genetic_reproduction_specimen_count=3
+    # the selection pool size for genetic evolution as a percentage of the best performing neural networks. fallback will be 1.
+    genetic_reproduction_pool_size=0.5
     # the mutation rate is the percentage of the mutated components of the neural network matrices.
     # must have a value between 0.0 and 1.0
     mutation_rate=0.5
@@ -510,4 +521,6 @@ Below an overview of the `neuralnetwork.properties` file.
     # if mutation_rate_optimizer is set to 'none', this value will have no effect.
     # must have a value between 0.0 and 1.0.
     mutation_rate_momentum=0.01
+
+
 

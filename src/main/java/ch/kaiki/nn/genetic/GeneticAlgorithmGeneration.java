@@ -16,19 +16,22 @@ class GeneticAlgorithmGeneration<T> {
 
     private static final Logger LOG = Logger.getLogger("GeneticAlgorithmGeneration logger");
     private static final int THREAD_POOL = 16;
-    private Constructor<T> geneticAlgorithmObjectConstructor;
+    private final Constructor<T> geneticAlgorithmObjectConstructor;
     private int id;
-    private int populationSize;
+    private final int populationSize;
     private NeuralNetwork bestNeuralNetwork;
     private NeuralNetwork bestNeuralNetworkForReproduction;
-    private List<IGeneticAlgorithmObject> populationList = new ArrayList<>();
-    private int reproductionPoolSize;
+    private final List<IGeneticAlgorithmObject> populationList = new ArrayList<>();
+    private final int reproductionSpecimenCount;
+    private int selectionPoolSize;
 
-    GeneticAlgorithmGeneration(Constructor<T> geneticAlgorithmObjectConstructor, int id, int reproductionPoolSize, int populationSize) {
+    GeneticAlgorithmGeneration(Constructor<T> geneticAlgorithmObjectConstructor, int id, int reproductionSpecimenCount, int populationSize, double reproductionPoolSize) {
         this.geneticAlgorithmObjectConstructor = geneticAlgorithmObjectConstructor;
         this.id = id;
-        this.reproductionPoolSize = reproductionPoolSize;
+        this.reproductionSpecimenCount = reproductionSpecimenCount;
         this.populationSize = populationSize;
+        this.selectionPoolSize = (int) reproductionPoolSize * populationSize;
+        this.selectionPoolSize = Math.max(this.selectionPoolSize, 1);
     }
 
     NeuralNetwork runGeneration(NeuralNetwork seedNeuralNetwork) {
@@ -76,18 +79,6 @@ class GeneticAlgorithmGeneration<T> {
 
         if (populationList.size() < 2) {
             return bestNeuralNetwork;
-        } else if (populationList.size() < 20 || populationList.get(0).isImmature()) {
-            return NeuralNetwork.merge(Arrays.asList(bestNeuralNetwork, populationList.get(1).getNeuralNetwork()));
-        }
-        int selectionPoolSize = 8;
-        if (populationList.size() >= 100 && populationList.size() < 200) {
-            selectionPoolSize = (int) (populationSize * 0.2);
-        } else if (populationList.size() >= 200 && populationList.size() < 1000) {
-            selectionPoolSize = (int) (populationSize * 0.1);
-        } else if (populationList.size() >= 1000 && populationList.size() < 10000) {
-            selectionPoolSize = (int) (populationSize * 0.01);
-        } else if (populationList.size() >= 10000) {
-            selectionPoolSize = (int) (populationSize * 0.001);
         }
 
         Map<Integer, Double> map = new HashMap<>();
@@ -101,7 +92,7 @@ class GeneticAlgorithmGeneration<T> {
 
         List<NeuralNetwork> mergeList = new ArrayList<>();
         mergeList.add(bestNeuralNetwork);
-        for (int i = 0; i < reproductionPoolSize - 1; i++) {
+        for (int i = 0; i < reproductionSpecimenCount - 1; i++) {
             mergeList.add(0, spinRouletteWheel(map, selectionPoolSize, sumFitness));
         }
 
@@ -113,9 +104,10 @@ class GeneticAlgorithmGeneration<T> {
     private NeuralNetwork spinRouletteWheel(Map<Integer, Double> map, int selectionPoolSize, double sumFitness) {
         double checksum = 0;
         NeuralNetwork chosen = null;
+        double random = new Random().nextDouble() * sumFitness;
         for (int i = 0; i < selectionPoolSize; i++) {
             checksum += map.get(i);
-            if (checksum > new Random().nextDouble() * sumFitness) {
+            if (checksum > random) {
                 chosen = populationList.get(i).getNeuralNetwork();
                 break;
             }
