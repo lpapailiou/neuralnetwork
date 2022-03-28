@@ -132,20 +132,24 @@ public class LineSeries extends Series {
                 double dataZ = data[2];
                 if (dataX < xMin) {
                     xMin = dataX;
-                } else if (dataX > xMax) {
+                }
+                if (dataX > xMax) {
                     xMax = dataX;
                 }
                 if (dataY < yMin) {
                     yMin = dataY;
-                } else if (dataY > yMax) {
+                }
+                if (dataY > yMax) {
                     yMax = dataY;
                 }
                 if (dataZ < zMin) {
                     zMin = dataZ;
-                } else if (dataZ > zMax) {
+                }
+                if (dataZ > zMax) {
                     zMax = dataZ;
                 }
             }
+
         } else {
             xMin = Double.MAX_VALUE;
             xMax = Double.MIN_VALUE;

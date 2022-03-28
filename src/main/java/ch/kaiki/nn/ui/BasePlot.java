@@ -307,21 +307,7 @@ public abstract class BasePlot {
             lineSeriesElement.addData(x, y, seriesIndex);
         } else {
             LineSeries lineSeries = new LineSeries(this, x, y, name, color);
-            int index = -1;
-            for (int i = 0; i < series.size(); i++) {
-                if (series.get(i) instanceof LineSeries) {
-                    List<String> oName = series.get(i).getName();
-                    if (oName.contains(name)) {
-                        index = i;
-                        break;
-                    }
-                }
-            }
-            if (index == -1) {
-                series.add(lineSeries);
-            } else {
-                series.set(index, lineSeries);
-            }
+            series.add(lineSeries);
         }
         invalidate();
     }
@@ -517,6 +503,7 @@ public abstract class BasePlot {
                 this.zMax = zMax;
             }
         }
+
         int xInitialization = (xMin != xMax && xMin != Double.MAX_VALUE && xMax != Double.MIN_VALUE) ? 1 : 0;
         int yInitialization = (yMin != yMax && yMin != Double.MAX_VALUE && yMax != Double.MIN_VALUE) ? 1 : 0;
         int zInitialization = (zMin != zMax && zMin != Double.MAX_VALUE && zMax != Double.MIN_VALUE) ? 1 : 0;
@@ -534,7 +521,6 @@ public abstract class BasePlot {
             zMin = -0.5;
             zMax = 0.5;
         }
-
         postInvalidate();
         //System.out.println("xmin: " + xMin + ", xMax: " + xMax + ", ymin: " + yMin + ", ymax: " + yMax + ", zmin " + zMin + ", zmax: " + zMax);
         render();
