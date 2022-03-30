@@ -68,7 +68,7 @@ public class DecisionBoundaryMulticlass extends Application {
             int trainIter = 50;
             double resolution = 0.1;
             double padding = 1.2;
-            boolean blend = true;
+            boolean blend = false;
             int batchSize = 1;
 
             neuralNetwork.fit(in, out, iter, batchSize);
@@ -90,7 +90,7 @@ public class DecisionBoundaryMulticlass extends Application {
             //plot3D.showLegend(true);
             plot3D.showBorder(true);
             plot3D.enableMouseInteraction();
-            //plot3D.setAnimated(true);
+            plot3D.setAnimated(true);
 
 
             plot(plot2D, plot3D,  neuralNetwork, in, out, heatMap, blend, resolution, padding);

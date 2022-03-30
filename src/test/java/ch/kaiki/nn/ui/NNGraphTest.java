@@ -10,11 +10,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import ch.kaiki.nn.ui.color.NNGraphColor;
 import ch.kaiki.nn.util.Initializer;
 
+import javax.swing.*;
 import java.util.*;
 
 import static ch.kaiki.nn.ui.color.NNColor.randomColor;

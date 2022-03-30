@@ -67,7 +67,7 @@ public class DecisionBoundaryBinaryClassifier extends Application {
             int iter = 100;
             int trainIter = 20;
             double resolution = 0.18;
-            double padding = 3;
+            double padding = 10;
             boolean blend = false;
             int batchSize = 1;
 
