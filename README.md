@@ -1,8 +1,8 @@
+![architecture](doc/img/nn_architecture.png)    
+
 # neural network library
 This is a maven library for neural networks in java 8.  
 Different visualization options are provided with javafx.  
-
-![architecture](doc/img/nn_architecture.png)  
 
 ## Table of Contents
 1. [About](#about)
@@ -98,14 +98,17 @@ Confusion matrix visualization:
 
 ![confusion matrix](doc/img/confusion_matrix.png)
 
-Binary decision boundaries in 2D and 3D, manually refreshed while training:
+Binary decision boundaries in 2D and 3D, manually refreshed while training on xor dataset:
 
 ![binary decision boundaries](doc/img/2d_db_demo.gif)
 
 Multiclass decision boundaries in 3D, animated:
 
-![multiclass decision boundaries](doc/img/3d_db_demo.gif)
+![multiclass decision boundaries](doc/img/3d_db_demo.gif)  
 
+[Fully integrated sample ui for rudimentary analysis of tsp problem](https://github.com/lpapailiou/tspwalker):
+
+![multiclass decision boundaries](doc/img/tsp_demo.gif)
 ### Walkthrough
 Detailed examples are available here:
 
