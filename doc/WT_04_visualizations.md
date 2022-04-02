@@ -1,6 +1,5 @@
-# Neural Network Visualization Documentation
-This documentation focuses on visualizations of the neural network with ``javafx``.  
-For basic handling, please see the [NeuralNetwork documentation](NeuralNetwork.md).
+# walkthrough: visualization
+charts, decision boundaries, confusion matrix, layer weights etc. in 2D and 3D
 
 ## Table of Contents
 1. [Concept](#concept)  

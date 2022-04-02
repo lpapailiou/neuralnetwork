@@ -1,6 +1,6 @@
 ![architecture](doc/img/nn_architecture.png)    
 
-# neural network library
+# neural network
 This is a maven library for neural networks in java 8.  
 Different visualization options are provided with javafx.  
 
@@ -9,11 +9,13 @@ Different visualization options are provided with javafx.
 2. [Scope](#scope)  
     2.1 [Architecture](#architecture)  
     2.2 [Supported algorithms](#supported-algorithms)  
-    2.3 [Rectifiers](#rectifiers)  
-    2.4 [Optimizers](#learning-and-mutation-rate-optimizer)  
-    2.5 [Parametrization](#parametrization)  
-    2.6 [Persistence](#persistence)  
-    2.7 [UI](#ui)  
+    2.3 [Initializers](#initializers)  
+    2.4 [Rectifiers](#rectifiers)  
+    2.5 [Cost functions](#cost-functions)  
+    2.6 [Optimizers](#learning-and-mutation-rate-optimizer)  
+    2.7 [Parametrization](#parametrization)  
+    2.8 [Persistence](#persistence)  
+    2.9 [UI](#ui)  
 3. [Samples](#samples)  
    3.1 [Overview](#overview)   
    3.2 [Walkthrough](#walkthrough)
@@ -39,6 +41,12 @@ While the first steps focused on functionality, later work focused on different 
 - Supervised learning
 - Genetic algorithm
 
+### Initializers
+- Static
+- Random
+- Xavier
+- Kaiming
+
 ### Rectifiers
 Implemented are following rectifiers:
 - Identity
@@ -54,9 +62,20 @@ Implemented are following rectifiers:
 - Softplus
 - Softmax
 
-### Learning and mutation rate optimizer
-- none (static learning rate)
-- stochastic gradient descent
+## Cost functions
+- MSE native
+- MSE
+- Cross entropy
+- Exponential
+- Hellinger distance
+- KLD
+- GKLD
+- ISD
+
+### Optimizers
+- none (static)
+- stochastic gradient descent (applicable to learning rate and mutation rate)
+- dropout
 
 ### Parametrization
 The parametrization of the hyperparameters of the neural network can be done as following:
@@ -71,7 +90,7 @@ With the additional ui package, you may be able to visualize the neural network 
   
 ## Samples
 ### Overview
-In order to have an idea about the look and feel, see following samples.  
+In order to have an idea about the look and feel, see following samples which were created with this library.  
 
 Sample code for a minimal prediction task:
 
@@ -114,8 +133,10 @@ Detailed examples are available here:
 
 | Topic 	| Description 	| 
 |-----	|---------	|
-| Link    	| Description        	|
-| Link    	| Description        	|
+| [basic usage](doc/WT_01_basic_usage.md) | constructor, methods, basic features |
+| [supervised learning](doc/WT_02_supervised_learning.md) | implementation example |
+| [genetic algorithm](doc/WT_03_genetic_algorithm.md) | implementation example |
+| [visualization](doc/WT_04_visualizations.md) | charts, decision boundaries, confusion matrix, layer weights etc. in 2D and 3D |
 
 ## Implementation
 This library can be either implemented by jar file or as maven dependency.  
@@ -135,13 +156,16 @@ Before new features are introduced, a stable, consistent realease will be made.
 | <= 2.5    | multiple releases focusing on the neural network algorithm        	|
 
 ## References
-- [GitHub Repository JavaNet by Suyash Sonowae](https://github.com/SuyashSonawane/JavaNet)
-- [Hansen, Casper: Activation Functions Explained - GELU, SELU, ELU, ReLU and more. Deep Learning, mlfromscratch, 22.08.2019](https://mlfromscratch.com/activation-functions-explained/#/)
-- [Karpathy, Andrej: CS231n Winter 2016, Stanford Lectures, Youtube](https://www.youtube.com/watch?v=NfnWJUyUJYU&list=PLkt2uSq6rBVctENoVBg1TpCC7OQi31AlC)
-- [Hansen, Casper: Neural Networks: Feedforward and Backpropagation Explained & Optimization. Deep Learning, mlfromscratch, 5.08.2019](https://mlfromscratch.com/activation-functions-explained/#/)
-- [Bialas, Piotr: Implementation of artifical intelligence in Snake game using genetic algorithm and neural networks, CEUR 2468, 2019](http://ceur-ws.org/Vol-2468/p9.pdf)
-- Steinwendner, Joachim et. al: Neuronale Netzw programmieren mit Python. 2. Auflage, Rheinwerk Verlag, 2020, 978-3-8362-7450-0.
-- Chollet, Francois: Deepl Learning mit Python und Kears. Das Praxis-Handbuch. mitp Verlags GmbH & Co. KG, Frechen, 2018, 978-3-95845-838-3.
-- Geron, Aurelien: Hands.On Machine Learning with Scikit-Learn, Keras & TensorFlow. Concepts, Tools, and Techniques to Build Intelligent Systems. Second Edition, O'Reilly, Canada 2019, 978-1-492-03264-9
-- Lapan, Maxim: Deep Reinforcement Learning Hands-On. Second Edition, Packt Publishing, Birmingham, 2020, 978-1-83882-699-4
-- Last but not least, for reasons: [https://stackoverflow.com/](https://stackoverflow.com/)
+Code:
+- [Sonawane, Suyash: JAvaNet, GitHub Repository, 2021.](https://github.com/SuyashSonawane/JavaNet) (first steps)
+- [https://stackoverflow.com/](https://stackoverflow.com/) (coding hints)
+
+Literature:
+- [Bialas, Piotr: _Implementation of artifical intelligence in Snake game using genetic algorithm and neural networks_, CEUR 2468, 2019.](http://ceur-ws.org/Vol-2468/p9.pdf)
+- Chollet, Francois: _Deepl Learning mit Python und Kears. Das Praxis-Handbuch_. mitp Verlags GmbH & Co. KG, Frechen, 2018. (978-3-95845-838-3)
+- Geron, Aurelien: _Hands.On Machine Learning with Scikit-Learn, Keras & TensorFlow. Concepts, Tools, and Techniques to Build Intelligent Systems_. Second Edition, O'Reilly, Canada 2019. (978-1-492-03264-9)
+- [Hansen, Casper: _Neural Networks: Feedforward and Backpropagation Explained & Optimization_. Deep Learning, mlfromscratch, 5.08.2019.](https://mlfromscratch.com/activation-functions-explained/#/)
+- [Hansen, Casper: _Activation Functions Explained - GELU, SELU, ELU, ReLU and more_. Deep Learning, mlfromscratch, 22.08.2019.](https://mlfromscratch.com/activation-functions-explained/#/)
+- [Karpathy, Andrej: _CS231n Winter 2016_, Stanford Universy, Youtube, 2016.](https://www.youtube.com/watch?v=NfnWJUyUJYU&list=PLkt2uSq6rBVctENoVBg1TpCC7OQi31AlC)
+- Lapan, Maxim: _Deep Reinforcement Learning Hands-On_. Second Edition, Packt Publishing, Birmingham, 2020. (978-1-83882-699-4)
+- Steinwendner, Joachim et. al: _Neuronale Netzw programmieren mit Python. 2_. Auflage, Rheinwerk Verlag, 2020. (978-3-8362-7450-0)
