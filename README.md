@@ -62,7 +62,7 @@ Implemented are following rectifiers:
 - Softplus
 - Softmax
 
-## Cost functions
+### Cost functions
 - MSE native
 - MSE
 - Cross entropy
