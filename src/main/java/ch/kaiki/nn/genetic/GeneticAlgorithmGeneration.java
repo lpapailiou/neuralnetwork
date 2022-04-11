@@ -93,7 +93,7 @@ class GeneticAlgorithmGeneration<T> {
         List<NeuralNetwork> mergeList = new ArrayList<>();
         mergeList.add(bestNeuralNetwork);
         for (int i = 0; i < reproductionSpecimenCount - 1; i++) {
-            mergeList.add(0, spinRouletteWheel(map, selectionPoolSize, sumFitness));
+            mergeList.add(spinRouletteWheel(map, selectionPoolSize, sumFitness));
         }
 
         bestForReproduction = NeuralNetwork.merge(mergeList);
