@@ -17,7 +17,7 @@ class GeneticAlgorithmGeneration<T> {
     private static final Logger LOG = Logger.getLogger("GeneticAlgorithmGeneration logger");
     private static final int THREAD_POOL = 16;
     private final Constructor<T> geneticAlgorithmObjectConstructor;
-    private int id;
+    private final int id;
     private final int populationSize;
     private NeuralNetwork bestNeuralNetwork;
     private NeuralNetwork bestNeuralNetworkForReproduction;
@@ -38,7 +38,7 @@ class GeneticAlgorithmGeneration<T> {
         ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL);
         List<Runnable> tasks = new ArrayList<>();
         for (int i = 0; i < populationSize; i++) {
-            tasks.add(new BackgroundProcess(geneticAlgorithmObjectConstructor, i == 0 ? seedNeuralNetwork : seedNeuralNetwork.mutate(), populationList));
+            tasks.add(new BackgroundProcess(geneticAlgorithmObjectConstructor, i == 0 ? seedNeuralNetwork.initialize() : seedNeuralNetwork.mutate(), populationList));
         }
         CompletableFuture<?>[] futures = tasks.stream().map(task -> CompletableFuture.runAsync(task, executorService)).toArray(CompletableFuture[]::new);
         CompletableFuture.allOf(futures).join();

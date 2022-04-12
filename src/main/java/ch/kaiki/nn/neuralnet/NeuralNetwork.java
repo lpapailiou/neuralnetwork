@@ -341,6 +341,25 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
+     * This method will provide a re-initialized copy of the current neural network. The output neural network will not be connected to the copied neural network.
+     *
+     * @return a re-initialized copy of this instance
+     */
+    public NeuralNetwork initialize() {
+        NeuralNetwork neuralNetwork = this.copy();
+        neuralNetwork.initialilzeLayers();
+        return neuralNetwork;
+    }
+
+    private void initialilzeLayers() {
+        for (int i = 1; i < configuration.length; i++) {
+            int fanIn = configuration[i - 1];
+            int fanOut = (i == configuration.length - 1) ? 0 : configuration[i + 1];
+            layers.get(i-1).initialize(initializer, fanIn, fanOut);
+        }
+    }
+
+    /**
      * This method will provide an identical copy of the current neural network. The output neural network will not be connected to the copied neural network.
      *
      * @return an identical copy of this instance
