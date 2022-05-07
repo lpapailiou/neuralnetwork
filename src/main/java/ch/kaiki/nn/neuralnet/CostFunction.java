@@ -5,7 +5,7 @@ import java.util.List;
 public enum CostFunction {
 
     /**
-     * cost:       f(x)  = 0.5 * sum((actual - expected)^2)
+     * cost:       f(x)  = 0.5 * sum((actual - expected)^2
      * gradient:   f(x)' = (actual - expected)
      */
     MSE_NAIVE("Mean squared error (naïve)") {
@@ -22,7 +22,7 @@ public enum CostFunction {
         }
     },
     /**
-     * cost:       f(x)  = 1/m * sum((actual - expected)^2)
+     * cost:       f(x)  = 1/m * sum((actual - expected)^2
      * gradient:   f(x)' = 2 * (actual - expected)
      */
     MSE("Mean squared error") {
