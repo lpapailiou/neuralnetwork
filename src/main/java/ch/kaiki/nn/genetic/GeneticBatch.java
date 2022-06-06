@@ -1,6 +1,5 @@
 package ch.kaiki.nn.genetic;
 
-import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -11,18 +10,19 @@ import java.util.logging.Logger;
 
 /**
  * This class allows an easy handling of the genetic algorithm. It will prepare according populations and allows processing generation by generation.
- * Generations will be processed in parallel in order to improve processing time. After a generation is run, NeuralNetworks can be extracted.
+ * Generations will be processed in parallel in order to improve processing time. After a generation is run, genes can be extracted.
  *
- * @param <T> the type of the GeneticAlgorithmObject to be used.
+ * @param <T> the type of the GeneticObject to be used.
+ * @param <U> the type of the Gene to be used.
  */
-public class GeneticAlgorithmBatch<T> {
-    private static final Logger LOG = Logger.getLogger("GeneticAlgorithmBatch logger");
+public class GeneticBatch<T, U> {
+    private static final Logger LOG = Logger.getLogger("GeneticBatch logger");
     private final int populationSize;
     private Constructor<T> geneticAlgorithmObjectConstructor;
-    private NeuralNetwork seedNeuralNetwork;
+    private IGene seed;
     private int generationCount = Integer.MAX_VALUE;
     private int currentGenerationId;
-    private GeneticAlgorithmGeneration<T> currentGeneration;
+    private Generation<T> currentGeneration;
     private int reproductionSpecimenCount = -1;
     private double reproductionPoolSize = -1;
 
@@ -32,28 +32,29 @@ public class GeneticAlgorithmBatch<T> {
      * to modify the genetic algorithm.
      *
      * @param templateGeneticAlgorithmObject the type which implements the actual logic of the genetic algorithm.
-     * @param seedNeuralNetwork              the NeuralNetwork to be seeded for the first population.
+     * @param geneClass                      the type which implements the gene.
+     * @param seed                           the Gene to be seeded for the first population.
      * @param populationSize                 the population size for the genetic algorithm.
      */
-    public GeneticAlgorithmBatch(@NotNull Class<T> templateGeneticAlgorithmObject, @NotNull NeuralNetwork seedNeuralNetwork, int populationSize) {
+    public GeneticBatch(@NotNull Class<T> templateGeneticAlgorithmObject, Class<U> geneClass, @NotNull IGene seed, int populationSize) {
         try {
-            geneticAlgorithmObjectConstructor = templateGeneticAlgorithmObject.getDeclaredConstructor(NeuralNetwork.class);
+            geneticAlgorithmObjectConstructor = templateGeneticAlgorithmObject.getDeclaredConstructor(geneClass);
         } catch (NoSuchMethodException e) {
-            throw new IllegalArgumentException("Wrong class definition of first passed argument templateGeneticAlgorithmObject. Must have constructor with single argument NeuralNetwork!", e);
+            throw new IllegalArgumentException("Wrong class definition of first passed argument templateGeneticAlgorithmObject. Must have constructor with single argument gene!", e);
         }
-        this.seedNeuralNetwork = seedNeuralNetwork;
+        this.seed = seed;
         if (populationSize < 1) {
             throw new IllegalArgumentException("Population size must be larger than 0!");
         }
         this.populationSize = populationSize;
 
         try {
-            reproductionSpecimenCount = Integer.parseInt(NeuralNetwork.Builder.getProperty("genetic_reproduction_specimen_count"));
+            reproductionSpecimenCount = Integer.parseInt(seed.getProperty("genetic_reproduction_specimen_count"));
         } catch (Exception e) {
             LOG.log(Level.INFO, "Could not load property 'genetic_reproduction_specimen_count' from neuralnetwork.properties!", e);
         }
         try {
-            reproductionPoolSize = Double.parseDouble(NeuralNetwork.Builder.getProperty("genetic_reproduction_pool_size"));
+            reproductionPoolSize = Double.parseDouble(seed.getProperty("genetic_reproduction_pool_size"));
         } catch (Exception e) {
             LOG.log(Level.INFO, "Could not load property 'genetic_reproduction_pool_size' from neuralnetwork.properties!", e);
         }
@@ -70,71 +71,72 @@ public class GeneticAlgorithmBatch<T> {
      * It additionally loads the neuralnetwork.properties file which can be configured to modify the genetic algorithm.
      *
      * @param templateGeneticAlgorithmObject the type which implements the actual logic of the genetic algorithm.
-     * @param seedNeuralNetwork              the NeuralNetwork to be seeded for the first population.
+     * @param geneClass                      the type which implements the gene.
+     * @param seed                          the seed to be seeded for the first population.
      * @param populationSize                 the population size for the genetic algorithm.
      * @param generationCount                the maximum number of generations for this batch.
      */
-    public GeneticAlgorithmBatch(Class<T> templateGeneticAlgorithmObject, NeuralNetwork seedNeuralNetwork, int populationSize, int generationCount) {
-        this(templateGeneticAlgorithmObject, seedNeuralNetwork, populationSize);
+    public GeneticBatch(Class<T> templateGeneticAlgorithmObject, Class<U> geneClass, IGene seed, int populationSize, int generationCount) {
+        this(templateGeneticAlgorithmObject, geneClass, seed, populationSize);
         this.generationCount = generationCount;
     }
 
     /**
      * This method will create a new generation and process it afterwards.
      *
-     * @return the best NeuralNetwork for reproduction (i.e. the seed for a new generation).
+     * @return the best seed for reproduction (i.e. the seed for a new generation).
      */
-    public NeuralNetwork processGeneration() {
+    public IGene processGeneration() {
         if (currentGenerationId == generationCount) {
             return null;
         }
-        currentGeneration = new GeneticAlgorithmGeneration<>(geneticAlgorithmObjectConstructor, currentGenerationId, reproductionSpecimenCount, populationSize, reproductionPoolSize);
-        seedNeuralNetwork = currentGeneration.runGeneration(seedNeuralNetwork);
+        currentGeneration = new Generation<>(geneticAlgorithmObjectConstructor, currentGenerationId, reproductionSpecimenCount, populationSize, reproductionPoolSize);
+        seed = currentGeneration.runGeneration(seed);
         currentGenerationId++;
-        return seedNeuralNetwork;
+        return seed;
     }
 
     /**
-     * This method will return the current NeuralNetwork considered best for creating the next generation.
+     * This method will return the current gene considered best for creating the next generation.
      *
-     * @return the best NeuralNetwork for reproduction (i.e. the seed for a new generation).
+     * @return the best gene for reproduction (i.e. the seed for a new generation).
      */
-    public NeuralNetwork getBestNeuralNetworkForReproduction() {
+    public IGene getBestSeed() {
         if (currentGeneration == null) {
-            return seedNeuralNetwork;
+            return seed;
         }
-        return currentGeneration.getBestNeuralNetworkForReproduction();
+        return currentGeneration.getBestReproductiveGene();
     }
 
     /**
-     * This method will return the current NeuralNetwork which performed best in the most recent generation.
+     * This method will return the current gene which performed best in the most recent generation.
      *
-     * @return the best NeuralNetwork or null if no generation was processed yet.
+     * @return the best gene or null if no generation was processed yet.
      */
-    public NeuralNetwork getBestNeuralNetwork() {
+    public IGene getBestGene() {
         if (currentGeneration == null) {
             return null;
         }
-        return currentGeneration.getBestNeuralNetwork();
+        return currentGeneration.getBestGene();
     }
 
     /**
-     * This method will return the best NeuralNetworks which performed best in the most recent generation.
+     * This method will return the best genes which performed best in the most recent generation.
      *
-     * @param count the count of NeuralNetworks to be returned.
-     * @return a List of the best NeuralNetworks or an empty List if no generation was processed yet.
+     * @param count the count of genes to be returned.
+     * @return a List of the best genes or an empty List if no generation was processed yet.
      */
-    public List<NeuralNetwork> getBestNeuralNetworks(int count) {
-        List<NeuralNetwork> networks = new ArrayList<>();
+    public List<IGene> getBestGenes(int count) {
+        List<IGene> genes = new ArrayList<>();
         if (currentGeneration == null) {
-            return networks;
+            return genes;
         }
         int index = Math.min(count, populationSize);
-        List<IGeneticAlgorithmObject> populationList = currentGeneration.getPopulationList();
+        List<IGeneticObject> populationList = currentGeneration.getPopulationList();
         for (int i = 0; i < index; i++) {
-            networks.add(populationList.get(i).getNeuralNetwork());
+            genes.add(populationList.get(i).getBestGene());
         }
-        return networks;
+        return genes;
     }
 
     /**
@@ -149,10 +151,10 @@ public class GeneticAlgorithmBatch<T> {
     /**
      * Sets reproduction specimen count for the genetic algorithm. Must be at least 1 and must not exceed population size.
      *
-     * @param reproductionSpecimenCount the count of neural networks to be merged for reproduction.
+     * @param reproductionSpecimenCount the count of genes to be crossed over for reproduction.
      * @return the current genetic algorithm batch.
      */
-    public GeneticAlgorithmBatch<T> setReproductionSpecimenCount(int reproductionSpecimenCount) {
+    public GeneticBatch<T, U> setReproductionSpecimenCount(int reproductionSpecimenCount) {
         if (reproductionSpecimenCount < 1 || reproductionSpecimenCount > populationSize) {
             throw new IllegalArgumentException("reproduction specimen count must be set to at least 1 and it must not exceed population size!");
         }
@@ -174,7 +176,7 @@ public class GeneticAlgorithmBatch<T> {
      * @param reproductionPoolSize the size of the reproduction pool as percentage.
      * @return the current genetic algorithm batch.
      */
-    public GeneticAlgorithmBatch<T> setReproductionPoolSize(double reproductionPoolSize) {
+    public GeneticBatch<T, U> setReproductionPoolSize(double reproductionPoolSize) {
         if (reproductionPoolSize <= 0 || reproductionPoolSize > 1) {
             throw new IllegalArgumentException("reproduction specimen count must be set to at least 1 and it must not exceed population size!");
         }

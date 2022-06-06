@@ -6,7 +6,9 @@ import ch.kaiki.nn.util.Rectifier;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -74,6 +76,43 @@ public class Matrix implements Serializable {
             }
         }
         return tmp;
+    }
+
+    static Matrix crossover(int crossoverSliceCount, Matrix... matrices) {
+        if (matrices.length < 2) {
+            throw new IllegalArgumentException("Matrix count of " + matrices.length + " cannot be crossed over!");
+        }
+        double[][][] slices = new double[matrices.length][][];
+        int[] sliceIndices = new int[]{0};
+        Random random = new Random();
+
+        // calculate random indexes for slice markers
+        if (crossoverSliceCount > 1) {
+            sliceIndices = new int[crossoverSliceCount-1];
+            for (int i = 0; i < sliceIndices.length; i++) {
+                sliceIndices[i] = random.nextInt(matrices[0].getRows() * matrices[0].getCols());
+            }
+        }
+
+        Arrays.sort(sliceIndices);
+
+        // collect according slices from all matrices
+        for (int i = 0; i < matrices.length; i++) {
+            slices[i] = Matrix.slice(matrices[i], sliceIndices);
+        }
+
+        double[][] selectedSlices = new double[sliceIndices.length+1][];
+
+        // select random slices
+        for (int i = 0; i <= sliceIndices.length; i++) {
+            selectedSlices[i] = slices[random.nextInt(matrices.length)][i];
+        }
+
+        // flatten slices
+        double[] flattenedSlices = Matrix.merge(selectedSlices);
+
+        // return reconstructed matrix
+        return Matrix.fromArray(flattenedSlices, matrices[0].getRows(), matrices[0].getCols());
     }
 
     static Matrix apply(Matrix a, Function<Double, Double> function) {
@@ -188,6 +227,18 @@ public class Matrix implements Serializable {
         return tmp;
     }
 
+    static Matrix fromArray(double[] arr, int rows, int cols) {
+        double[][] m = new double[rows][cols];
+        int index = 0;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                m[i][j] = arr[index];
+                index++;
+            }
+        }
+        return new Matrix(m);
+    }
+
     static Matrix fromList(List<Double> list) {
         Matrix tmp = new Matrix(list.size(), 1);
         for (int i = 0; i < list.size(); i++) {
@@ -207,7 +258,6 @@ public class Matrix implements Serializable {
     }
 
     static double[] asArray(Matrix m) {
-
         int index = 0;
         double[] tmp = new double[m.rows * m.cols];
         for (int i = 0; i < m.rows; i++) {
@@ -217,6 +267,38 @@ public class Matrix implements Serializable {
             }
         }
         return tmp;
+    }
+
+    static double[][] slice(Matrix m, int... sliceIndex) {
+        double[] inMatrix = asArray(m);
+        double[][] outMatrix = new double[sliceIndex.length+1][];
+
+        int startIndex = 0;
+        int endIndex;
+
+        for (int i = 0; i <= sliceIndex.length; i++) {
+            endIndex = i == sliceIndex.length ? inMatrix.length : sliceIndex[i];
+            double[] slice = Arrays.copyOfRange(inMatrix, startIndex, endIndex);
+            outMatrix[i] = slice;
+            startIndex = endIndex;
+        }
+        return outMatrix;
+    }
+
+    static double[] merge(double[]... slices) {
+        int length = 0;
+        for (double[] slice : slices) {
+            length += slice.length;
+        }
+        double[] out = new double[length];
+        int index = 0;
+        for (int i = 0; i < slices.length; i++) {
+            for (int j = 0; j < slices[i].length; j++) {
+                out[index] = slices[i][j];
+                index++;
+            }
+        }
+        return out;
     }
 
     void add(Matrix m) {

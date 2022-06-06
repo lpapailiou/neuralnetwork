@@ -1,27 +1,26 @@
 package ch.kaiki.nn.genetic;
 
-import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 /**
  * This interface provides a free implementation of a genetic algorithm object.
- * Such instance will handle the collection of data for computer vision, feed it to the NeuralNetwork it holds,
+ * Such instance will handle the collection of data for computer vision, feed it to the gene it holds,
  * read the according output and implement the acton to be performed.
- * To get it working, the implementing class must have a constructor which takes a NeuralNetwork
+ * To get it working, the implementing class must have a constructor which takes a gene
  * as parameter.
  * As this interface extends Comparable, the compareTo method must be implemented. Please make sure it uses the
  * fitness function and the higher value indicates better performance.
- * Alternatively, the abstract class GeneticAlgorithmObject can be extended, which will provide more implementations,
+ * Alternatively, the abstract class GeneticObject can be extended, which will provide more implementations,
  * trading off less flexibility as no other classes can be extended.
  */
 
-public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObject> {
+public interface IGeneticObject extends Comparable<IGeneticObject> {
 
     /**
      * This method allows a prediction for given input. The input values will be processed in the
-     * NeuralNetwork held by this instance.
+     * gene held by this instance.
      *
      * @param inputValues the input array to be processed.
      * @return the output values as Double List.
@@ -37,11 +36,11 @@ public interface IGeneticAlgorithmObject extends Comparable<IGeneticAlgorithmObj
     boolean perform();
 
     /**
-     * This method will allow to extract the NeuralNetwork for the genetic algorithm.
+     * This method will allow to extract the gene for the genetic algorithm.
      *
-     * @return the NeuralNetwork held by this instance.
+     * @return the gene held by this instance.
      */
-    NeuralNetwork getNeuralNetwork();
+    IGene getBestGene();
 
     /**
      * This method returns the fitness of this instance. The fitness is a value which will be maximized by the

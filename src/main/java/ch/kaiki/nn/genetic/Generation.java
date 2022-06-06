@@ -1,7 +1,5 @@
 package ch.kaiki.nn.genetic;
 
-import ch.kaiki.nn.neuralnet.NeuralNetwork;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -12,21 +10,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class GeneticAlgorithmGeneration<T> {
+class Generation<T> {
 
-    private static final Logger LOG = Logger.getLogger("GeneticAlgorithmGeneration logger");
+    private static final Logger LOG = Logger.getLogger("Generation logger");
     private static final int THREAD_POOL = 16;
-    private final Constructor<T> geneticAlgorithmObjectConstructor;
+    private final Constructor<T> geneticObjectConstructor;
     private final int id;
     private final int populationSize;
-    private NeuralNetwork bestNeuralNetwork;
-    private NeuralNetwork bestNeuralNetworkForReproduction;
-    private final List<IGeneticAlgorithmObject> populationList = new ArrayList<>();
+    private IGene bestGene;
+    private IGene bestReproductiveGene;
+    private final List<IGeneticObject> populationList = new ArrayList<>();
     private final int reproductionSpecimenCount;
     private int selectionPoolSize;
 
-    GeneticAlgorithmGeneration(Constructor<T> geneticAlgorithmObjectConstructor, int id, int reproductionSpecimenCount, int populationSize, double reproductionPoolSize) {
-        this.geneticAlgorithmObjectConstructor = geneticAlgorithmObjectConstructor;
+    Generation(Constructor<T> geneticObjectConstructor, int id, int reproductionSpecimenCount, int populationSize, double reproductionPoolSize) {
+        this.geneticObjectConstructor = geneticObjectConstructor;
         this.id = id;
         this.reproductionSpecimenCount = reproductionSpecimenCount;
         this.populationSize = populationSize;
@@ -34,11 +32,11 @@ class GeneticAlgorithmGeneration<T> {
         this.selectionPoolSize = Math.max(this.selectionPoolSize, 1);
     }
 
-    NeuralNetwork runGeneration(NeuralNetwork seedNeuralNetwork) {
+    IGene runGeneration(IGene seed) {
         ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL);
         List<Runnable> tasks = new ArrayList<>();
         for (int i = 0; i < populationSize; i++) {
-            tasks.add(new BackgroundProcess(geneticAlgorithmObjectConstructor, i == 0 ? seedNeuralNetwork.initialize() : seedNeuralNetwork.mutate(), populationList));
+            tasks.add(new BackgroundProcess(geneticObjectConstructor, i == 0 ? seed.initialize() : seed.mutate(), populationList));
         }
         CompletableFuture<?>[] futures = tasks.stream().map(task -> CompletableFuture.runAsync(task, executorService)).toArray(CompletableFuture[]::new);
         CompletableFuture.allOf(futures).join();
@@ -51,82 +49,82 @@ class GeneticAlgorithmGeneration<T> {
             Thread.currentThread().interrupt();
         }
 
-        bestNeuralNetworkForReproduction = evolve();
-        bestNeuralNetworkForReproduction.decreaseRate();
-        return bestNeuralNetworkForReproduction;
+        bestReproductiveGene = evolve();
+        bestReproductiveGene.decreaseRate();
+        return bestReproductiveGene;
     }
 
-    NeuralNetwork getBestNeuralNetwork() {
-        return bestNeuralNetwork;
+    IGene getBestGene() {
+        return bestGene;
     }
 
-    NeuralNetwork getBestNeuralNetworkForReproduction() {
-        return bestNeuralNetworkForReproduction;
+    IGene getBestReproductiveGene() {
+        return bestReproductiveGene;
     }
 
-    private NeuralNetwork evolve() {
+    private IGene evolve() {
         populationList.sort(Comparator.nullsLast(Collections.reverseOrder()));
-        bestNeuralNetwork = populationList.get(0).getNeuralNetwork();
-        NeuralNetwork bestForReproduction;
+        bestGene = populationList.get(0).getBestGene();
+        IGene bestForReproduction;
 
         LOG.log(Level.INFO, () -> String.format("generation #%d: \t %s", id, populationList.get(0).getLogMessage()));
 
         if (populationList.get(0).hasReachedGoal()) {
-            long calc = populationList.stream().filter(IGeneticAlgorithmObject::hasReachedGoal).count();
+            long calc = populationList.stream().filter(IGeneticObject::hasReachedGoal).count();
             double scorePercent = 100.0 / populationSize * (double) calc;
             LOG.log(Level.INFO, () -> String.format("****************** PERFECT SCORE ACHIEVED! ****************** \nat generation #%d, %.2f%s units (%d of %d) reached a perfect score.", id, scorePercent, "%", calc, populationSize));
         }
 
         if (populationList.size() < 2) {
-            return bestNeuralNetwork;
+            return bestGene;
         }
 
         Map<Integer, Double> map = new HashMap<>();
         double sumFitness = 0;
         for (int i = 0; i < selectionPoolSize; i++) {
-            IGeneticAlgorithmObject object = populationList.get(i);
+            IGeneticObject object = populationList.get(i);
             double fitness = object.getFitness();
             sumFitness += fitness;
             map.put(i, fitness);
         }
 
-        List<NeuralNetwork> mergeList = new ArrayList<>();
-        mergeList.add(bestNeuralNetwork);
+        List<IGene> mergeList = new ArrayList<>();
+        mergeList.add(bestGene);
         for (int i = 0; i < reproductionSpecimenCount - 1; i++) {
             mergeList.add(spinRouletteWheel(map, selectionPoolSize, sumFitness));
         }
 
-        bestForReproduction = NeuralNetwork.merge(mergeList);
+        bestForReproduction = bestGene.crossover(mergeList);
 
         return bestForReproduction;
     }
 
-    private NeuralNetwork spinRouletteWheel(Map<Integer, Double> map, int selectionPoolSize, double sumFitness) {
+    private IGene spinRouletteWheel(Map<Integer, Double> map, int selectionPoolSize, double sumFitness) {
         double checksum = 0;
         double random = new Random().nextDouble() * sumFitness;
         for (int i = 0; i < selectionPoolSize; i++) {
             checksum += map.get(i);
             if (checksum >= random) {
-                return populationList.get(i).getNeuralNetwork();
+                return populationList.get(i).getBestGene();
             }
         }
         return null;
     }
 
-    List<IGeneticAlgorithmObject> getPopulationList() {
+    List<IGeneticObject> getPopulationList() {
         return populationList;
     }
 
     class BackgroundProcess implements Runnable {
-        NeuralNetwork neuralNetwork;
-        IGeneticAlgorithmObject object;
+        IGene gene;
+        IGeneticObject object;
 
-        BackgroundProcess(Constructor<T> geneticAlgorithmObjectConstructor, NeuralNetwork neuralNetwork, List<IGeneticAlgorithmObject> populationList) {
-            this.neuralNetwork = neuralNetwork;
+        BackgroundProcess(Constructor<T> geneticAlgorithmObjectConstructor, IGene gene, List<IGeneticObject> populationList) {
+            this.gene = gene;
             try {
-                object = (IGeneticAlgorithmObject) geneticAlgorithmObjectConstructor.newInstance(neuralNetwork);
+                object = (IGeneticObject) geneticAlgorithmObjectConstructor.newInstance(gene);
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                throw new UnsupportedOperationException("geneticAlgorithmObjectConstructor does not allow creation of an instance implementing IGeneticAlgorithmObject!", e);
+                throw new UnsupportedOperationException("geneticAlgorithmObjectConstructor does not allow creation of an instance implementing IGeneticObject!", e);
             }
             populationList.add(object);
         }

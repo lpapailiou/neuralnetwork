@@ -1,41 +1,40 @@
 package ch.kaiki.nn.genetic;
 
-import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 /**
- * This abstract class can be used as superclass for an easy implementation of a kaiki.ch.kaiki.nn.genetic algorithm object.
- * Such instance will handle the collection of kaiki.ch.kaiki.nn.data for computer vision, feed it to the NeuralNetwork it holds,
+ * This abstract class can be used as superclass for an easy implementation of a genetic algorithm object.
+ * Such instance will handle the collection of data for computer vision, feed it to the gene it holds,
  * read the according output and implement the action to be performed.
- * Alternatively, the interface IGeneticAlgorithmObject can be implemented, which will provide the same functionality
+ * Alternatively, the interface IGeneticObject can be implemented, which will provide the same functionality
  * and allows extending other classes.
  */
-public abstract class GeneticAlgorithmObject implements IGeneticAlgorithmObject {
+public abstract class GeneticObject implements IGeneticObject {
 
-    private NeuralNetwork neuralNetwork;
+    private IGene gene;
 
     /**
-     * The constructor requires a NeuralNetwork, which will be used to predict an action to be taken.
-     * If you work with the GeneticAlgorithmBatch, it is required that this constructor is used.
+     * The constructor requires a gene, which will be used to predict an action to be taken.
+     * If you work with the GeneticBatch, it is required that this constructor is used.
      *
-     * @param neuralNetwork the NeuralNetwork as 'brain' for this instance.
+     * @param gene the gene as 'brain' for this instance.
      */
-    public GeneticAlgorithmObject(NeuralNetwork neuralNetwork) {
-        this.neuralNetwork = neuralNetwork;
+    public GeneticObject(IGene gene) {
+        this.gene = gene;
     }
 
     /**
      * This method allows a prediction for given input. The input values will be processed in the
-     * NeuralNetwork held by this instance.
+     * gene held by this instance.
      *
      * @param inputValues the input array to be processed.
      * @return the output values as Double List.
      */
     @Override
     public List<Double> predict(@NotNull double[] inputValues) {
-        return neuralNetwork.predict(inputValues);
+        return gene.predict(inputValues);
     }
 
     /**
@@ -48,13 +47,13 @@ public abstract class GeneticAlgorithmObject implements IGeneticAlgorithmObject 
     public abstract boolean perform();
 
     /**
-     * This method will allow to extract the NeuralNetwork for the kaiki.ch.kaiki.nn.genetic algorithm.
+     * This method will allow to extract the gene for the genetic algorithm.
      *
-     * @return the NeuralNetwork held by this instance.
+     * @return the gene held by this instance.
      */
     @Override
-    public NeuralNetwork getNeuralNetwork() {
-        return neuralNetwork;
+    public IGene getBestGene() {
+        return gene;
     }
 
     /**
@@ -104,7 +103,7 @@ public abstract class GeneticAlgorithmObject implements IGeneticAlgorithmObject 
      * @return 1 if this instance performed better, -1 if worse or 0 if equal.
      */
     @Override
-    public int compareTo(@NotNull IGeneticAlgorithmObject o) {
+    public int compareTo(@NotNull IGeneticObject o) {
         double fitness = this.getFitness();
         double otherFitness = o.getFitness();
         if (fitness > otherFitness) {

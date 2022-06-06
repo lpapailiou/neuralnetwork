@@ -2,6 +2,8 @@ package ch.kaiki.nn.neuralnet;
 
 
 import ch.kaiki.nn.data.BackPropData;
+import ch.kaiki.nn.genetic.CrossoverStrategy;
+import ch.kaiki.nn.genetic.IGene;
 import ch.kaiki.nn.util.Initializer;
 import ch.kaiki.nn.util.Optimizer;
 import ch.kaiki.nn.util.Rectifier;
@@ -21,7 +23,7 @@ import java.util.logging.Logger;
  * It supports supervised and unsupervised machine learning.
  * The neural network also offers property change support for the predict method.
  */
-public class NeuralNetwork implements Serializable {
+public class NeuralNetwork implements IGene, Serializable {
 
     private static final long serialVersionUID = 2L;
     private static final Logger LOG = Logger.getLogger("NeuralNetwork logger");
@@ -42,6 +44,8 @@ public class NeuralNetwork implements Serializable {
     private double learningRate;
     private double learningRateMomentum;
     private int iterationCount;
+    private CrossoverStrategy crossoverStrategy;
+    private int crossoverSliceCount;
     private Optimizer mutationRateOptimizer;
     private double initialMutationRate;
     private double mutationRate;
@@ -81,27 +85,35 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * This method will merge multiple neural networks to a new neural network.
+     * This method will cross over multiple neural networks to a new neural network, depending on the crossover strategy.
      *
-     * @param neuralNetworks the neural networks to be merged. Metadata will be copied from the first neural network given.
+     * @param genes the neural genes to be crossed over.
      * @return the neural network a merged with b
      */
-    public static NeuralNetwork merge(List<NeuralNetwork> neuralNetworks) {
-        if (neuralNetworks.size() < 2) {
+    @Override
+    public IGene crossover(List<IGene> genes) {
+        if (genes.size() < 2) {
             throw new NullPointerException("At least two NeuralNetwork instances required!");
         }
-        NeuralNetwork neuralNetwork = neuralNetworks.get(0).copy();
-        for (int i = 0; i < neuralNetwork.layers.size(); i++) {
-            Matrix[] weights = new Matrix[neuralNetworks.size()];
-            Matrix[] biases = new Matrix[neuralNetworks.size()];
-            for (int j = 0; j < neuralNetworks.size(); j++) {
-                weights[j] = neuralNetworks.get(j).layers.get(i).weight;
-                biases[j] = neuralNetworks.get(j).layers.get(i).bias;
+        NeuralNetwork neuralNetwork = ((NeuralNetwork) genes.get(0)).copy();
+        for (int i = 0; i < neuralNetwork.layers.size(); i++) {     // for every layer
+            Matrix[] weights = new Matrix[genes.size()];
+            Matrix[] biases = new Matrix[genes.size()];
+            for (int j = 0; j < genes.size(); j++) {       // for every neural network
+                weights[j] = ((NeuralNetwork) genes.get(j)).layers.get(i).weight;
+                biases[j] = ((NeuralNetwork) genes.get(j)).layers.get(i).bias;
             }
-            neuralNetwork.layers.get(i).weight = Matrix.merge(weights);
-            neuralNetwork.layers.get(i).bias = Matrix.merge(biases);
+            if (neuralNetwork.crossoverStrategy == CrossoverStrategy.MEAN) {
+                neuralNetwork.layers.get(i).weight = Matrix.merge(weights);
+                neuralNetwork.layers.get(i).bias = Matrix.merge(biases);
+            } else if (neuralNetwork.crossoverStrategy == CrossoverStrategy.SLICE) {
+                neuralNetwork.layers.get(i).weight = Matrix.crossover(neuralNetwork.crossoverSliceCount, weights);
+                neuralNetwork.layers.get(i).bias = Matrix.crossover(neuralNetwork.crossoverSliceCount, biases);
+            } else {
+                throw new IllegalArgumentException("Selected crossover strategy " + neuralNetwork.crossoverStrategy.name() + " is not implemented!");
+            }
         }
-        return neuralNetwork;
+        return (IGene) neuralNetwork;
     }
 
     /**
@@ -112,6 +124,7 @@ public class NeuralNetwork implements Serializable {
      * @param inputNodes the input nodes as double array
      * @return the predicted output nodes as Double List
      */
+    @Override
     public List<Double> predict(double[] inputNodes) {
         if (inputNodes == null) {
             throw new NullPointerException("inputNodes must not be null!");
@@ -323,7 +336,8 @@ public class NeuralNetwork implements Serializable {
      *
      * @return a mutated copy of this instance
      */
-    public NeuralNetwork mutate() {
+    @Override
+    public IGene mutate() {
         NeuralNetwork neuralNetwork = this.copy();
         neuralNetwork.randomize();
         return neuralNetwork;
@@ -334,7 +348,8 @@ public class NeuralNetwork implements Serializable {
      *
      * @return a re-initialized copy of this instance
      */
-    public NeuralNetwork initialize() {
+    @Override
+    public IGene initialize() {
         NeuralNetwork neuralNetwork = this.copy();
         neuralNetwork.initialilzeLayers();
         return neuralNetwork;
@@ -373,6 +388,8 @@ public class NeuralNetwork implements Serializable {
         neuralNetwork.mutationRate = this.mutationRate;
         neuralNetwork.mutationRateOptimizer = this.mutationRateOptimizer;
         neuralNetwork.mutationRateMomentum = this.mutationRateMomentum;
+        neuralNetwork.crossoverStrategy = this.crossoverStrategy;
+        neuralNetwork.crossoverSliceCount = this.crossoverSliceCount;
 
         neuralNetwork.iterationCount = this.iterationCount;
         return neuralNetwork;
@@ -531,6 +548,7 @@ public class NeuralNetwork implements Serializable {
     /**
      * Decreases the current learning and mutation rate according to the chosen Optimizer function.
      */
+    @Override
     public void decreaseRate() {
         this.learningRate = learningRateOptimizer.decrease(initialLearningRate, learningRateMomentum, iterationCount);
         this.mutationRate = mutationRateOptimizer.decrease(initialMutationRate, mutationRateMomentum, iterationCount);
@@ -569,6 +587,23 @@ public class NeuralNetwork implements Serializable {
      */
     public double getMutationRateMomentum() {
         return mutationRateMomentum;
+    }
+
+
+    /**
+     * Returns the current crossover strategy.
+     * @return the crossover strategy.
+     */
+    public CrossoverStrategy getCrossoverStrategy() {
+        return crossoverStrategy;
+    }
+
+    /**
+     * Returns the current crossover slice count.
+     * @return the crossover slicing count.
+     */
+    public int getCrossoverSliceCount() {
+        return crossoverSliceCount;
     }
 
     /**
@@ -630,6 +665,12 @@ public class NeuralNetwork implements Serializable {
         sb.append("mutation rate optimizer: ");
         sb.append(mutationRateOptimizer.getDescription());
         sb.append(", ");
+        sb.append("crossover strategy: ");
+        sb.append(crossoverStrategy.name());
+        sb.append(", ");
+        sb.append("crossover slice count: ");
+        sb.append(crossoverSliceCount);
+        sb.append(", ");
         sb.append("mutation rate momentum: ");
         sb.append(mutationRateMomentum);
         sb.append("\n");
@@ -654,6 +695,11 @@ public class NeuralNetwork implements Serializable {
             return false;
         }
         return this.toString().equals(o.toString());
+    }
+
+    @Override
+    public String getProperty(String key) {
+        return NeuralNetwork.Builder.getProperty(key);
     }
 
     public static class Builder {
@@ -690,6 +736,9 @@ public class NeuralNetwork implements Serializable {
         private double mutationRate = 0.5;
         private Optimizer mutationRateOptimizer = Optimizer.NONE;
         private double mutationRateMomentum = 0.01;
+
+        private CrossoverStrategy crossoverStrategy = CrossoverStrategy.MEAN;
+        private int crossoverSliceCount = 1;
 
         /**
          * This is the constructor for the neural network builder.
@@ -764,6 +813,15 @@ public class NeuralNetwork implements Serializable {
                 throw new IllegalArgumentException("Mutation rate momentum must not be within a range of 0.0 and 1.0!");
             }
             neuralNetwork.mutationRateMomentum = this.mutationRateMomentum;
+
+            if (this.crossoverStrategy == null) {
+                throw new NullPointerException("Crossover strategy must not be null!");
+            }
+            neuralNetwork.crossoverStrategy = this.crossoverStrategy;
+            if (this.crossoverSliceCount < 1) {
+                throw new IllegalArgumentException("Crossover slice count must be an integer above 0!");
+            }
+            neuralNetwork.crossoverSliceCount = this.crossoverSliceCount;
 
             neuralNetwork.initializeLayers(rectifier);
 
@@ -947,6 +1005,26 @@ public class NeuralNetwork implements Serializable {
             return this;
         }
 
+        /**
+         * Sets crossover strategy.
+         * @param crossoverStrategy the crossover strategy for the genetic algorithm.
+         * @return the Builder.
+         */
+        public Builder setCrossoverStrategy(CrossoverStrategy crossoverStrategy) {
+            this.crossoverStrategy = crossoverStrategy;
+            return this;
+        }
+
+        /**
+         * Sets crossover slice count.
+         * @param crossoverSliceCount the crossover slice count.
+         * @return the Builder.
+         */
+        public Builder setCrossoverSliceCount(int crossoverSliceCount) {
+            this.crossoverSliceCount = crossoverSliceCount;
+            return this;
+        }
+
         private void loadProperties() {
 
             try {
@@ -1025,6 +1103,18 @@ public class NeuralNetwork implements Serializable {
                 this.mutationRateMomentum = Double.parseDouble(PROPERTIES.getProperty("mutation_rate_momentum"));
             } catch (Exception e) {
                 logMissingProperty("mutation_rate_momentum", e);
+            }
+
+            try {
+                this.crossoverStrategy = CrossoverStrategy.valueOf(PROPERTIES.getProperty("crossover_strategy").toUpperCase());
+            } catch (Exception e) {
+                logMissingProperty("crossover_strategy", e);
+            }
+
+            try {
+                this.crossoverSliceCount = Integer.parseInt(PROPERTIES.getProperty("crossover_slice_count"));
+            } catch (Exception e) {
+                logMissingProperty("crossover_slice_count", e);
             }
 
         }
