@@ -20,15 +20,15 @@ class Generation<T> {
     private IGene bestGene;
     private IGene bestReproductiveGene;
     private final List<IGeneticObject> populationList = new ArrayList<>();
-    private final int reproductionSpecimenCount;
+    private final int parentCount;
     private int selectionPoolSize;
 
-    Generation(Constructor<T> geneticObjectConstructor, int id, int reproductionSpecimenCount, int populationSize, double reproductionPoolSize) {
+    Generation(Constructor<T> geneticObjectConstructor, int id, int parentCount, int populationSize, double reproductionPoolSize) {
         this.geneticObjectConstructor = geneticObjectConstructor;
         this.id = id;
-        this.reproductionSpecimenCount = reproductionSpecimenCount;
+        this.parentCount = parentCount;
         this.populationSize = populationSize;
-        this.selectionPoolSize = (int) reproductionPoolSize * populationSize;
+        this.selectionPoolSize = (int) (reproductionPoolSize * (double) populationSize);
         this.selectionPoolSize = Math.max(this.selectionPoolSize, 1);
     }
 
@@ -48,7 +48,6 @@ class Generation<T> {
             LOG.log(Level.WARNING, "executor service interrupted unexpectedly!", e);
             Thread.currentThread().interrupt();
         }
-
         bestReproductiveGene = evolve();
         bestReproductiveGene.decreaseRate();
         return bestReproductiveGene;
@@ -90,7 +89,7 @@ class Generation<T> {
 
         List<IGene> mergeList = new ArrayList<>();
         mergeList.add(bestGene);
-        for (int i = 0; i < reproductionSpecimenCount - 1; i++) {
+        for (int i = 0; i < parentCount - 1; i++) {
             mergeList.add(spinRouletteWheel(map, selectionPoolSize, sumFitness));
         }
 
@@ -101,7 +100,7 @@ class Generation<T> {
 
     private IGene spinRouletteWheel(Map<Integer, Double> map, int selectionPoolSize, double sumFitness) {
         double checksum = 0;
-        double random = new Random().nextDouble() * sumFitness;
+        double random = Math.random() * sumFitness;
         for (int i = 0; i < selectionPoolSize; i++) {
             checksum += map.get(i);
             if (checksum >= random) {
@@ -116,11 +115,10 @@ class Generation<T> {
     }
 
     class BackgroundProcess implements Runnable {
-        IGene gene;
         IGeneticObject object;
 
         BackgroundProcess(Constructor<T> geneticAlgorithmObjectConstructor, IGene gene, List<IGeneticObject> populationList) {
-            this.gene = gene;
+
             try {
                 object = (IGeneticObject) geneticAlgorithmObjectConstructor.newInstance(gene);
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {

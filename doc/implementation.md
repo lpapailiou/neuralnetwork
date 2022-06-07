@@ -161,9 +161,9 @@ Below an overview of the `neuralnetwork.properties` file.
     # ************************************************************************************************************ #
     # ***********                                GENETIC ALGORITHM ONLY                                *********** #
     # ************************************************************************************************************ #
-    # the reproduction specimen count is the count of NeuralNetworks chosen for reproduction to be seeded to
+    # the parent count is the count of NeuralNetworks chosen for reproduction to be seeded to
     # the new generation to come.
-    genetic_reproduction_specimen_count=1
+    genetic_parent_count=1
     # the selection pool size for genetic evolution as a percentage of the best performing neural networks. fallback will be 1.
     genetic_reproduction_pool_size=0.5
     # the mutation rate is the percentage of the mutated components of the neural network matrices.

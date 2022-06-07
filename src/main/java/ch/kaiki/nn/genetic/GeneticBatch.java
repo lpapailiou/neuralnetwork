@@ -23,7 +23,7 @@ public class GeneticBatch<T, U> {
     private int generationCount = Integer.MAX_VALUE;
     private int currentGenerationId;
     private Generation<T> currentGeneration;
-    private int reproductionSpecimenCount = -1;
+    private int parentCount = -1;
     private double reproductionPoolSize = -1;
 
     /**
@@ -49,17 +49,17 @@ public class GeneticBatch<T, U> {
         this.populationSize = populationSize;
 
         try {
-            reproductionSpecimenCount = Integer.parseInt(seed.getProperty("genetic_reproduction_specimen_count"));
+            parentCount = Integer.parseInt(seed.getProperty("genetic_parent_count"));
         } catch (Exception e) {
-            LOG.log(Level.INFO, "Could not load property 'genetic_reproduction_specimen_count' from neuralnetwork.properties!", e);
+            LOG.log(Level.INFO, "Could not load property 'genetic_parent_count' from neuralnetwork.properties!", e);
         }
         try {
             reproductionPoolSize = Double.parseDouble(seed.getProperty("genetic_reproduction_pool_size"));
         } catch (Exception e) {
             LOG.log(Level.INFO, "Could not load property 'genetic_reproduction_pool_size' from neuralnetwork.properties!", e);
         }
-        if (reproductionSpecimenCount < 1 || reproductionSpecimenCount > populationSize) {
-            throw new IllegalArgumentException("reproduction specimen count must be set to at least 1 and it must not exceed population size!");
+        if (parentCount < 1 || parentCount > populationSize) {
+            throw new IllegalArgumentException("parent count must be set to at least 1 and it must not exceed population size!");
         }
         if (reproductionPoolSize <= 0 || reproductionPoolSize > 1) {
             throw new IllegalArgumentException("reproduction pool size must have a value larger than 0.0 and less or equal to 1.0!");
@@ -90,7 +90,7 @@ public class GeneticBatch<T, U> {
         if (currentGenerationId == generationCount) {
             return null;
         }
-        currentGeneration = new Generation<>(geneticAlgorithmObjectConstructor, currentGenerationId, reproductionSpecimenCount, populationSize, reproductionPoolSize);
+        currentGeneration = new Generation<>(geneticAlgorithmObjectConstructor, currentGenerationId, parentCount, populationSize, reproductionPoolSize);
         seed = currentGeneration.runGeneration(seed);
         currentGenerationId++;
         return seed;
@@ -140,25 +140,25 @@ public class GeneticBatch<T, U> {
     }
 
     /**
-     * Returns current reproduction specimen count for the genetic algorithm.
+     * Returns current parent count for the genetic algorithm.
      *
-     * @return the reproduction specimen count.
+     * @return the parent count.
      */
-    public int getReproductionSpecimenCount() {
-        return reproductionSpecimenCount;
+    public int getParentCount() {
+        return parentCount;
     }
 
     /**
-     * Sets reproduction specimen count for the genetic algorithm. Must be at least 1 and must not exceed population size.
+     * Sets parent count for the genetic algorithm. Must be at least 1 and must not exceed population size.
      *
-     * @param reproductionSpecimenCount the count of genes to be crossed over for reproduction.
+     * @param parentCount the count of genes to be crossed over for reproduction.
      * @return the current genetic algorithm batch.
      */
-    public GeneticBatch<T, U> setReproductionSpecimenCount(int reproductionSpecimenCount) {
-        if (reproductionSpecimenCount < 1 || reproductionSpecimenCount > populationSize) {
-            throw new IllegalArgumentException("reproduction specimen count must be set to at least 1 and it must not exceed population size!");
+    public GeneticBatch<T, U> setParentCount(int parentCount) {
+        if (parentCount < 1 || parentCount > populationSize) {
+            throw new IllegalArgumentException("parent count must be set to at least 1 and it must not exceed population size!");
         }
-        this.reproductionSpecimenCount = reproductionSpecimenCount;
+        this.parentCount = parentCount;
         return this;
     }
 
@@ -178,7 +178,7 @@ public class GeneticBatch<T, U> {
      */
     public GeneticBatch<T, U> setReproductionPoolSize(double reproductionPoolSize) {
         if (reproductionPoolSize <= 0 || reproductionPoolSize > 1) {
-            throw new IllegalArgumentException("reproduction specimen count must be set to at least 1 and it must not exceed population size!");
+            throw new IllegalArgumentException("reproduction pool size must be set to at least 0.0 and it must not 1.1!");
         }
         this.reproductionPoolSize = reproductionPoolSize;
         return this;
