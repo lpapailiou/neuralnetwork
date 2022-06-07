@@ -40,7 +40,7 @@ public interface IGeneticObject extends Comparable<IGeneticObject> {
      *
      * @return the gene held by this instance.
      */
-    IGene getBestGene();
+    IGene getGene();
 
     /**
      * This method returns the fitness of this instance. The fitness is a value which will be maximized by the

@@ -134,7 +134,7 @@ public class GeneticBatch<T, U> {
         int index = Math.min(count, populationSize);
         List<IGeneticObject> populationList = currentGeneration.getPopulationList();
         for (int i = 0; i < index; i++) {
-            genes.add(populationList.get(i).getBestGene());
+            genes.add(populationList.get(i).getGene());
         }
         return genes;
     }

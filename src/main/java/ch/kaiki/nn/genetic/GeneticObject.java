@@ -52,7 +52,7 @@ public abstract class GeneticObject implements IGeneticObject {
      * @return the gene held by this instance.
      */
     @Override
-    public IGene getBestGene() {
+    public IGene getGene() {
         return gene;
     }
 

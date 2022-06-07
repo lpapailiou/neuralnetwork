@@ -64,7 +64,7 @@ class Generation<T> {
 
     private IGene evolve() {
         populationList.sort(Comparator.nullsLast(Collections.reverseOrder()));
-        bestGene = populationList.get(0).getBestGene();
+        bestGene = populationList.get(0).getGene();
         IGene bestForReproduction;
 
         LOG.log(Level.INFO, () -> String.format("generation #%d: \t %s", id, populationList.get(0).getLogMessage()));
@@ -105,7 +105,7 @@ class Generation<T> {
         for (int i = 0; i < selectionPoolSize; i++) {
             checksum += map.get(i);
             if (checksum >= random) {
-                return populationList.get(i).getBestGene();
+                return populationList.get(i).getGene();
             }
         }
         return null;
