@@ -697,11 +697,6 @@ public class NeuralNetwork implements IGene, Serializable {
         return this.toString().equals(o.toString());
     }
 
-    @Override
-    public String getProperty(String key) {
-        return NeuralNetwork.Builder.getProperty(key);
-    }
-
     public static class Builder {
 
         private static final Logger LOG = Logger.getLogger("NeuralNetwork.Builder logger");
