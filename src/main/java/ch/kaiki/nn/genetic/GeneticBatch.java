@@ -1,5 +1,6 @@
 package ch.kaiki.nn.genetic;
 
+import ch.kaiki.nn.neuralnet.NeuralNetwork;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -49,12 +50,12 @@ public class GeneticBatch<T, U> {
         this.populationSize = populationSize;
 
         try {
-            parentCount = Integer.parseInt(seed.getProperty("genetic_parent_count"));
+            parentCount = Integer.parseInt(NeuralNetwork.Builder.getProperty("genetic_parent_count"));
         } catch (Exception e) {
             LOG.log(Level.INFO, "Could not load property 'genetic_parent_count' from neuralnetwork.properties!", e);
         }
         try {
-            reproductionPoolSize = Double.parseDouble(seed.getProperty("genetic_reproduction_pool_size"));
+            reproductionPoolSize = Double.parseDouble(NeuralNetwork.Builder.getProperty("genetic_reproduction_pool_size"));
         } catch (Exception e) {
             LOG.log(Level.INFO, "Could not load property 'genetic_reproduction_pool_size' from neuralnetwork.properties!", e);
         }
