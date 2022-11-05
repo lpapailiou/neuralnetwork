@@ -5,6 +5,7 @@ import ch.kaiki.nn.data.BackPropData;
 import ch.kaiki.nn.genetic.CrossoverStrategy;
 import ch.kaiki.nn.genetic.IGene;
 import ch.kaiki.nn.util.Initializer;
+import ch.kaiki.nn.util.LoggerFactory;
 import ch.kaiki.nn.util.Optimizer;
 import ch.kaiki.nn.util.Rectifier;
 
@@ -26,7 +27,7 @@ import java.util.logging.Logger;
 public class NeuralNetwork implements IGene, Serializable {
 
     private static final long serialVersionUID = 2L;
-    private static final Logger LOG = Logger.getLogger("NeuralNetwork logger");
+    private static final Logger LOG = LoggerFactory.getLogger("NeuralNetwork logger");
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private CostFunction costFunction;

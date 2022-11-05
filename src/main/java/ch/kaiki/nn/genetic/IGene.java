@@ -1,9 +1,10 @@
 package ch.kaiki.nn.genetic;
 
 
+import java.io.Serializable;
 import java.util.List;
 
-public interface IGene {
+public interface IGene extends Serializable {
 
     IGene crossover(List<IGene> genes);
 
