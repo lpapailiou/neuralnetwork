@@ -249,7 +249,7 @@ public class NeuralNetwork implements IGene, Serializable {
         return Matrix.asList(tmp);
     }
 
-    private class Batch {
+    private class Batch implements Serializable {
         int iter = 0;
         List<Matrix> weightDeltas = new ArrayList<>();
         List<Matrix> biasDeltas = new ArrayList<>();
@@ -698,9 +698,9 @@ public class NeuralNetwork implements IGene, Serializable {
         return this.toString().equals(o.toString());
     }
 
-    public static class Builder {
+    public static class Builder implements Serializable {
 
-        private static final Logger LOG = Logger.getLogger("NeuralNetwork.Builder logger");
+        private static final Logger LOG = LoggerFactory.getLogger("NeuralNetwork.Builder logger");
         private static final Properties PROPERTIES = new Properties();
         static {
             try (InputStream in = NeuralNetwork.class.getClassLoader().getResourceAsStream("neuralnetwork.properties")) {
