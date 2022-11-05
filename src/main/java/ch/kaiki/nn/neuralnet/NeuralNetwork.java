@@ -92,25 +92,25 @@ public class NeuralNetwork implements IGene, Serializable {
      */
     @Override
     public IGene crossover(List<IGene> genes) {
-        if (genes.size() < 2) {
-            throw new NullPointerException("At least two NeuralNetwork instances required!");
-        }
-        NeuralNetwork neuralNetwork = ((NeuralNetwork) genes.get(0)).copy();
-        for (int i = 0; i < neuralNetwork.layers.size(); i++) {     // for every layer
-            Matrix[] weights = new Matrix[genes.size()];
-            Matrix[] biases = new Matrix[genes.size()];
-            for (int j = 0; j < genes.size(); j++) {       // for every neural network
-                weights[j] = ((NeuralNetwork) genes.get(j)).layers.get(i).weight;
-                biases[j] = ((NeuralNetwork) genes.get(j)).layers.get(i).bias;
-            }
-            if (neuralNetwork.crossoverStrategy == CrossoverStrategy.MEAN) {
-                neuralNetwork.layers.get(i).weight = Matrix.merge(weights);
-                neuralNetwork.layers.get(i).bias = Matrix.merge(biases);
-            } else if (neuralNetwork.crossoverStrategy == CrossoverStrategy.SLICE) {
-                neuralNetwork.layers.get(i).weight = Matrix.crossover(neuralNetwork.crossoverSliceCount, weights);
-                neuralNetwork.layers.get(i).bias = Matrix.crossover(neuralNetwork.crossoverSliceCount, biases);
-            } else {
-                throw new IllegalArgumentException("Selected crossover strategy " + neuralNetwork.crossoverStrategy.name() + " is not implemented!");
+        NeuralNetwork neuralNetwork = this.copy();
+        if (genes.size() > 0) {
+            genes.add(this);
+            for (int i = 0; i < neuralNetwork.layers.size(); i++) {     // for every layer
+                Matrix[] weights = new Matrix[genes.size()];
+                Matrix[] biases = new Matrix[genes.size()];
+                for (int j = 0; j < genes.size(); j++) {       // for every neural network
+                    weights[j] = ((NeuralNetwork) genes.get(j)).layers.get(i).weight;
+                    biases[j] = ((NeuralNetwork) genes.get(j)).layers.get(i).bias;
+                }
+                if (neuralNetwork.crossoverStrategy == CrossoverStrategy.MEAN) {
+                    neuralNetwork.layers.get(i).weight = Matrix.merge(weights);
+                    neuralNetwork.layers.get(i).bias = Matrix.merge(biases);
+                } else if (neuralNetwork.crossoverStrategy == CrossoverStrategy.SLICE) {
+                    neuralNetwork.layers.get(i).weight = Matrix.crossover(neuralNetwork.crossoverSliceCount, weights);
+                    neuralNetwork.layers.get(i).bias = Matrix.crossover(neuralNetwork.crossoverSliceCount, biases);
+                } else {
+                    throw new IllegalArgumentException("Selected crossover strategy " + neuralNetwork.crossoverStrategy.name() + " is not implemented!");
+                }
             }
         }
         return (IGene) neuralNetwork;
