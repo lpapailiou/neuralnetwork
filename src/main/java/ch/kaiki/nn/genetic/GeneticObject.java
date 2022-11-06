@@ -106,13 +106,14 @@ public abstract class GeneticObject implements IGeneticObject {
     public int compareTo(@NotNull IGeneticObject o) {
         long fitness = this.getFitness();
         long otherFitness = o.getFitness();
-
+        return Long.compare(fitness, otherFitness);
+/*
         if (fitness > otherFitness) {
             return 1;
         } else if (fitness < otherFitness) {
             return -1;
         }
-        return 0;
+        return 0;*/
     }
 
 }
