@@ -62,8 +62,8 @@ class Generation<T> {
     }
 
     private synchronized IGene evolve() {
-        //populationList.sort(Comparator.nullsLast(Collections.reverseOrder()));    // Comparison method violates its general contract!
-        Collections.sort(populationList, Collections.reverseOrder());
+        populationList.sort(Comparator.nullsLast(Collections.reverseOrder()));
+        //Collections.sort(populationList, Collections.reverseOrder());
 
         bestGene = populationList.get(0).getGene();
         IGene bestForReproduction;
@@ -80,11 +80,11 @@ class Generation<T> {
             return bestGene;
         }
 
-        Map<Integer, Double> map = new HashMap<>();
+        Map<Integer, Long> map = new HashMap<>();
         double sumFitness = 0;
         for (int i = 0; i < selectionPoolSize; i++) {
             IGeneticObject object = populationList.get(i);
-            double fitness = object.getFitness();
+            long fitness = object.getFitness();
             sumFitness += fitness;
             map.put(i, fitness);
         }
@@ -100,7 +100,7 @@ class Generation<T> {
         return bestForReproduction;
     }
 
-    private IGene spinRouletteWheel(Map<Integer, Double> map, int selectionPoolSize, double sumFitness) {
+    private IGene spinRouletteWheel(Map<Integer, Long> map, int selectionPoolSize, double sumFitness) {
         double checksum = 0;
         double random = Math.random() * sumFitness;
         for (int i = 0; i < selectionPoolSize; i++) {

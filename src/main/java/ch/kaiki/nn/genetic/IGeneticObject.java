@@ -49,7 +49,7 @@ public interface IGeneticObject extends Comparable<IGeneticObject> {
      *
      * @return the fitness value for this instance.
      */
-    double getFitness();
+    long getFitness();
 
     /**
      * This method indicates if this instance is in an immature state yet. In mature statues only, the genetic

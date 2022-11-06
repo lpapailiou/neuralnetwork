@@ -64,7 +64,7 @@ public abstract class GeneticObject implements IGeneticObject {
      * @return the fitness value for this instance.
      */
     @Override
-    public abstract double getFitness();
+    public abstract long getFitness();
 
     /**
      * This method indicates if this instance is in an immature state yet. In mature statues only, the kaiki.ch.kaiki.nn.genetic
@@ -104,18 +104,15 @@ public abstract class GeneticObject implements IGeneticObject {
      */
     @Override
     public int compareTo(@NotNull IGeneticObject o) {
-        double fitness = this.getFitness();
-        double otherFitness = o.getFitness();
-        /*
+        long fitness = this.getFitness();
+        long otherFitness = o.getFitness();
+
         if (fitness > otherFitness) {
             return 1;
         } else if (fitness < otherFitness) {
             return -1;
         }
         return 0;
-
-         */
-        return Double.compare(fitness, otherFitness);
     }
 
 }
