@@ -62,7 +62,9 @@ class Generation<T> {
     }
 
     private IGene evolve() {
-        populationList.sort(Comparator.nullsLast(Collections.reverseOrder()));
+        //populationList.sort(Comparator.nullsLast(Collections.reverseOrder()));    // Comparison method violates its general contract!
+        Collections.sort(populationList, Collections.reverseOrder());
+
         bestGene = populationList.get(0).getGene();
         IGene bestForReproduction;
 
