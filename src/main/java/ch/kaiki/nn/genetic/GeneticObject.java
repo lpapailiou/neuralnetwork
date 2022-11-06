@@ -104,6 +104,9 @@ public abstract class GeneticObject implements IGeneticObject {
      */
     @Override
     public int compareTo(@NotNull IGeneticObject o) {
+        if (this == o) {
+            return 0;
+        }
         double fitness = this.getFitness();
         double otherFitness = o.getFitness();
         if (fitness > otherFitness) {
