@@ -61,7 +61,7 @@ class Generation<T> {
         return bestReproductiveGene;
     }
 
-    private IGene evolve() {
+    private synchronized IGene evolve() {
         //populationList.sort(Comparator.nullsLast(Collections.reverseOrder()));    // Comparison method violates its general contract!
         Collections.sort(populationList, Collections.reverseOrder());
 
